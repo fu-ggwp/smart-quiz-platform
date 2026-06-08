@@ -1,14 +1,5 @@
-import supabase from "../../config/supabase.js";
-import { PROFILE_TABLE } from "../../models/profile.model.js";
-
-export function findById(id) {
-  return supabase.from(PROFILE_TABLE).select("*").eq("id", id).single();
-}
-
-export function findByUsername(username) {
-  return supabase.from(PROFILE_TABLE).select("*").eq("username", username).single();
-}
-
-export function update(id, changes) {
-  return supabase.from(PROFILE_TABLE).update(changes).eq("id", id).select().single();
-}
+// Cleared: previous scaffold targeted a `profiles` table that doesn't exist
+// in the real schema. User profile data lives on the `users` table (and role
+// info on `user_roles`) — this is already handled by `getCurrentProfile` in
+// the auth feature. Rebuild this folder only if a separate profiles concept
+// is actually needed against `users`/`user_roles`.

@@ -1,58 +1,6 @@
-import * as service from "./study-sets.service.js";
-import { ok, fail } from "../../utils/api-response.js";
-
-export const listMine = async (req, res) => {
-  try { return ok(res, await service.listMine(req.user.id)); }
-  catch (err) { return fail(res, err, err.status || 500); }
-};
-
-export const listAvailable = async (req, res) => {
-  try { return ok(res, await service.listAvailable(req.query.classId)); }
-  catch (err) { return fail(res, err, err.status || 500); }
-};
-
-export const getOne = async (req, res) => {
-  try { return ok(res, await service.getOne(req.params.id)); }
-  catch (err) { return fail(res, err, err.status || 404); }
-};
-
-export const create = async (req, res) => {
-  try { return ok(res, await service.create(req.user.id, req.body), 201); }
-  catch (err) { return fail(res, err, err.status || 400); }
-};
-
-export const update = async (req, res) => {
-  try { return ok(res, await service.update(req.params.id, req.user.id, req.body)); }
-  catch (err) { return fail(res, err, err.status || 400); }
-};
-
-export const remove = async (req, res) => {
-  try { await service.remove(req.params.id, req.user.id); return ok(res, { message: "Deleted" }); }
-  catch (err) { return fail(res, err, err.status || 400); }
-};
-
-// Practice sessions
-export const startSession = async (req, res) => {
-  try { return ok(res, await service.startSession(req.user.id, req.params.id, req.body.mode), 201); }
-  catch (err) { return fail(res, err, err.status || 400); }
-};
-
-export const listMySessions = async (req, res) => {
-  try { return ok(res, await service.listMySessions(req.user.id)); }
-  catch (err) { return fail(res, err, err.status || 500); }
-};
-
-export const submitAnswer = async (req, res) => {
-  try { return ok(res, await service.submitAnswer(req.params.sessionId, req.body), 201); }
-  catch (err) { return fail(res, err, err.status || 400); }
-};
-
-export const completeSession = async (req, res) => {
-  try { return ok(res, await service.completeSession(req.params.sessionId, req.body.score)); }
-  catch (err) { return fail(res, err, err.status || 400); }
-};
-
-export const getSessionResults = async (req, res) => {
-  try { return ok(res, await service.getSessionResults(req.params.sessionId)); }
-  catch (err) { return fail(res, err, err.status || 404); }
-};
+// Cleared: previous scaffold used `owner_id`/direct `class_id` on study sets
+// (real columns are `teacher_id` plus a `study_set_assignments` join table to
+// classes) and `practice-attempt.model.js`/`attempt-answer.model.js` whose
+// table mappings were wrong (real tables: `practice_attempts`, `attempt_answers`).
+// Rebuild against the actual `study_sets`, `study_set_assignments`,
+// `practice_attempts`, and `attempt_answers` tables.

@@ -1,11 +1,5 @@
-import { Router } from "express";
-import * as profilesController from "./profiles.controller.js";
-import { requireAuth } from "../../middlewares/auth.middleware.js";
-
-const router = Router();
-
-router.get("/me", requireAuth, profilesController.getMine);
-router.patch("/me", requireAuth, profilesController.updateMine);
-router.get("/:username", profilesController.getByUsername); // public profile page
-
-export default router;
+// Cleared: previous scaffold targeted a `profiles` table that doesn't exist
+// in the real schema. User profile data lives on the `users` table (and role
+// info on `user_roles`) — this is already handled by `getCurrentProfile` in
+// the auth feature. Rebuild this folder only if a separate profiles concept
+// is actually needed against `users`/`user_roles`.

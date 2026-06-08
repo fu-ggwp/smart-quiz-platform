@@ -1,17 +1,3 @@
-import { Router } from "express";
-import * as paymentsController from "./payments.controller.js";
-import { requireAuth } from "../../middlewares/auth.middleware.js";
-
-const router = Router();
-
-router.get("/plans", paymentsController.listPlans);
-router.get("/", requireAuth, paymentsController.listMine);
-router.get("/:id", requireAuth, paymentsController.getOne);
-
-// Learner: subscribe → /learner/payments/checkout
-router.post("/checkout", requireAuth, paymentsController.startCheckout);
-
-// Provider webhook callback (no auth — provider signs the payload)
-router.post("/webhook", paymentsController.webhook);
-
-export default router;
+// Cleared: previous scaffold relied on `payment.model.js`/`premium-plan.model.js`
+// whose column mappings didn't match the real `payments`/`premium_plans` tables.
+// Rebuild against the actual schema columns for those tables.
