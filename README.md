@@ -11,8 +11,6 @@ A web-based platform that helps teachers create classes, manage question banks a
 
 ## Project Structure
 
-## Project Structure
-
 ```
 smart-quiz-platform/
 ├── client/        # Next.js frontend
