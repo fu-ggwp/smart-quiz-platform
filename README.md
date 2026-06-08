@@ -13,14 +13,14 @@ A web-based platform that helps teachers create classes, manage question banks a
 
 ## Project Structure
 
-\`\`\`
+```
 smart-quiz-platform/
 ├── client/        # Next.js frontend
 ├── server/        # Express.js backend (feature-folder architecture)
 ├── docs/          # Documentation
 ├── plans/         # Planning documents
 └── PROJECT_STRUCTURE.md
-\`\`\`
+```
 
 ## Getting Started
 
