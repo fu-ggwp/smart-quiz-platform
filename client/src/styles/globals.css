@@ -35,6 +35,10 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-auth-panel: var(--auth-panel);
+  --color-auth-panel-foreground: var(--auth-panel-foreground);
+  --color-auth-action: var(--auth-action);
+  --color-auth-action-foreground: var(--auth-action-foreground);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -57,6 +61,10 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
+  --auth-panel: oklch(0.9 0.055 292);
+  --auth-panel-foreground: oklch(0.18 0.055 270);
+  --auth-action: oklch(0.55 0.13 178);
+  --auth-action-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -92,6 +100,10 @@
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
+  --auth-panel: oklch(0.31 0.06 282);
+  --auth-panel-foreground: oklch(0.94 0.025 292);
+  --auth-action: oklch(0.62 0.12 178);
+  --auth-action-foreground: oklch(0.12 0.02 180);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);

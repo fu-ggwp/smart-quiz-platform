@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getRoot, getSupabaseHealth } from "../controllers/health.controller.js";
+import { getRoot, getSupabaseHealth } from "../features/health/health.controller.js";
 
 const healthRouter = Router();
 
