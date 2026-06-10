@@ -1,7 +1,7 @@
 import api from "./api";
 
 export const examsService = {
-  listMine: () => api.get("/api/exams").then((r) => r.data),
+  listMine: (params) => api.get("/api/exams", { params }).then((r) => r.data),
   listForClass: (classId) => api.get(`/api/exams/class/${classId}`).then((r) => r.data),
   getOne: (id) => api.get(`/api/exams/${id}`).then((r) => r.data),
   create: (payload) => api.post("/api/exams", payload).then((r) => r.data),

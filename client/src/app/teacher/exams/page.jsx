@@ -1,8 +1,12 @@
+import { ExamSessionsHeader } from "./_components/exam-sessions-header";
+import { TeacherExamSessionsClient } from "./_components/teacher-exam-sessions-client";
+
 export default function TeacherExamsPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <section className="w-full max-w-5xl">
-        <h1 className="text-3xl font-semibold">My Exams</h1>
+    <main className="min-h-screen bg-background px-4 py-5 font-sans text-foreground [font-family:var(--font-geist-sans),Arial,sans-serif] sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl space-y-6">
+        <ExamSessionsHeader />
+        <TeacherExamSessionsClient />
       </section>
     </main>
   );
