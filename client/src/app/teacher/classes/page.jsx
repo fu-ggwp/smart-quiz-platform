@@ -9,18 +9,19 @@ const SORT_OPTIONS = [
   { value: "oldest", label: "Oldest" },
   { value: "name_asc", label: "Name (A → Z)" },
   { value: "name_desc", label: "Name (Z → A)" },
-  { value: "members", label: "Most Members" },
 ];
+
+const PAGE_SIZE = 9;
 
 export default function TeacherClassesPage() {
   const { classes, loading, error, reload } = useClasses();
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     let result = [...classes];
 
-    // Search by class name
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       result = result.filter((cls) =>
@@ -28,7 +29,6 @@ export default function TeacherClassesPage() {
       );
     }
 
-    // Sort
     switch (sort) {
       case "oldest":
         result.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
@@ -39,9 +39,6 @@ export default function TeacherClassesPage() {
       case "name_desc":
         result.sort((a, b) => b.class_name?.localeCompare(a.class_name));
         break;
-      case "members":
-        result.sort((a, b) => (b.member_count ?? 0) - (a.member_count ?? 0));
-        break;
       case "newest":
       default:
         result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -50,6 +47,24 @@ export default function TeacherClassesPage() {
 
     return result;
   }, [classes, search, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = filtered.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  // Reset to page 1 when search or sort changes
+  function handleSearch(e) {
+    setSearch(e.target.value);
+    setPage(1);
+  }
+
+  function handleSort(e) {
+    setSort(e.target.value);
+    setPage(1);
+  }
 
   return (
     <main className="min-h-screen px-6 py-10">
@@ -67,28 +82,26 @@ export default function TeacherClassesPage() {
         </div>
 
         {/* Search + Sort */}
-        {!loading && !error && (
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by class name..."
-              className="flex-1 rounded-lg border border-neutral-200 px-4 py-2 text-sm outline-none focus:border-neutral-400"
-            />
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-              className="rounded-lg border border-neutral-200 px-4 py-2 text-sm outline-none focus:border-neutral-400"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <input
+            type="text"
+            value={search}
+            onChange={handleSearch}
+            placeholder="Search by class name..."
+            className="flex-1 rounded-lg border border-neutral-200 px-4 py-2 text-sm outline-none focus:border-neutral-400"
+          />
+          <select
+            value={sort}
+            onChange={handleSort}
+            className="rounded-lg border border-neutral-200 px-4 py-2 text-sm outline-none focus:border-neutral-400"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Loading */}
         {loading && (
@@ -123,48 +136,85 @@ export default function TeacherClassesPage() {
         )}
 
         {/* Class list */}
-        {!loading && filtered.length > 0 && (
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((cls) => (
-              <li key={cls.class_id}>
-                <Link
-                  href={`/teacher/classes/${cls.class_id}`}
-                  className="block rounded-xl border border-neutral-200 p-5 hover:border-neutral-400 transition"
+        {!loading && paginated.length > 0 && (
+          <>
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {paginated.map((cls) => (
+                <li key={cls.class_id}>
+                  <Link
+                    href={`/teacher/classes/${cls.class_id}`}
+                    className="block rounded-xl border border-neutral-200 p-5 hover:border-neutral-400 transition"
+                  >
+                    <div className="mb-2 flex items-start justify-between gap-2">
+                      <h2 className="font-semibold text-lg leading-tight">
+                        {cls.class_name}
+                      </h2>
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                          cls.status === "active"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-neutral-100 text-neutral-500"
+                        }`}
+                      >
+                        {cls.status}
+                      </span>
+                    </div>
+
+                    {cls.subject && (
+                      <p className="text-sm text-neutral-500">{cls.subject}</p>
+                    )}
+                    {cls.grade_level && (
+                      <p className="text-sm text-neutral-500">{cls.grade_level}</p>
+                    )}
+
+                    <p className="mt-3 text-sm text-neutral-400">
+                      {cls.member_count ?? 0} /{" "}
+                      {cls.learner_capacity ?? "—"} members
+                    </p>
+
+                    <p className="mt-1 text-xs text-neutral-400">
+                      Code: <span className="font-mono">{cls.class_code}</span>
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <div className="mb-2 flex items-start justify-between gap-2">
-                    <h2 className="font-semibold text-lg leading-tight">
-                      {cls.class_name}
-                    </h2>
-                    <span
-                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                        cls.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-neutral-100 text-neutral-500"
-                      }`}
-                    >
-                      {cls.status}
-                    </span>
-                  </div>
+                  ← Prev
+                </button>
 
-                  {cls.subject && (
-                    <p className="text-sm text-neutral-500">{cls.subject}</p>
-                  )}
-                  {cls.grade_level && (
-                    <p className="text-sm text-neutral-500">{cls.grade_level}</p>
-                  )}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`rounded-lg border px-3 py-1.5 text-sm ${
+                      p === currentPage
+                        ? "border-black bg-black text-white"
+                        : "border-neutral-200 hover:border-neutral-400"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
 
-                  <p className="mt-3 text-sm text-neutral-400">
-                    {cls.member_count ?? 0} /{" "}
-                    {cls.learner_capacity ?? "—"} members
-                  </p>
-
-                  <p className="mt-1 text-xs text-neutral-400">
-                    Code: <span className="font-mono">{cls.class_code}</span>
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </>
         )}
 
       </section>
