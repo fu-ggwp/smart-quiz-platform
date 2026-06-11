@@ -8,6 +8,7 @@ const classesService = {
   update: (id, changes) => api.patch(`/api/classes/${id}`, changes).then((r) => r.data.data),
   remove: (id) => api.delete(`/api/classes/${id}`).then((r) => r.data),
   listMembers: (id) => api.get(`/api/classes/${id}/members`).then((r) => r.data.data),
+  listJoinRequests: (id) => api.get(`/api/classes/${id}/join-requests`).then((r) => r.data.data),
 
   // Learner: join a class
   join: (id) => api.post(`/api/classes/${id}/join`).then((r) => r.data),

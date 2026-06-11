@@ -149,15 +149,7 @@ export default function TeacherClassesPage() {
                       <h2 className="font-semibold text-lg leading-tight">
                         {cls.class_name}
                       </h2>
-                      <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                          cls.status === "active"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-neutral-100 text-neutral-500"
-                        }`}
-                      >
-                        {cls.status}
-                      </span>
+
                     </div>
 
                     {cls.subject && (
