@@ -2,6 +2,7 @@ import {
   createQuestionBank,
   deleteQuestionBank,
   getQuestionBank,
+  listQuestionBankSubjects,
   listQuestionBanks,
   updateQuestionBank,
 } from "./question-banks.service.js";
@@ -24,6 +25,15 @@ function sendError(res, error) {
 export async function list(req, res) {
   try {
     const data = await listQuestionBanks(getUserId(req), req.query);
+    return res.status(200).json({ data });
+  } catch (error) {
+    return sendError(res, error);
+  }
+}
+
+export async function listSubjects(req, res) {
+  try {
+    const data = await listQuestionBankSubjects(getUserId(req));
     return res.status(200).json({ data });
   } catch (error) {
     return sendError(res, error);

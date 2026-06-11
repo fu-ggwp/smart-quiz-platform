@@ -163,6 +163,21 @@ export async function listQuestionBanks(userId, query) {
   };
 }
 
+export async function listQuestionBankSubjects(userId) {
+  await requireActiveTeacher(userId);
+
+  const { data, error } = await questionBanksDao.listSubjectsByTeacher(userId);
+  handleLoadError(error);
+
+  return Array.from(
+    new Set(
+      (data || [])
+        .map((row) => normalizeText(row.subject))
+        .filter(Boolean)
+    )
+  ).sort((a, b) => a.localeCompare(b));
+}
+
 export async function getQuestionBank(userId, questionBankId) {
   await requireActiveTeacher(userId);
   validateQuestionBankId(questionBankId);

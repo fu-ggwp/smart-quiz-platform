@@ -11,14 +11,6 @@ import { questionBanksService } from "@/services/question-banks.service";
 
 const ITEMS_PER_PAGE = 10;
 
-const subjectOptions = [
-  { value: "all", label: "All subjects" },
-  { value: "Mathematics", label: "Mathematics" },
-  { value: "Physics", label: "Physics" },
-  { value: "Chemistry", label: "Chemistry" },
-  { value: "Biology", label: "Biology" },
-];
-
 const statusOptions = [
   { value: "all", label: "All status" },
   { value: "draft", label: "Private" },
@@ -68,6 +60,8 @@ export default function QuestionBanksPage() {
   const [questionBanks, setQuestionBanks] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, limit: ITEMS_PER_PAGE, total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(true);
+  const [subjects, setSubjects] = useState([]);
+  const [subjectsLoading, setSubjectsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [keyword, setKeyword] = useState("");
   const [subject, setSubject] = useState("all");
@@ -100,10 +94,34 @@ export default function QuestionBanksPage() {
     await fetchQuestionBanks(params, page);
   }, [fetchQuestionBanks, page, params]);
 
+  const fetchSubjects = useCallback(async () => {
+    try {
+      const data = await questionBanksService.listSubjects();
+      setSubjects(data ?? []);
+    } catch {
+      setSubjects([]);
+    } finally {
+      setSubjectsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchQuestionBanks(params, page);
   }, [fetchQuestionBanks, page, params]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchSubjects();
+  }, [fetchSubjects]);
+
+  const subjectOptions = useMemo(
+    () => [
+      { value: "all", label: subjectsLoading ? "Loading subjects" : "All subjects" },
+      ...subjects.map((value) => ({ value, label: value })),
+    ],
+    [subjects, subjectsLoading]
+  );
 
   function handleKeywordChange(event) {
     setLoading(true);
@@ -141,6 +159,7 @@ export default function QuestionBanksPage() {
           onReset={resetFilters}
           onStatusChange={handleFilterChange(setStatus)}
           onSubjectChange={handleFilterChange(setSubject)}
+          subjectOptions={subjectOptions}
           status={status}
           subject={subject}
         />
@@ -214,6 +233,7 @@ function FilterBar({
   onReset,
   onStatusChange,
   onSubjectChange,
+  subjectOptions,
   status,
   subject,
 }) {
@@ -374,26 +394,42 @@ function PaginationBar({ onPageChange, pagination }) {
   const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm">
-      <span className="font-semibold text-muted-foreground">
-        Showing {startItem}-{endItem} of {count} question banks
+    <div className="flex min-h-14 flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm shadow-sm">
+      <span className="font-semibold text-foreground">
+        Showing {startItem}&ndash;{endItem} of {count} question banks
       </span>
       <div className="flex flex-wrap items-center gap-2">
-        <Button disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)} size="sm" variant="secondary">
+        <button
+          className="h-8 rounded-full px-3 text-sm font-medium text-muted-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={currentPage === 1}
+          onClick={() => onPageChange(currentPage - 1)}
+          type="button"
+        >
           Previous
-        </Button>
+        </button>
         {pages.map((page) => (
-          <Button key={page} onClick={() => onPageChange(page)} size="sm" variant={page === currentPage ? "default" : "secondary"}>
+          <button
+            className={`flex size-8 items-center justify-center rounded-full text-sm font-bold transition ${
+              page === currentPage
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+            key={page}
+            onClick={() => onPageChange(page)}
+            type="button"
+          >
             {page}
-          </Button>
+          </button>
         ))}
-        <Button disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)} size="sm" variant="secondary">
+        <button
+          className="h-8 rounded-full px-3 text-sm font-medium text-muted-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={currentPage === totalPages}
+          onClick={() => onPageChange(currentPage + 1)}
+          type="button"
+        >
           Next
-        </Button>
+        </button>
       </div>
-      <span className="text-xs font-semibold text-muted-foreground">
-        Page {currentPage} of {totalPages}
-      </span>
     </div>
   );
 }

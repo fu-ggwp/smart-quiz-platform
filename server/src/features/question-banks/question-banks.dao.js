@@ -48,6 +48,17 @@ export function listByTeacher(teacherId, filters = {}) {
   }));
 }
 
+export function listSubjectsByTeacher(teacherId) {
+  return db
+    .from(QUESTION_BANK_TABLE)
+    .select("subject")
+    .eq("teacher_id", teacherId)
+    .is("deleted_at", null)
+    .not("subject", "is", null)
+    .neq("subject", "")
+    .order("subject", { ascending: true });
+}
+
 export function findOwnedById(questionBankId, teacherId) {
   return db
     .from(QUESTION_BANK_TABLE)
