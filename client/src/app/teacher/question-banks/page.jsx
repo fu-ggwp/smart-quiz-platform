@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, BookOpen, Eye, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { AlertCircle, BookOpen, Plus, Search, SlidersHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,25 +19,17 @@ const subjectOptions = [
   { value: "Biology", label: "Biology" },
 ];
 
-const visibilityOptions = [
-  { value: "all", label: "All visibility" },
-  { value: "private", label: "Private" },
-  { value: "shared", label: "Shared" },
-  { value: "archived", label: "Archived" },
-];
-
 const statusOptions = [
   { value: "all", label: "All status" },
-  { value: "draft", label: "Draft" },
-  { value: "reviewed", label: "Reviewed" },
+  { value: "draft", label: "Private" },
+  { value: "reviewed", label: "Assigned" },
   { value: "archived", label: "Archived" },
 ];
 
-function buildParams({ keyword, page, status, subject, visibility }) {
+function buildParams({ keyword, page, status, subject }) {
   return {
     keyword: keyword.trim() || undefined,
     subject: subject === "all" ? undefined : subject,
-    visibility: visibility === "all" ? undefined : visibility,
     status: status === "all" ? undefined : status,
     page,
     limit: ITEMS_PER_PAGE,
@@ -59,6 +52,18 @@ function formatLabel(value) {
   return value.charAt(0).toUpperCase() + value.slice(1).replaceAll("_", " ");
 }
 
+function formatBankStatus(value) {
+  if (value === "draft") return "Private";
+  if (value === "reviewed") return "Assigned";
+  return formatLabel(value);
+}
+
+function getStatusTone(value) {
+  if (value === "reviewed") return "green";
+  if (value === "archived") return "red";
+  return "neutral";
+}
+
 export default function QuestionBanksPage() {
   const [questionBanks, setQuestionBanks] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, limit: ITEMS_PER_PAGE, total: 0, totalPages: 0 });
@@ -66,13 +71,12 @@ export default function QuestionBanksPage() {
   const [error, setError] = useState(null);
   const [keyword, setKeyword] = useState("");
   const [subject, setSubject] = useState("all");
-  const [visibility, setVisibility] = useState("all");
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
 
   const params = useMemo(
-    () => buildParams({ keyword, page, status, subject, visibility }),
-    [keyword, page, status, subject, visibility]
+    () => buildParams({ keyword, page, status, subject }),
+    [keyword, page, status, subject]
   );
 
   const fetchQuestionBanks = useCallback(async (activeParams, fallbackPage) => {
@@ -122,7 +126,6 @@ export default function QuestionBanksPage() {
     setError(null);
     setKeyword("");
     setSubject("all");
-    setVisibility("all");
     setStatus("all");
     setPage(1);
   }
@@ -138,10 +141,8 @@ export default function QuestionBanksPage() {
           onReset={resetFilters}
           onStatusChange={handleFilterChange(setStatus)}
           onSubjectChange={handleFilterChange(setSubject)}
-          onVisibilityChange={handleFilterChange(setVisibility)}
           status={status}
           subject={subject}
-          visibility={visibility}
         />
 
         {loading ? (
@@ -213,14 +214,12 @@ function FilterBar({
   onReset,
   onStatusChange,
   onSubjectChange,
-  onVisibilityChange,
   status,
   subject,
-  visibility,
 }) {
   return (
     <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
-      <div className="grid gap-4 md:grid-cols-[minmax(240px,1fr)_repeat(3,minmax(150px,190px))_auto]">
+      <div className="grid gap-4 md:grid-cols-[minmax(240px,1fr)_repeat(2,minmax(150px,190px))_auto]">
         <Field label="Search Question Banks">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -229,7 +228,6 @@ function FilterBar({
         </Field>
 
         <SelectField label="Subject" onChange={onSubjectChange} options={subjectOptions} value={subject} />
-        <SelectField label="Visibility" onChange={onVisibilityChange} options={visibilityOptions} value={visibility} />
         <SelectField label="Status" onChange={onStatusChange} options={statusOptions} value={status} />
 
         <div className="flex items-end justify-end">
@@ -244,6 +242,19 @@ function FilterBar({
 }
 
 function QuestionBanksTable({ questionBanks }) {
+  const router = useRouter();
+
+  function openQuestionBank(questionBankId) {
+    router.push(`/teacher/question-banks/${questionBankId}`);
+  }
+
+  function handleRowKeyDown(event, questionBankId) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openQuestionBank(questionBankId);
+    }
+  }
+
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="overflow-x-auto">
@@ -253,11 +264,9 @@ function QuestionBanksTable({ questionBanks }) {
               {[
                 "Question Bank",
                 "Subject",
-                "Visibility",
                 "Status",
                 "Questions",
                 "Updated",
-                "Actions",
               ].map((header) => (
                 <th className="px-4 py-3" key={header}>
                   {header}
@@ -268,7 +277,15 @@ function QuestionBanksTable({ questionBanks }) {
 
           <tbody className="divide-y divide-border">
             {questionBanks.map((bank) => (
-              <tr className="align-top hover:bg-muted/50" key={bank.question_bank_id}>
+              <tr
+                aria-label={`View details for ${bank.title}`}
+                className="cursor-pointer align-top outline-none transition hover:bg-muted/50 focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring"
+                key={bank.question_bank_id}
+                onClick={() => openQuestionBank(bank.question_bank_id)}
+                onKeyDown={(event) => handleRowKeyDown(event, bank.question_bank_id)}
+                role="button"
+                tabIndex={0}
+              >
                 <td className="px-4 py-3">
                   <p className="font-bold text-foreground">{bank.title}</p>
                   <p className="max-w-xl text-xs text-muted-foreground">{bank.description || "No description"}</p>
@@ -278,25 +295,12 @@ function QuestionBanksTable({ questionBanks }) {
                   <p className="text-xs">{bank.topic || "No topic"}</p>
                 </td>
                 <td className="px-4 py-3">
-                  <Badge tone={bank.visibility === "shared" ? "green" : bank.visibility === "archived" ? "red" : "neutral"}>
-                    {formatLabel(bank.visibility)}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3">
-                  <Badge tone={bank.status === "reviewed" ? "green" : bank.status === "archived" ? "red" : "amber"}>
-                    {formatLabel(bank.status)}
+                  <Badge tone={getStatusTone(bank.status)}>
+                    {formatBankStatus(bank.status)}
                   </Badge>
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">{bank.questionCount ?? 0}</td>
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(bank.updated_at || bank.created_at)}</td>
-                <td className="px-4 py-3">
-                  <Button asChild size="sm" variant="secondary">
-                    <Link href={`/teacher/question-banks/${bank.question_bank_id}`}>
-                      <Eye className="size-4" />
-                      Open
-                    </Link>
-                  </Button>
-                </td>
               </tr>
             ))}
           </tbody>
@@ -362,20 +366,12 @@ function StatePanel({ action, description, icon, title }) {
 }
 
 function PaginationBar({ onPageChange, pagination }) {
-  const totalPages = pagination.totalPages || 0;
+  const totalPages = Math.max(1, pagination.totalPages || 0);
   const currentPage = pagination.page || 1;
   const count = pagination.total || 0;
   const startItem = count === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
   const endItem = Math.min(currentPage * ITEMS_PER_PAGE, count);
   const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
-
-  if (totalPages <= 1) {
-    return (
-      <div className="rounded-lg border border-border bg-card px-4 py-3 text-sm font-semibold text-muted-foreground">
-        Showing {count} question banks
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm">
@@ -395,6 +391,9 @@ function PaginationBar({ onPageChange, pagination }) {
           Next
         </Button>
       </div>
+      <span className="text-xs font-semibold text-muted-foreground">
+        Page {currentPage} of {totalPages}
+      </span>
     </div>
   );
 }
