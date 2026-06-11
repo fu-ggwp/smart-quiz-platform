@@ -1,6 +1,17 @@
 import { randomBytes } from "crypto";
-import { getClassesByTeacher, insertClass, findClassByCode } from "./classes.dao.js";
+import {
+  getClassesByTeacher,
+  insertClass,
+  findClassByCode,
+  getClassById,
+  getClassMembers,
+  getJoinRequests,
+  getJoinRequestById,
+  updateJoinRequest,
+  insertClassMember,
+} from "./classes.dao.js";
 import { ClassStatus, ClassJoinPolicy } from "../../models/class.model.js";
+import { JoinRequestStatus, ClassMemberStatus } from "../../models/join-request.model.js";
 
 /**
  * Generate a random 6-character uppercase alphanumeric class code (e.g. "AB3X9Z").
@@ -80,4 +91,82 @@ export async function createClass({
 
   if (error) throw new Error(error.message);
   return data;
+}
+
+/**
+ * Get a single class, asserting the requester is the owner.
+ */
+export async function getClassDetail(classId, teacherId) {
+  const { data, error } = await getClassById(classId);
+  if (error || !data) {
+    const err = new Error("Class not found.");
+    err.status = 404;
+    throw err;
+  }
+  if (data.teacher_id !== teacherId) {
+    const err = new Error("Forbidden.");
+    err.status = 403;
+    throw err;
+  }
+  return data;
+}
+
+/**
+ * List active members of a class (ownership-gated).
+ */
+export async function listMembers(classId, teacherId) {
+  await getClassDetail(classId, teacherId);
+  const { data, error } = await getClassMembers(classId);
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+/**
+ * List pending join requests for a class (ownership-gated).
+ */
+export async function listJoinRequests(classId, teacherId) {
+  await getClassDetail(classId, teacherId);
+  const { data, error } = await getJoinRequests(classId, JoinRequestStatus.PENDING);
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+/**
+ * Approve or reject a join request.
+ * If approved, also inserts a class_members row.
+ */
+export async function resolveJoinRequest(requestId, status, reviewerId) {
+  const { data: request, error: reqError } = await getJoinRequestById(requestId);
+  if (reqError || !request) {
+    const err = new Error("Join request not found.");
+    err.status = 404;
+    throw err;
+  }
+  if (request.status !== JoinRequestStatus.PENDING) {
+    const err = new Error("Request already resolved.");
+    err.status = 409;
+    throw err;
+  }
+
+  // Ownership check via class
+  await getClassDetail(request.class_id, reviewerId);
+
+  const { data: updated, error: updateError } = await updateJoinRequest(requestId, {
+    status,
+    reviewed_by: reviewerId,
+    reviewed_at: new Date().toISOString(),
+  });
+  if (updateError) throw new Error(updateError.message);
+
+  if (status === JoinRequestStatus.APPROVED) {
+    const { error: memberError } = await insertClassMember({
+      class_id: request.class_id,
+      learner_id: request.learner_id,
+      status: ClassMemberStatus.ACTIVE,
+      joined_at: new Date().toISOString(),
+    });
+    if (memberError) throw new Error(memberError.message);
+  }
+
+  return updated;
 }

@@ -1,4 +1,12 @@
-import { listTeacherClasses, createClass as createClassService } from "./classes.service.js";
+import {
+  listTeacherClasses,
+  createClass as createClassService,
+  getClassDetail as getClassDetailService,
+  listMembers as listMembersService,
+  listJoinRequests as listJoinRequestsService,
+  resolveJoinRequest as resolveJoinRequestService,
+} from "./classes.service.js";
+import { JoinRequestStatus } from "../../models/join-request.model.js";
 
 /**
  * GET /api/classes
@@ -51,5 +59,61 @@ export async function createClass(req, res) {
     res.status(201).json({ ok: true, data: newClass });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
+  }
+}
+
+/**
+ * GET /api/classes/:id
+ */
+export async function getClassDetail(req, res) {
+  try {
+    const cls = await getClassDetailService(req.params.id, req.user.id);
+    res.json({ ok: true, data: cls });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+}
+
+/**
+ * GET /api/classes/:id/members
+ */
+export async function getClassMembers(req, res) {
+  try {
+    const members = await listMembersService(req.params.id, req.user.id);
+    res.json({ ok: true, data: members });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+}
+
+/**
+ * GET /api/classes/:id/join-requests
+ */
+export async function getJoinRequests(req, res) {
+  try {
+    const requests = await listJoinRequestsService(req.params.id, req.user.id);
+    res.json({ ok: true, data: requests });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+}
+
+/**
+ * PATCH /api/classes/join-requests/:requestId
+ * Body: { status: "approved" | "rejected" }
+ */
+export async function resolveJoinRequest(req, res) {
+  const { status } = req.body;
+  const allowed = [JoinRequestStatus.APPROVED, JoinRequestStatus.REJECTED];
+
+  if (!allowed.includes(status)) {
+    return res.status(400).json({ ok: false, error: `status must be one of: ${allowed.join(", ")}` });
+  }
+
+  try {
+    const updated = await resolveJoinRequestService(req.params.requestId, status, req.user.id);
+    res.json({ ok: true, data: updated });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
   }
 }
