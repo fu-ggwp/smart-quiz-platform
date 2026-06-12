@@ -1,7 +1,8 @@
 import api from "./api";
 
 export const questionBanksService = {
-  listMine: () => api.get("/api/question-banks").then((r) => r.data),
+  listMine: (params) => api.get("/api/question-banks", { params }).then((r) => r.data.data),
+  listSubjects: () => api.get("/api/question-banks/subjects").then((r) => r.data.data),
   getOne: (id) => api.get(`/api/question-banks/${id}`).then((r) => r.data),
   create: (payload) => api.post("/api/question-banks", payload).then((r) => r.data),
   update: (id, changes) => api.patch(`/api/question-banks/${id}`, changes).then((r) => r.data),
