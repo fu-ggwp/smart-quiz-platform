@@ -37,12 +37,12 @@ export async function getOne(id) {
 }
 
 // Tạo mới 1 study set
-export async function create(teacherId, { title, description, visibility, classId, questionBankId }) {
+export async function create(teacherId, { title, description, visibility, classId, questionBankId, questions }) {
   if (!title?.trim()) {
     throw Object.assign(new Error("Title is required"), { status: 422 });
   }
 
-  const { data, error } = await dao.create({
+  const { data: studySet, error } = await dao.create({
     teacher_id: teacherId,
     title,
     description,
@@ -54,9 +54,58 @@ export async function create(teacherId, { title, description, visibility, classI
     throw dbError(error);
   }
 
+  if (questions && questions.length > 0) {
+    const questionsPayload = questions.map((q) => ({
+      study_set_id: studySet.study_set_id,
+      owner_id: teacherId,
+      question_text: q.question_text,
+      score: q.score ?? 1,
+      explanation: q.explanation || null,
+      subject: q.subject || studySet.subject || null,
+      topic: q.topic || studySet.topic || null,
+      chapter: q.chapter || null,
+      lesson: q.lesson || null,
+      difficulty: q.difficulty,
+      status: "active",
+      source_question_id: q.source_question_id || null,
+    }));
+
+    const { data: insertedQuestions, error: qError } = await dao.creationQuestions(questionsPayload);
+    if (qError) {
+      throw dbError(qError);
+    }
+
+    const optionsPayload = [];
+    for (let i = 0; i < insertedQuestions.length; i++) {
+      const insertedQ = insertedQuestions[i];
+      const originalQ = questions[i];
+
+      if (originalQ.options && originalQ.options.length > 0) {
+        originalQ.options.forEach((opt, idx) => {
+          optionsPayload.push({
+            question_id: insertedQ.question_id,
+            option_text: opt.option_text,
+            is_correct: !!opt.is_correct,
+            display_order: opt.display_order ?? idx + 1,
+          });
+        });
+      }
+    }
+
+    if (optionsPayload.length > 0) {
+      const { error: optError } = await dao.createOptions(optionsPayload);
+      if (optError) {
+        throw dbError(optError);
+      }
+    }
+
+    await dao.updateQuestionCount(studySet.study_set_id, insertedQuestions.length);
+    studySet.question_count = insertedQuestions.length;
+  }
+
   if (classId) {
     const { error: assignError } = await dao.assignToClass({
-      study_set_id: data.study_set_id,
+      study_set_id: studySet.study_set_id,
       class_id: classId,
       assigned_by: teacherId,
     });
@@ -65,7 +114,7 @@ export async function create(teacherId, { title, description, visibility, classI
     }
   }
 
-  return data;
+  return studySet;
 }
 
 // Cập nhật study set
@@ -171,4 +220,22 @@ export async function getSessionResults(sessionId) {
     throw dbError(error, 500);
   }
   return { session: session.data, answers: data };
+}
+
+//List dsach bank 
+export async function listQuestionBank(teacherId) {
+  const { data, error } = await dao.listQuestionBankByTeacher(teacherId);
+  if (error) {
+    throw dbError(error, 500);
+  }
+  return data;
+}
+
+//List dsach quest từ 1 bank
+export async function getQuestionsByBank(questionBankId) {
+  const { data, error } = await dao.listQuestionByBank(questionBankId);
+  if (error) {
+    throw dbError(error, 500);
+  }
+  return data;
 }

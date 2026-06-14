@@ -89,3 +89,23 @@ export const getSessionResults = async (req, res) => {
     return fail(res, err, err.status || 404);
   }
 };
+
+export const listQuestionBanks = async (req, res) => {
+  try {
+    const teacherId = req.user.user_id || req.user.id;
+    const data = await service.listQuestionBank(teacherId);
+    return ok(res, data);
+  } catch (err) {
+    return fail(res, err, err.status || 500);
+  }
+};
+
+export const getQuestionsByBank = async (req, res) => {
+  try {
+    const { bankId } = req.params;
+    const data = await service.getQuestionsByBank(bankId);
+    return ok(res, data);
+  } catch (err) {
+    return fail(res, err, err.status || 500);
+  }
+}

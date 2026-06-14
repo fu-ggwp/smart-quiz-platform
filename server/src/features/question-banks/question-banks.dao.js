@@ -102,3 +102,4 @@ export async function countQuestions(questionBankId) {
   if (error) throw error;
   return count || 0;
 }
+

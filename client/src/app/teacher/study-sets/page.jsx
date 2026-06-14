@@ -280,12 +280,6 @@ function FilterBar({
             value={subject}
           />
 
-          <div className="flex items-end">
-            <Button type="button" variant="secondary">
-              <Search className="size-4" />
-              Apply
-            </Button>
-          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-[220px_220px_1fr_auto]">
