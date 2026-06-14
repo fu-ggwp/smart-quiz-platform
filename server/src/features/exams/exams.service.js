@@ -157,17 +157,34 @@ function validateSourceQuestion(question) {
   return false;
 }
 
-function toExamQuestionRows(examSessionId, sourceQuestions) {
-  return sourceQuestions.map((question, index) => {
-    const answerOptions = [...(question.answer_options ?? [])]
-      .sort((left, right) => left.display_order - right.display_order)
-      .map((option, optionIndex) => ({
-        index: optionIndex,
-        text: option.option_text,
-      }));
+function shuffleItems(items) {
+  const shuffled = [...items];
 
-    const correctOptionIndexes = [...(question.answer_options ?? [])]
-      .sort((left, right) => left.display_order - right.display_order)
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+
+  return shuffled;
+}
+
+function getOrderedAnswerOptions(question, shouldRandomizeAnswers) {
+  const orderedOptions = [...(question.answer_options ?? [])].sort(
+    (left, right) => left.display_order - right.display_order
+  );
+
+  return shouldRandomizeAnswers ? shuffleItems(orderedOptions) : orderedOptions;
+}
+
+function toExamQuestionRows(examSessionId, sourceQuestions, shouldRandomizeAnswers) {
+  return sourceQuestions.map((question, index) => {
+    const orderedOptions = getOrderedAnswerOptions(question, shouldRandomizeAnswers);
+    const answerOptions = orderedOptions.map((option, optionIndex) => ({
+      index: optionIndex,
+      text: option.option_text,
+    }));
+
+    const correctOptionIndexes = orderedOptions
       .map((option, optionIndex) => (option.is_correct ? optionIndex : null))
       .filter((optionIndex) => optionIndex !== null);
 
@@ -191,7 +208,7 @@ function toExamQuestionRows(examSessionId, sourceQuestions) {
 }
 
 function selectSourceQuestions(questions, requestedCount, shouldRandomize) {
-  const candidates = shouldRandomize ? [...questions].sort(() => Math.random() - 0.5) : questions;
+  const candidates = shouldRandomize ? shuffleItems(questions) : questions;
   return candidates.slice(0, requestedCount);
 }
 
@@ -300,7 +317,7 @@ export async function createExamSession(teacherId, payload = {}) {
       normalized.randomize_questions
     );
     const examQuestions = await insertExamQuestions(
-      toExamQuestionRows(examSession.exam_session_id, selectedQuestions)
+      toExamQuestionRows(examSession.exam_session_id, selectedQuestions, normalized.randomize_answers)
     );
 
     return {
