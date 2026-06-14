@@ -4,19 +4,24 @@ import supabase, { supabaseAdmin } from "../../config/supabase.js";
 import { createUserModel } from "../../models/user.model.js";
 import { ExamResultVisibility, ExamSessionStatus } from "../../models/exam.model.js";
 import {
+  countExamReadyQuestionsInBank,
   deleteExamSession,
   findManagedActiveClass,
   findOwnedQuestionBank,
   insertExamQuestions,
   insertExamSession,
   listQuestionBankSourceQuestions,
-  listTeacherExamSessions,
+  listTeacherExamSessions as listTeacherExamSessionsDao,
 } from "./exams.dao.js";
 
 const db = supabaseAdmin ?? supabase;
 const userModel = createUserModel(db);
 
-const allowedStatuses = new Set([ExamSessionStatus.DRAFT, ExamSessionStatus.PUBLISHED]);
+const savedMessage = "Exam session has been created successfully.";
+const invalidInfoMessage = "The information is invalid. Please check and try again.";
+const invalidActivationMessage =
+  "The exam session cannot be activated. Please complete the required configuration.";
+const allowedCreateStatuses = new Set([ExamSessionStatus.DRAFT, ExamSessionStatus.ACTIVE]);
 const allowedResultVisibility = new Set([
   ExamResultVisibility.COMPLETION_ONLY,
   ExamResultVisibility.SCORE_ONLY,
@@ -30,14 +35,18 @@ function serviceError(message, statusCode = 400, fields) {
   return error;
 }
 
-function requireUserId(userId) {
+function validationError(message, fields) {
+  return serviceError(message, 400, fields);
+}
+
+function requireTeacherId(userId) {
   if (!userId) {
-    throw serviceError("Authenticated teacher is required", 401);
+    throw serviceError("Missing authenticated user.", 401);
   }
 }
 
 async function requireActiveTeacher(userId) {
-  requireUserId(userId);
+  requireTeacherId(userId);
 
   const profile = await userModel.findById(userId);
 
@@ -57,12 +66,25 @@ function normalizeText(value) {
   return String(value).trim();
 }
 
+function ensureObjectPayload(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw validationError("Request body is required.", {
+      body: "Request body is required.",
+    });
+  }
+}
+
 function normalizeNullableText(value) {
   const normalized = normalizeText(value);
   return normalized || null;
 }
 
 function normalizePositiveInteger(value, fieldName, errors) {
+  if (value === undefined || value === null || value === "") {
+    errors[fieldName] = "Please complete all required information.";
+    return null;
+  }
+
   const number = Number(value);
 
   if (!Number.isInteger(number) || number <= 0) {
@@ -89,8 +111,8 @@ function normalizeOptionalDate(value, fieldName, errors) {
 function normalizeStatus(value, errors) {
   const normalized = normalizeText(value || ExamSessionStatus.DRAFT).toLowerCase();
 
-  if (!allowedStatuses.has(normalized)) {
-    errors.status = "Status must be draft or published.";
+  if (!allowedCreateStatuses.has(normalized)) {
+    errors.status = "Status must be draft or active.";
     return ExamSessionStatus.DRAFT;
   }
 
@@ -114,9 +136,9 @@ function buildAccessCode(value) {
 }
 
 function assertValidTimeWindow({ status, startAt, endAt, errors }) {
-  if (status === ExamSessionStatus.PUBLISHED && (!startAt || !endAt)) {
-    errors.start_at = errors.start_at || "Start time is required to publish an exam.";
-    errors.end_at = errors.end_at || "End time is required to publish an exam.";
+  if (status === ExamSessionStatus.ACTIVE && (!startAt || !endAt)) {
+    errors.start_at = errors.start_at || "Start time is required before activating an exam.";
+    errors.end_at = errors.end_at || "End time is required before activating an exam.";
     return;
   }
 
@@ -135,8 +157,14 @@ function assertValidTimeWindow({ status, startAt, endAt, errors }) {
     errors.end_at = "End time must be later than start time.";
   }
 
-  if (status === ExamSessionStatus.PUBLISHED && startTime < Date.now()) {
+  if (status === ExamSessionStatus.ACTIVE && startTime < Date.now()) {
     errors.start_at = "Start time cannot be in the past.";
+  }
+}
+
+function handleDaoError(error) {
+  if (error) {
+    throw serviceError("Failed to load data. Please check your connection and try again.", 500);
   }
 }
 
@@ -213,6 +241,8 @@ function selectSourceQuestions(questions, requestedCount, shouldRandomize) {
 }
 
 function normalizeCreatePayload(payload = {}) {
+  ensureObjectPayload(payload);
+
   const errors = {};
   const title = normalizeText(payload.title);
   const classId = normalizeText(payload.class_id);
@@ -232,7 +262,7 @@ function normalizeCreatePayload(payload = {}) {
   assertValidTimeWindow({ status, startAt, endAt, errors });
 
   if (Object.keys(errors).length > 0) {
-    throw serviceError("The information is invalid. Please check and try again.", 400, errors);
+    throw validationError(invalidInfoMessage, errors);
   }
 
   return {
@@ -253,62 +283,92 @@ function normalizeCreatePayload(payload = {}) {
   };
 }
 
-export async function listMine(teacherId, filters = {}) {
-  if (!teacherId) {
-    const error = new Error("Authenticated teacher is required");
-    error.status = 401;
-    throw error;
-  }
+export async function listTeacherExamSessions(teacherId, filters = {}) {
+  requireTeacherId(teacherId);
 
-  return listTeacherExamSessions(teacherId, filters);
+  const { data, error } = await listTeacherExamSessionsDao(teacherId, filters);
+  handleDaoError(error);
+
+  return data;
 }
 
 export async function createExamSession(teacherId, payload = {}) {
   await requireActiveTeacher(teacherId);
 
   const normalized = normalizeCreatePayload(payload);
-  const [managedClass, questionBank] = await Promise.all([
+  const [classResult, bankResult] = await Promise.all([
     findManagedActiveClass(normalized.class_id, teacherId),
     findOwnedQuestionBank(normalized.question_bank_id, teacherId),
   ]);
+  handleDaoError(classResult.error);
+  handleDaoError(bankResult.error);
 
   const errors = {};
 
-  if (!managedClass) {
+  if (!classResult.data) {
     errors.class_id = "Select one of your active classes.";
   }
 
-  if (!questionBank) {
+  if (!bankResult.data) {
     errors.question_bank_id = "Select one of your available question banks.";
   }
 
   if (Object.keys(errors).length > 0) {
-    throw serviceError("The information is invalid. Please check and try again.", 400, errors);
+    throw validationError(invalidInfoMessage, errors);
   }
 
-  const sourceQuestions = await listQuestionBankSourceQuestions(normalized.question_bank_id);
-  const validQuestions = sourceQuestions.filter(validateSourceQuestion);
+  const { count: availableCount, error: countError } = await countExamReadyQuestionsInBank(
+    normalized.question_bank_id,
+    teacherId
+  );
+  handleDaoError(countError);
 
-  if (validQuestions.length === 0) {
+  if (availableCount === 0) {
     errors.question_bank_id = "The selected question bank does not contain valid active questions.";
   }
+
+  if (normalized.question_count > availableCount) {
+    errors.question_count = `Only ${availableCount} valid questions are available in this question bank.`;
+  }
+
+  if (Object.keys(errors).length > 0) {
+    throw validationError(
+      normalized.status === ExamSessionStatus.ACTIVE ? invalidActivationMessage : invalidInfoMessage,
+      errors
+    );
+  }
+
+  const { data: sourceQuestionsData, error: sourceQuestionsError } = await listQuestionBankSourceQuestions(
+    normalized.question_bank_id
+  );
+  handleDaoError(sourceQuestionsError);
+
+  const sourceQuestions = sourceQuestionsData ?? [];
+  const validQuestions = sourceQuestions.filter(validateSourceQuestion);
 
   if (normalized.question_count > validQuestions.length) {
     errors.question_count = `Only ${validQuestions.length} valid questions are available in this question bank.`;
   }
 
   if (Object.keys(errors).length > 0) {
-    throw serviceError("The information is invalid. Please check and try again.", 400, errors);
+    throw validationError(
+      normalized.status === ExamSessionStatus.ACTIVE ? invalidActivationMessage : invalidInfoMessage,
+      errors
+    );
   }
 
-  const shouldCreateAccessCode = normalized.access_code || normalized.status === ExamSessionStatus.PUBLISHED;
+  const shouldCreateAccessCode = normalized.access_code || normalized.status === ExamSessionStatus.ACTIVE;
   const accessCode = shouldCreateAccessCode ? buildAccessCode(normalized.access_code) : null;
 
-  const examSession = await insertExamSession({
+  const { data: examSession, error: examSessionError } = await insertExamSession({
     ...normalized,
     access_code: accessCode,
     teacher_id: teacherId,
   });
+
+  if (examSessionError) {
+    throw serviceError(examSessionError.message || invalidInfoMessage, 400);
+  }
 
   try {
     const selectedQuestions = selectSourceQuestions(
@@ -316,15 +376,20 @@ export async function createExamSession(teacherId, payload = {}) {
       normalized.question_count,
       normalized.randomize_questions
     );
-    const examQuestions = await insertExamQuestions(
+    const { data: examQuestions, error: examQuestionsError } = await insertExamQuestions(
       toExamQuestionRows(examSession.exam_session_id, selectedQuestions, normalized.randomize_answers)
     );
 
+    if (examQuestionsError) {
+      throw serviceError(examQuestionsError.message || invalidInfoMessage, 400);
+    }
+
     return {
       ...examSession,
-      question_bank: questionBank,
-      classes: managedClass,
-      exam_questions_count: examQuestions.length,
+      message: savedMessage,
+      question_bank: bankResult.data,
+      classes: classResult.data,
+      exam_questions_count: examQuestions?.length ?? 0,
     };
   } catch (error) {
     await deleteExamSession(examSession.exam_session_id);

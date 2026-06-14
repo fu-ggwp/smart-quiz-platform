@@ -98,9 +98,9 @@ export function CreateExamSessionClient() {
       errors.question_bank_id = "The selected question bank has no available questions.";
     }
 
-    if (nextStatus === "published") {
-      if (!form.start_at) errors.start_at = "Start time is required to publish.";
-      if (!form.end_at) errors.end_at = "End time is required to publish.";
+    if (nextStatus === "active") {
+      if (!form.start_at) errors.start_at = "Start time is required before activating.";
+      if (!form.end_at) errors.end_at = "End time is required before activating.";
       if (startTime && startTime < Date.now()) errors.start_at = "Start time cannot be in the past.";
     }
 

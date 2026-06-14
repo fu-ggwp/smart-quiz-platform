@@ -17,7 +17,7 @@ export const INITIAL_FORM = {
 
 export const STATUS_OPTIONS = [
   { value: "draft", label: "Draft" },
-  { value: "published", label: "Published" },
+  { value: "active", label: "Active" },
 ];
 
 export const RESULT_VISIBILITY_OPTIONS = [

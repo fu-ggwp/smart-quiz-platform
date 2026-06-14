@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
-import { asyncHandler } from "../../utils/async-handler.js";
-import * as examsController from "./exams.controller.js";
+import { createExamSession, getMyExamSessions } from "./exams.controller.js";
 
-const router = Router();
+const examsRouter = Router();
 
-router.get("/", requireAuth, asyncHandler(examsController.listMine));
-router.post("/", requireAuth, asyncHandler(examsController.create));
+// Collection routes
+examsRouter.get("/", requireAuth, getMyExamSessions);
+examsRouter.post("/", requireAuth, createExamSession);
 
-export default router;
+export default examsRouter;

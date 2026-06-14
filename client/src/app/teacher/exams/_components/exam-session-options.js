@@ -11,7 +11,6 @@ export const INITIAL_FILTERS = {
 export const STATUS_OPTIONS = [
   { value: "", label: "All statuses" },
   { value: "draft", label: "Draft" },
-  { value: "published", label: "Scheduled" },
   { value: "active", label: "Open" },
   { value: "closed", label: "Closed" },
   { value: "archived", label: "Archived" },
@@ -32,7 +31,6 @@ export const SORT_OPTIONS = [
 
 const STATUS_STYLES = {
   active: "border-auth-action/30 bg-auth-action/10 text-auth-action",
-  published: "border-primary/20 bg-secondary text-secondary-foreground",
   draft: "border-border bg-muted text-muted-foreground",
   closed: "border-destructive/30 bg-destructive/10 text-destructive",
   archived: "border-border bg-muted text-muted-foreground",
@@ -40,7 +38,6 @@ const STATUS_STYLES = {
 
 const STATUS_LABELS = {
   active: "open",
-  published: "scheduled",
   draft: "draft",
   closed: "closed",
   archived: "archived",
