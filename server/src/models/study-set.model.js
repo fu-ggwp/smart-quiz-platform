@@ -11,12 +11,6 @@ export const StudySetVisibility = Object.freeze({
   ARCHIVED: "archived",
 });
 
-export const StudySetCreationMethod = Object.freeze({
-  MANUAL: "manual",
-  IMPORT: "import",
-  AI_GENERATED: "ai_generated",
-  FROM_QUESTION_BANK: "from_question_bank",
-});
 
 export const StudySetPracticeMode = Object.freeze({
   FLASHCARD: "flashcard",

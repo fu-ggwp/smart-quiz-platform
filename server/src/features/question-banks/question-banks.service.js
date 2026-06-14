@@ -6,7 +6,8 @@ const db = supabaseAdmin || supabase;
 const userModel = createUserModel(db);
 
 const allowedStatus = new Set(["Private", "Assigned"]);
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const uuidRegex =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function serviceError(message, statusCode = 400, fields) {
   const error = new Error(message);
@@ -28,11 +29,20 @@ async function requireActiveTeacher(userId) {
   const profile = await userModel.findById(userId);
 
   if (!profile || profile.deleted_at) {
-    throw serviceError("You do not have permission to access or perform this action.", 403);
+    throw serviceError(
+      "You do not have permission to access or perform this action.",
+      403,
+    );
   }
 
-  if (profile.account_status !== "active" || profile.active_role !== "teacher") {
-    throw serviceError("You do not have permission to access or perform this action.", 403);
+  if (
+    profile.account_status !== "active" ||
+    profile.active_role !== "teacher"
+  ) {
+    throw serviceError(
+      "You do not have permission to access or perform this action.",
+      403,
+    );
   }
 
   return profile;
@@ -66,7 +76,11 @@ function normalizeListFilters(query = {}) {
   const status = validateStatusFilter(query.status, errors);
 
   if (Object.keys(errors).length > 0) {
-    throw serviceError("The information is invalid. Please check and try again.", 400, errors);
+    throw serviceError(
+      "The information is invalid. Please check and try again.",
+      400,
+      errors,
+    );
   }
 
   return {
@@ -82,13 +96,18 @@ function normalizeListFilters(query = {}) {
 async function attachQuestionCount(questionBank) {
   return {
     ...questionBank,
-    questionCount: await questionBanksDao.countQuestions(questionBank.question_bank_id),
+    questionCount: await questionBanksDao.countQuestions(
+      questionBank.question_bank_id,
+    ),
   };
 }
 
 function handleLoadError(error) {
   if (error) {
-    throw serviceError("Failed to load data. Please check your connection and try again.", 500);
+    throw serviceError(
+      "Failed to load data. Please check your connection and try again.",
+      500,
+    );
   }
 }
 
@@ -96,7 +115,8 @@ export async function listQuestionBanks(userId, query) {
   await requireActiveTeacher(userId);
 
   const filters = normalizeListFilters(query);
-  const { data, error, count, page, limit } = await questionBanksDao.listByTeacher(userId, filters);
+  const { data, error, count, page, limit } =
+    await questionBanksDao.listByTeacher(userId, filters);
   handleLoadError(error);
 
   const items = await Promise.all((data || []).map(attachQuestionCount));
@@ -113,12 +133,14 @@ export async function listQuestionBanks(userId, query) {
   };
 }
 
-
 export async function getQuestionBank(userId, questionBankId) {
   await requireActiveTeacher(userId);
   validateQuestionBankId(questionBankId);
 
-  const { data, error } = await questionBanksDao.findOwnedById(questionBankId, userId);
+  const { data, error } = await questionBanksDao.findOwnedById(
+    questionBankId,
+    userId,
+  );
   handleLoadError(error);
 
   if (!data) {
@@ -137,7 +159,10 @@ export async function createQuestionBank(userId, payload) {
   });
 
   if (error) {
-    throw serviceError(error.message || "Question bank could not be created.", 400);
+    throw serviceError(
+      error.message || "Question bank could not be created.",
+      400,
+    );
   }
 
   return {
@@ -150,10 +175,17 @@ export async function updateQuestionBank(userId, questionBankId, changes) {
   await requireActiveTeacher(userId);
   validateQuestionBankId(questionBankId);
 
-  const { data, error } = await questionBanksDao.update(questionBankId, userId, changes);
+  const { data, error } = await questionBanksDao.update(
+    questionBankId,
+    userId,
+    changes,
+  );
 
   if (error) {
-    throw serviceError(error.message || "Question bank could not be updated.", 400);
+    throw serviceError(
+      error.message || "Question bank could not be updated.",
+      400,
+    );
   }
 
   if (!data) {
@@ -167,7 +199,10 @@ export async function archiveQuestionBank(userId, questionBankId) {
   await requireActiveTeacher(userId);
   validateQuestionBankId(questionBankId);
 
-  const { data, error } = await questionBanksDao.archive(questionBankId, userId);
+  const { data, error } = await questionBanksDao.archive(
+    questionBankId,
+    userId,
+  );
 
   if (error) {
     throw serviceError(error.message || "Question bank delete failed.", 400);

@@ -5,7 +5,13 @@ import { getPagination } from "../../utils/pagination.js";
 
 const db = supabaseAdmin || supabase;
 
-const sortableColumns = new Set(["title", "topic", "status", "created_at", "updated_at"]);
+const sortableColumns = new Set([
+  "title",
+  "topic",
+  "status",
+  "created_at",
+  "updated_at",
+]);
 
 function cleanKeyword(value = "") {
   return String(value).trim().replace(/[,()]/g, " ").replace(/\s+/g, " ");
@@ -13,7 +19,9 @@ function cleanKeyword(value = "") {
 
 export function listByTeacher(teacherId, filters = {}) {
   const { page, limit, from, to } = getPagination(filters);
-  const sortBy = sortableColumns.has(filters.sortBy) ? filters.sortBy : "updated_at";
+  const sortBy = sortableColumns.has(filters.sortBy)
+    ? filters.sortBy
+    : "updated_at";
   const ascending = filters.sortOrder === "asc";
   const keyword = cleanKeyword(filters.keyword);
 
@@ -25,16 +33,21 @@ export function listByTeacher(teacherId, filters = {}) {
     .neq("status", "Deleted");
 
   if (keyword) {
-    query = query.or(`title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%`);
+    query = query.or(
+      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%`,
+    );
   }
 
   if (filters.status) query = query.eq("status", filters.status);
 
-  return query.order(sortBy, { ascending }).range(from, to).then((result) => ({
-    ...result,
-    page,
-    limit,
-  }));
+  return query
+    .order(sortBy, { ascending })
+    .range(from, to)
+    .then((result) => ({
+      ...result,
+      page,
+      limit,
+    }));
 }
 
 export function findOwnedById(questionBankId, teacherId) {
