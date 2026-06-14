@@ -1,7 +1,61 @@
-import { ok } from "../../utils/api-response.js";
-import * as examsService from "./exams.service.js";
+import {
+  getExamDetail as getExamDetailService,
+  listTeacherExamSessions,
+  updateExamSettings as updateExamSettingsService,
+} from "./exams.service.js";
 
-export async function listMine(req, res) {
-  const data = await examsService.listMine(req.user.id, req.query);
-  return ok(res, data);
+function getUserId(req) {
+  return req.user?.id || req.user?.user_id;
+}
+
+function sendError(res, error) {
+  res.status(error.status || error.statusCode || 500).json({
+    ok: false,
+    error: error.message || "Exam request failed.",
+    fields: error.fields,
+  });
+}
+
+/**
+ * GET /api/exams
+ * Returns all exam sessions belonging to the logged-in teacher.
+ */
+export async function getMyExamSessions(req, res) {
+  try {
+    const exams = await listTeacherExamSessions(getUserId(req), req.query);
+    res.json({ ok: true, data: exams });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+/**
+ * GET /api/exams/:id
+ */
+export async function getExamDetail(req, res) {
+  try {
+    const exam = await getExamDetailService(req.params.id, getUserId(req));
+    res.json({ ok: true, data: exam });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+/**
+ * PATCH /api/exams/:id
+ */
+export async function updateExam(req, res) {
+  try {
+    const data = await updateExamSettingsService(req.params.id, getUserId(req), req.body);
+    res.json({ ok: true, data });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+/**
+ * PATCH /api/exams/:id/settings
+ */
+export async function updateExamSettings(req, res) {
+  return updateExam(req, res);
 }

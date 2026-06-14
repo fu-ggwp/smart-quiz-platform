@@ -3,9 +3,11 @@ import api from "./api";
 export const examsService = {
   listMine: (params) => api.get("/api/exams", { params }).then((r) => r.data),
   listForClass: (classId) => api.get(`/api/exams/class/${classId}`).then((r) => r.data),
-  getOne: (id) => api.get(`/api/exams/${id}`).then((r) => r.data),
+  getOne: (id) => api.get(`/api/exams/${id}`).then((r) => r.data.data),
   create: (payload) => api.post("/api/exams", payload).then((r) => r.data),
   update: (id, changes) => api.patch(`/api/exams/${id}`, changes).then((r) => r.data),
+  updateSettings: (id, changes) =>
+    api.patch(`/api/exams/${id}/settings`, changes).then((r) => r.data),
   remove: (id) => api.delete(`/api/exams/${id}`).then((r) => r.data),
   listAttempts: (id) => api.get(`/api/exams/${id}/attempts`).then((r) => r.data),
 

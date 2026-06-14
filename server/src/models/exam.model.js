@@ -19,6 +19,24 @@ export const ExamResultVisibility = Object.freeze({
   SCORE_ONLY: "score_only",
 });
 
+export const ExamSessionConfigFields = Object.freeze({
+  TITLE: "title",
+  DESCRIPTION: "description",
+  START_AT: "start_at",
+  END_AT: "end_at",
+  DURATION_MINUTES: "duration_minutes",
+  ATTEMPT_LIMIT: "attempt_limit",
+  QUESTION_COUNT: "question_count",
+  RANDOMIZE_QUESTIONS: "randomize_questions",
+  RANDOMIZE_ANSWERS: "randomize_answers",
+  RESULT_VISIBILITY: "result_visibility",
+  ACCESS_CODE: "access_code",
+});
+
+export const EXAM_SESSION_CONFIG_COLUMNS = Object.freeze(
+  Object.values(ExamSessionConfigFields)
+);
+
 /**
  * @typedef {Object} ExamSession
  * @property {string} exam_session_id
