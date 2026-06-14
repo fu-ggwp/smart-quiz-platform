@@ -27,13 +27,22 @@ export async function listAvailable(classId) {
   return data;
 }
 
-// Lấy chi tiết 1 study set
+// Lấy chi tiết 1 study set kèm danh sách câu hỏi
 export async function getOne(id) {
-  const { data, error } = await dao.findById(id);
-  if (error || !data) {
+  const { data: studySet, error } = await dao.findById(id);
+  if (error || !studySet) {
     throw notFound();
   }
-  return data;
+
+  const { data: questions, error: qError } = await dao.listQuestionByStudySet(id);
+  if (qError) {
+    throw dbError(qError, 500);
+  }
+
+  return {
+    ...studySet,
+    questions: questions || []
+  };
 }
 
 // Tạo mới 1 study set
