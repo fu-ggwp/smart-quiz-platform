@@ -1,5 +1,6 @@
 import supabase, { supabaseAdmin } from "../../config/supabase.js";
 import { EXAM_SESSION_TABLE } from "../../models/exam.model.js";
+import { QUESTION_TABLE } from "../../models/question.model.js";
 
 const db = supabaseAdmin ?? supabase;
 
@@ -24,6 +25,7 @@ const EXAM_SESSION_SELECT = `
   updated_at,
   classes:classes (
     class_id,
+    teacher_id,
     class_name,
     subject,
     status
@@ -31,7 +33,6 @@ const EXAM_SESSION_SELECT = `
   question_bank:question_banks (
     question_bank_id,
     title,
-    subject,
     topic
   )
 `;
@@ -115,6 +116,9 @@ function buildClassOptions(items) {
   );
 }
 
+/**
+ * Get exam sessions created by a teacher, with class and question bank context.
+ */
 export async function listTeacherExamSessions(teacherId, filters = {}) {
   const { page, pageSize } = normalizePagination(filters);
   const sort = SORTS[filters.sortBy] ?? SORTS.latest;
@@ -128,7 +132,7 @@ export async function listTeacherExamSessions(teacherId, filters = {}) {
     .limit(1000);
 
   if (error) {
-    throw error;
+    return { data: null, error };
   }
 
   const allItems = data ?? [];
@@ -140,11 +144,57 @@ export async function listTeacherExamSessions(teacherId, filters = {}) {
   const items = filteredItems.slice(start, start + pageSize);
 
   return {
-    items,
-    total,
-    page: safePage,
-    pageSize,
-    totalPages,
-    classes: buildClassOptions(allItems),
+    data: {
+      items,
+      total,
+      page: safePage,
+      pageSize,
+      totalPages,
+      classes: buildClassOptions(allItems),
+    },
+    error: null,
   };
+}
+
+/**
+ * Get a single teacher-owned exam session by id.
+ */
+export function findTeacherExamSession(examSessionId, teacherId) {
+  return db
+    .from(EXAM_SESSION_TABLE)
+    .select(EXAM_SESSION_SELECT)
+    .eq("exam_session_id", examSessionId)
+    .eq("teacher_id", teacherId)
+    .is("deleted_at", null)
+    .maybeSingle();
+}
+
+/**
+ * Update configurable columns for a teacher-owned exam session.
+ */
+export function updateTeacherExamSessionConfig(examSessionId, teacherId, changes) {
+  return db
+    .from(EXAM_SESSION_TABLE)
+    .update(changes)
+    .eq("exam_session_id", examSessionId)
+    .eq("teacher_id", teacherId)
+    .is("deleted_at", null)
+    .select(EXAM_SESSION_SELECT)
+    .maybeSingle();
+}
+
+/**
+ * Count active source questions available in the selected teacher question bank.
+ */
+export async function countActiveQuestionsInBank(questionBankId, teacherId) {
+  const { count, error } = await db
+    .from(QUESTION_TABLE)
+    .select("question_id", { count: "exact", head: true })
+    .eq("question_bank_id", questionBankId)
+    .eq("owner_id", teacherId)
+    .eq("status", "active")
+    .is("study_set_id", null)
+    .is("deleted_at", null);
+
+  return { count: count ?? 0, error };
 }

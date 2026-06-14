@@ -1,9 +1,7 @@
-export default function TeacherExamDetailPage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <section className="w-full max-w-4xl">
-        <h1 className="text-3xl font-semibold">Exam Details</h1>
-      </section>
-    </main>
-  );
+import { ExamDetailClient } from "./_components/exam-detail-client";
+
+export default async function TeacherExamDetailPage({ params }) {
+  const { id } = await params;
+
+  return <ExamDetailClient examId={id} />;
 }
