@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AlertCircle, Eye, Layers3, Plus, Search, SlidersHorizontal } from "lucide-react";
 
@@ -280,12 +281,6 @@ function FilterBar({
             value={subject}
           />
 
-          <div className="flex items-end">
-            <Button type="button" variant="secondary">
-              <Search className="size-4" />
-              Apply
-            </Button>
-          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-[220px_220px_1fr_auto]">
@@ -322,6 +317,8 @@ function FilterBar({
 }
 
 function StudySetsTable({ studySets }) {
+  const router = useRouter();
+
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="overflow-x-auto">
@@ -344,9 +341,13 @@ function StudySetsTable({ studySets }) {
               const assignedClasses = getAssignedClasses(studySet);
 
               return (
-                <tr className="align-top hover:bg-muted/50" key={id}>
+                <tr
+                  className="align-middle hover:bg-muted/55 cursor-pointer transition-colors duration-150"
+                  key={id}
+                  onClick={() => router.push(`/teacher/study-sets/${id}`)}
+                >
                   <td className="px-4 py-3">
-                    <p className="font-bold text-foreground">{studySet.title}</p>
+                    <p className="font-bold text-foreground hover:text-primary transition-colors">{studySet.title}</p>
                     <p className="text-xs text-muted-foreground">
                       {studySet.subject || "No subject"} - {studySet.topic || "No topic"}
                     </p>
@@ -360,7 +361,7 @@ function StudySetsTable({ studySets }) {
                     {assignedClasses.length ? assignedClasses.join(", ") : "Not assigned"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{getLearnerCount(studySet)}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-wrap gap-2">
                       <Button asChild size="sm" variant="secondary">
                         <Link href={`/teacher/study-sets/${id}`}>
