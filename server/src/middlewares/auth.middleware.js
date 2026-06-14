@@ -1,5 +1,5 @@
 import supabase from "../config/supabase.js";
-
+import { USER_TABLE } from "../models/user.model.js";
 // Verifies the Supabase JWT sent in the Authorization header and attaches
 // the resolved user to `req.user`. Use on any route that requires login.
 export async function requireAuth(req, res, next) {
@@ -17,5 +17,17 @@ export async function requireAuth(req, res, next) {
   }
 
   req.user = data.user;
+  try {
+    const { data: dbUser } = await supabase
+      .from(USER_TABLE)
+      .select("active_role")
+      .eq("user_id", data.user.id)
+      .single();
+    if (dbUser) {
+      req.user.role = dbUser.active_role; // Gán quyền từ DB vào đối tượng user
+    }
+  } catch (dbErr) {
+    console.error("Failed to query user role in requireAuth:", dbErr);
+  }
   next();
 }

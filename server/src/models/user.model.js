@@ -1,4 +1,5 @@
-const tableName = "users";
+export const USER_TABLE = "users";
+const tableName = USER_TABLE;
 
 export const userColumns = {
   userId: "user_id",
