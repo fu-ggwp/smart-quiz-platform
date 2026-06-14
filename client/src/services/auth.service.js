@@ -1,5 +1,4 @@
 import supabase from "@/lib/supabaseClient";
-import api from "@/services/api";
 import { profileService } from "@/services/profile.service";
 
 const ACCESS_TOKEN_COOKIE = "access_token";
@@ -48,6 +47,7 @@ async function getProfileWithRetry() {
       return await profileService.getMine();
     } catch (error) {
       const status = error?.response?.status;
+      if (status === 401) return null;
       if (status !== 404 || attempt === 2) throw error;
       await wait(300);
     }
@@ -62,12 +62,53 @@ async function getCurrentSession() {
 }
 
 export const authService = {
-  register: (payload) => api.post("/api/auth/register", payload).then((r) => r.data),
-  login: (payload) => api.post("/api/auth/login", payload).then((r) => r.data),
-  logout: () => api.post("/api/auth/logout").then((r) => r.data),
-  forgotPassword: (email) => api.post("/api/auth/forgot-password", { email }).then((r) => r.data),
-  resetPassword: (payload) => api.post("/api/auth/reset-password", payload).then((r) => r.data),
-  me: () => api.get("/api/auth/me").then((r) => r.data),
+  async register({ fullName, username, email, password }) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          username,
+        },
+      },
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  async login({ email, password }) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  async logout() {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  },
+
+  async forgotPassword(email, redirectTo) {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
+  async resetPassword({ password }) {
+    const { data, error } = await supabase.auth.updateUser({ password });
+
+    if (error) throw error;
+    return data;
+  },
+  me: () => profileService.getMine(),
 };
 
 export async function completeLogin(session = null) {
@@ -88,12 +129,27 @@ export async function completeLogin(session = null) {
   }
 
   const profile = await getProfileWithRetry();
+
+  if (!profile) {
+    await supabase.auth.signOut();
+    clearAuthCookies();
+    return { session: null, profile: null };
+  }
+
   saveAuthCookies({
     session: currentSession,
     role: profile?.activeRole,
   });
 
   return { session: currentSession, profile };
+}
+
+export async function completeLogout() {
+  try {
+    await authService.logout();
+  } finally {
+    clearAuthCookies();
+  }
 }
 
 export function cleanOAuthHash() {

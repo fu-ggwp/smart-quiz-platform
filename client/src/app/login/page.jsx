@@ -39,6 +39,8 @@ const SAFE_LOGIN_MESSAGES = new Set([
 ]);
 
 function getApiMessage(error) {
+  const authMessage = error?.message || "";
+  const authStatus = error?.status;
   const message = error?.response?.data?.message;
   const status = error?.response?.status;
 
@@ -48,6 +50,12 @@ function getApiMessage(error) {
   }
   if (status === 403) {
     return "This account is not available. Please contact support.";
+  }
+  if (/email not confirmed/i.test(authMessage)) {
+    return "Please confirm your email before logging in.";
+  }
+  if (authStatus === 400 || /invalid login credentials/i.test(authMessage)) {
+    return "Incorrect email or password. Please try again.";
   }
 
   return "Login failed. Please try again.";

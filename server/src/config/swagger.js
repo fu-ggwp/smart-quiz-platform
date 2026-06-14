@@ -67,7 +67,7 @@ const swaggerOptions = {
       },
       {
         name: "Authentication",
-        description: "Account registration, sessions, and profile lookup",
+        description: "Verified Supabase user profile lookup",
       },
       {
         name: "Exams",
@@ -131,15 +131,6 @@ const swaggerOptions = {
             },
           },
         },
-        MessageResponse: {
-          type: "object",
-          properties: {
-            message: {
-              type: "string",
-              example: "Password reset email sent",
-            },
-          },
-        },
         AuthUser: {
           type: "object",
           properties: {
@@ -197,105 +188,6 @@ const swaggerOptions = {
             updatedAt: {
               type: "string",
               format: "date-time",
-            },
-          },
-        },
-        RegisterRequest: {
-          type: "object",
-          required: ["fullName", "username", "email", "password", "confirmPassword"],
-          properties: {
-            fullName: {
-              type: "string",
-              example: "Nguyen Van A",
-            },
-            username: {
-              type: "string",
-              minLength: 3,
-              maxLength: 30,
-              pattern: "^[a-zA-Z0-9_]{3,30}$",
-              example: "learner_01",
-            },
-            email: {
-              type: "string",
-              format: "email",
-              example: "learner@example.com",
-            },
-            password: {
-              type: "string",
-              minLength: 8,
-              format: "password",
-              example: "Password123",
-            },
-            confirmPassword: {
-              type: "string",
-              minLength: 8,
-              format: "password",
-              example: "Password123",
-            },
-          },
-        },
-        LoginRequest: {
-          type: "object",
-          required: ["email", "password"],
-          properties: {
-            email: {
-              type: "string",
-              format: "email",
-              example: "learner@example.com",
-            },
-            password: {
-              type: "string",
-              format: "password",
-              example: "Password123",
-            },
-          },
-        },
-        ForgotPasswordRequest: {
-          type: "object",
-          required: ["email"],
-          properties: {
-            email: {
-              type: "string",
-              format: "email",
-              example: "learner@example.com",
-            },
-            redirectTo: {
-              type: "string",
-              format: "uri",
-              example: "http://localhost:3000/reset-password",
-            },
-          },
-        },
-        ResetPasswordRequest: {
-          type: "object",
-          required: ["newPassword"],
-          properties: {
-            newPassword: {
-              type: "string",
-              minLength: 8,
-              format: "password",
-              example: "NewPassword123",
-            },
-          },
-        },
-        SupabaseSession: {
-          type: "object",
-          nullable: true,
-          description: "Supabase auth session returned when the provider creates one.",
-          additionalProperties: true,
-        },
-        AuthSuccessResponse: {
-          type: "object",
-          properties: {
-            message: {
-              type: "string",
-              example: "Login successful. Welcome back.",
-            },
-            session: {
-              $ref: "#/components/schemas/SupabaseSession",
-            },
-            user: {
-              $ref: "#/components/schemas/AuthUser",
             },
           },
         },
@@ -692,89 +584,6 @@ const swaggerOptions = {
               $ref: "#/components/schemas/HealthResponse",
             }),
             500: errorResponse("Supabase check failed"),
-          },
-        },
-      },
-      "/api/auth/register": {
-        post: {
-          tags: ["Authentication"],
-          summary: "Register a new account",
-          requestBody: {
-            required: true,
-            content: jsonContent({ $ref: "#/components/schemas/RegisterRequest" }),
-          },
-          responses: {
-            201: okResponse("Account created successfully", {
-              $ref: "#/components/schemas/AuthSuccessResponse",
-            }),
-            400: errorResponse("Invalid request payload"),
-            409: errorResponse("Duplicate email or username"),
-            500: errorResponse("Registration failed"),
-          },
-        },
-      },
-      "/api/auth/login": {
-        post: {
-          tags: ["Authentication"],
-          summary: "Log in with email and password",
-          requestBody: {
-            required: true,
-            content: jsonContent({ $ref: "#/components/schemas/LoginRequest" }),
-          },
-          responses: {
-            200: okResponse("Login successful", {
-              $ref: "#/components/schemas/AuthSuccessResponse",
-            }),
-            400: errorResponse("Invalid request payload"),
-            401: errorResponse("Incorrect email or password"),
-            403: errorResponse("Account is not active"),
-            404: errorResponse("Account profile was not found"),
-            500: errorResponse("Login failed"),
-          },
-        },
-      },
-      "/api/auth/logout": {
-        post: {
-          tags: ["Authentication"],
-          summary: "Log out the current session",
-          security: bearerSecurity,
-          responses: {
-            200: okResponse("Logged out", { $ref: "#/components/schemas/MessageResponse" }),
-            500: errorResponse("Logout failed"),
-          },
-        },
-      },
-      "/api/auth/forgot-password": {
-        post: {
-          tags: ["Authentication"],
-          summary: "Request a password reset email",
-          requestBody: {
-            required: true,
-            content: jsonContent({ $ref: "#/components/schemas/ForgotPasswordRequest" }),
-          },
-          responses: {
-            200: okResponse("Password reset email sent", {
-              $ref: "#/components/schemas/MessageResponse",
-            }),
-            400: errorResponse("Invalid request payload"),
-            500: errorResponse("Password reset request failed"),
-          },
-        },
-      },
-      "/api/auth/reset-password": {
-        post: {
-          tags: ["Authentication"],
-          summary: "Reset the password for the bearer session",
-          security: bearerSecurity,
-          requestBody: {
-            required: true,
-            content: jsonContent({ $ref: "#/components/schemas/ResetPasswordRequest" }),
-          },
-          responses: {
-            200: okResponse("Password updated", { $ref: "#/components/schemas/MessageResponse" }),
-            400: errorResponse("Invalid request payload"),
-            401: errorResponse("Missing, invalid, or expired reset token"),
-            500: errorResponse("Password reset failed"),
           },
         },
       },
