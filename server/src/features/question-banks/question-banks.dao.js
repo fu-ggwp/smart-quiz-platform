@@ -21,7 +21,8 @@ export function listByTeacher(teacherId, filters = {}) {
     .from(QUESTION_BANK_TABLE)
     .select("*", { count: "exact" })
     .eq("teacher_id", teacherId)
-    .is("deleted_at", null);
+    .is("deleted_at", null)
+    .neq("status", "Deleted");
 
   if (keyword) {
     query = query.or(`title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%`);
@@ -43,6 +44,7 @@ export function findOwnedById(questionBankId, teacherId) {
     .eq("question_bank_id", questionBankId)
     .eq("teacher_id", teacherId)
     .is("deleted_at", null)
+    .neq("status", "Deleted")
     .maybeSingle();
 }
 
@@ -57,6 +59,7 @@ export function update(questionBankId, teacherId, changes) {
     .eq("question_bank_id", questionBankId)
     .eq("teacher_id", teacherId)
     .is("deleted_at", null)
+    .neq("status", "Deleted")
     .select("*")
     .maybeSingle();
 }
@@ -65,7 +68,7 @@ export function archive(questionBankId, teacherId) {
   const now = new Date().toISOString();
 
   return update(questionBankId, teacherId, {
-    status: "Archived",
+    status: "Deleted",
     deleted_at: now,
     updated_at: now,
   });

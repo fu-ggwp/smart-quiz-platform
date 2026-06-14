@@ -155,7 +155,7 @@ export async function remove(req, res) {
   try {
     const data = await archiveQuestionBank(getUserId(req), req.params.id);
     return res.status(200).json({
-      message: "Question bank archive completed successfully.",
+      message: "Question bank delete completed successfully.",
       data,
     });
   } catch (error) {

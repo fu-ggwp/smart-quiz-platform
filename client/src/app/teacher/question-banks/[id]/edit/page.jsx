@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { AlertCircle, Archive, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { questionBanksService } from "@/services/question-banks.service";
@@ -97,8 +97,8 @@ export default function EditQuestionBankPage() {
     }
   }
 
-  async function handleArchive() {
-    const confirmed = window.confirm("Archive this question bank?");
+  async function handleDelete() {
+    const confirmed = window.confirm("Delete this question bank?");
     if (!confirmed) return;
 
     setError("");
@@ -108,7 +108,7 @@ export default function EditQuestionBankPage() {
       await questionBanksService.remove(questionBankId);
       router.push("/teacher/question-banks");
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Question bank archive failed.");
+      setError(err.response?.data?.message || err.message || "Question bank delete failed.");
     } finally {
       setArchiving(false);
     }
@@ -146,9 +146,9 @@ export default function EditQuestionBankPage() {
   return (
     <QuestionBankForm
       actionSlot={
-        <Button disabled={archiving || submitting} onClick={handleArchive} type="button" variant="destructive">
-          {archiving ? <Loader2 className="size-4 animate-spin" /> : <Archive className="size-4" />}
-          {archiving ? "Archiving..." : "Archive"}
+        <Button disabled={archiving || submitting} onClick={handleDelete} type="button" variant="destructive">
+          {archiving ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+          {archiving ? "Deleting..." : "Delete"}
         </Button>
       }
       description="Update metadata teachers use to find, assign, and reuse this question bank."

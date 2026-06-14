@@ -7,7 +7,6 @@ const statusOptions = [
   { value: "all", label: "All status" },
   { value: "Private", label: "Private" },
   { value: "Assigned", label: "Assigned" },
-  { value: "Archived", label: "Archived" },
 ];
 
 export function QuestionBanksFilterBar({

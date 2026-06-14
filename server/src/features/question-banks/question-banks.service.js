@@ -5,7 +5,7 @@ import * as questionBanksDao from "./question-banks.dao.js";
 const db = supabaseAdmin || supabase;
 const userModel = createUserModel(db);
 
-const allowedStatus = new Set(["Private", "Assigned", "Archived"]);
+const allowedStatus = new Set(["Private", "Assigned"]);
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function serviceError(message, statusCode = 400, fields) {
@@ -170,7 +170,7 @@ export async function archiveQuestionBank(userId, questionBankId) {
   const { data, error } = await questionBanksDao.archive(questionBankId, userId);
 
   if (error) {
-    throw serviceError(error.message || "Question bank archive failed.", 400);
+    throw serviceError(error.message || "Question bank delete failed.", 400);
   }
 
   if (!data) {

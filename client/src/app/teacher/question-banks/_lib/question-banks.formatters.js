@@ -18,6 +18,6 @@ export function formatBankStatus(value) {
 
 export function getStatusTone(value) {
   if (value === "Assigned") return "green";
-  if (value === "Archived") return "red";
+  if (value === "Deleted") return "red";
   return "neutral";
 }
