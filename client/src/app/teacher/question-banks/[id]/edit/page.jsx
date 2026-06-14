@@ -15,7 +15,7 @@ function toFormValues(questionBank) {
     title: questionBank?.title || "",
     description: questionBank?.description || "",
     topic: questionBank?.topic || "",
-    status: questionBank?.status === "assigned" ? "assigned" : "private",
+    status: questionBank?.status === "Assigned" ? "Assigned" : "Private",
   };
 }
 
@@ -108,7 +108,7 @@ export default function EditQuestionBankPage() {
       await questionBanksService.remove(questionBankId);
       router.push("/teacher/question-banks");
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Question bank could not be archived.");
+      setError(err.response?.data?.message || err.message || "Question bank archive failed.");
     } finally {
       setArchiving(false);
     }

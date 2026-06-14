@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const statusOptions = [
-  { value: "private", label: "Private" },
-  { value: "assigned", label: "Assigned" },
+  { value: "Private", label: "Private" },
+  { value: "Assigned", label: "Assigned" },
 ];
 
 export function QuestionBankForm({

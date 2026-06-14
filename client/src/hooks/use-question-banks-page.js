@@ -2,20 +2,20 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { ITEMS_PER_PAGE } from "@/app/teacher/question-banks/_lib/question-banks.constants";
 import { buildQuestionBankParams } from "@/app/teacher/question-banks/_lib/question-banks.params";
 import { questionBanksService } from "@/services/question-banks.service";
 
-const defaultPagination = (page) => ({ page, limit: ITEMS_PER_PAGE, total: 0, totalPages: 0 });
+const itemsPerPage = 10;
+const defaultPagination = (page) => ({ page, limit: itemsPerPage, total: 0, totalPages: 0 });
 
 export function useQuestionBanksPage() {
   const [questionBanks, setQuestionBanks] = useState([]);
   const [pagination, setPagination] = useState(defaultPagination(1));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [draftKeyword, setDraftKeyword] = useState("");
+  const [pendingKeyword, setPendingKeyword] = useState("");
   const [appliedKeyword, setAppliedKeyword] = useState("");
-  const [draftStatus, setDraftStatus] = useState("all");
+  const [pendingStatus, setPendingStatus] = useState("all");
   const [appliedStatus, setAppliedStatus] = useState("all");
   const [page, setPage] = useState(1);
 
@@ -51,19 +51,19 @@ export function useQuestionBanksPage() {
   }, [fetchQuestionBanks, page, params]);
 
   function handleKeywordChange(event) {
-    setDraftKeyword(event.target.value);
+    setPendingKeyword(event.target.value);
   }
 
   function applyFilters() {
-    const shouldFetch = draftKeyword !== appliedKeyword || draftStatus !== appliedStatus || page !== 1;
+    const shouldFetch = pendingKeyword !== appliedKeyword || pendingStatus !== appliedStatus || page !== 1;
 
     if (shouldFetch) {
       setLoading(true);
     }
 
     setError(null);
-    setAppliedKeyword(draftKeyword);
-    setAppliedStatus(draftStatus);
+    setAppliedKeyword(pendingKeyword);
+    setAppliedStatus(pendingStatus);
     setPage(1);
   }
 
@@ -75,7 +75,7 @@ export function useQuestionBanksPage() {
     }
 
     setError(null);
-    setDraftStatus("all");
+    setPendingStatus("all");
     setAppliedStatus("all");
     setPage(1);
   }
@@ -87,8 +87,8 @@ export function useQuestionBanksPage() {
   }
 
   return {
-    draftKeyword,
-    draftStatus,
+    pendingKeyword,
+    pendingStatus,
     error,
     handleKeywordChange,
     loading,
@@ -96,7 +96,7 @@ export function useQuestionBanksPage() {
     onApplyFilters: applyFilters,
     onPageChange: changePage,
     onResetFilters: resetFilters,
-    onStatusChange: (event) => setDraftStatus(event.target.value),
+    onStatusChange: (event) => setPendingStatus(event.target.value),
     pagination,
     questionBanks,
   };

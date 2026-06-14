@@ -7,7 +7,7 @@ import {
 } from "./question-banks.service.js";
 
 const savedMessage = "Question bank information has been saved successfully.";
-const allowedEditableStatus = new Set(["private", "assigned"]);
+const allowedEditableStatus = new Set(["Private", "Assigned"]);
 
 function getUserId(req) {
   return req.user?.id || req.user?.user_id;
@@ -45,7 +45,7 @@ function normalizeNullableText(value) {
 function validateEnum(value, allowedValues, fieldName, errors) {
   if (value === undefined || value === null || value === "") return undefined;
 
-  const normalized = String(value).trim().toLowerCase();
+  const normalized = String(value).trim();
   if (!allowedValues.has(normalized)) {
     errors[fieldName] = "The information is invalid. Please check and try again.";
   }
@@ -78,7 +78,7 @@ function validateCreatePayload(body = {}) {
     title,
     description: normalizeNullableText(body.description),
     topic: normalizeNullableText(body.topic),
-    status: status || "private",
+    status: status || "Private",
     updated_at: new Date().toISOString(),
   };
 }
@@ -155,7 +155,7 @@ export async function remove(req, res) {
   try {
     const data = await archiveQuestionBank(getUserId(req), req.params.id);
     return res.status(200).json({
-      message: "Question bank has been archived successfully.",
+      message: "Question bank archive completed successfully.",
       data,
     });
   } catch (error) {

@@ -11,7 +11,7 @@ const initialForm = {
   title: "",
   description: "",
   topic: "",
-  status: "private",
+  status: "Private",
 };
 
 function buildPayload(form) {

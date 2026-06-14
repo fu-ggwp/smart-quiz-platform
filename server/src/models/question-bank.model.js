@@ -3,9 +3,9 @@
 export const QUESTION_BANK_TABLE = "question_banks";
 
 export const QuestionBankStatus = Object.freeze({
-  PRIVATE: "private",
-  ASSIGNED: "assigned",
-  ARCHIVED: "archived",
+  PRIVATE: "Private",
+  ASSIGNED: "Assigned",
+  ARCHIVED: "Archived",
 });
 
 /**
@@ -15,7 +15,7 @@ export const QuestionBankStatus = Object.freeze({
  * @property {string} title
  * @property {string} [description]
  * @property {string} [topic]
- * @property {"private"|"assigned"|"archived"} status
+ * @property {"Private"|"Assigned"|"Archived"} status
  * @property {string} created_at
  * @property {string} updated_at
  * @property {string} [deleted_at]

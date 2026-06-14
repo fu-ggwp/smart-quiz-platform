@@ -14,8 +14,8 @@ import { QuestionBanksTable } from "./_components/question-banks-table";
 
 export default function QuestionBanksPage() {
   const {
-    draftKeyword,
-    draftStatus,
+    pendingKeyword,
+    pendingStatus,
     error,
     handleKeywordChange,
     loading,
@@ -34,12 +34,12 @@ export default function QuestionBanksPage() {
         <QuestionBanksHeader />
 
         <QuestionBanksFilterBar
-          keyword={draftKeyword}
+          keyword={pendingKeyword}
           onApply={onApplyFilters}
           onKeywordChange={handleKeywordChange}
           onReset={onResetFilters}
           onStatusChange={onStatusChange}
-          status={draftStatus}
+          status={pendingStatus}
         />
 
         {loading ? (

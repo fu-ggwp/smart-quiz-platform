@@ -1,11 +1,11 @@
-import { ITEMS_PER_PAGE } from "./question-banks.constants";
+const itemsPerPage = 10;
 
 export function buildQuestionBankParams({ keyword, page, status }) {
   return {
     keyword: keyword.trim() || undefined,
     status: status === "all" ? undefined : status,
     page,
-    limit: ITEMS_PER_PAGE,
+    limit: itemsPerPage,
     sortBy: "updated_at",
     sortOrder: "desc",
   };

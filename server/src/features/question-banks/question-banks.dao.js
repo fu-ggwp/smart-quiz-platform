@@ -65,7 +65,7 @@ export function archive(questionBankId, teacherId) {
   const now = new Date().toISOString();
 
   return update(questionBankId, teacherId, {
-    status: "archived",
+    status: "Archived",
     deleted_at: now,
     updated_at: now,
   });

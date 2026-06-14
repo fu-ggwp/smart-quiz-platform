@@ -1,11 +1,10 @@
-import { ITEMS_PER_PAGE } from "../_lib/question-banks.constants";
-
 export function QuestionBanksPagination({ onPageChange, pagination }) {
   const totalPages = Math.max(1, pagination.totalPages || 0);
   const currentPage = pagination.page || 1;
   const count = pagination.total || 0;
-  const startItem = count === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
-  const endItem = Math.min(currentPage * ITEMS_PER_PAGE, count);
+  const pageSize = pagination.limit || 10;
+  const startItem = count === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, count);
   const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
 
   return (

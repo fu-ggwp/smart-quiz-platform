@@ -109,7 +109,7 @@ CREATE TABLE public.question_banks (
   title character varying NOT NULL,
   description text,
   topic character varying,
-  status character varying NOT NULL DEFAULT 'private'::character varying CHECK (status::text = ANY (ARRAY['private'::character varying, 'assigned'::character varying, 'archived'::character varying]::text[])),
+  status character varying NOT NULL DEFAULT 'Private'::character varying CHECK (status::text = ANY (ARRAY['Private'::character varying, 'Assigned'::character varying, 'Archived'::character varying]::text[])),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   deleted_at timestamp with time zone,
