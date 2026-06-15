@@ -1,4 +1,4 @@
-﻿import {
+import {
   createExamSession as createExamSessionService,
   getExamDetail as getExamDetailService,
   listTeacherExamSessions,
@@ -56,20 +56,13 @@ export async function getExamDetail(req, res) {
 }
 
 /**
- * PATCH /api/exams/:id
+ * PATCH /api/exams/:id/settings
  */
-export async function updateExam(req, res) {
+export async function updateExamSettings(req, res) {
   try {
     const data = await updateExamSettingsService(req.params.id, getUserId(req), req.body);
     res.json({ ok: true, data });
   } catch (error) {
     sendError(res, error);
   }
-}
-
-/**
- * PATCH /api/exams/:id/settings
- */
-export async function updateExamSettings(req, res) {
-  return updateExam(req, res);
 }
