@@ -1,5 +1,7 @@
 import supabase, { supabaseAdmin } from "../../config/supabase.js";
 import { CLASS_TABLE } from "../../models/class.model.js";
+import { CLASS_MEMBER_TABLE } from "../../models/join-request.model.js";
+import { EXAM_ATTEMPT_TABLE } from "../../models/exam-attempt.model.js";
 import { EXAM_QUESTION_TABLE, EXAM_SESSION_TABLE } from "../../models/exam.model.js";
 import { QUESTION_TABLE } from "../../models/question.model.js";
 import { QUESTION_BANK_TABLE } from "../../models/question-bank.model.js";
@@ -118,6 +120,24 @@ function buildClassOptions(items) {
   );
 }
 
+function paginateExamSessions(items, filters) {
+  const { page, pageSize } = normalizePagination(filters);
+  const filteredItems = sortExamSessions(filterExamSessions(items, filters), filters.sortBy);
+  const total = filteredItems.length;
+  const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+
+  return {
+    items: filteredItems.slice(start, start + pageSize),
+    total,
+    page: safePage,
+    pageSize,
+    totalPages,
+    classes: buildClassOptions(items),
+  };
+}
+
 /**
  * Get exam sessions created by a teacher, with class and question bank context.
  */
@@ -137,25 +157,7 @@ export async function listTeacherExamSessions(teacherId, filters = {}) {
     return { data: null, error };
   }
 
-  const allItems = data ?? [];
-  const filteredItems = sortExamSessions(filterExamSessions(allItems, filters), filters.sortBy);
-  const total = filteredItems.length;
-  const totalPages = Math.max(Math.ceil(total / pageSize), 1);
-  const safePage = Math.min(page, totalPages);
-  const start = (safePage - 1) * pageSize;
-  const items = filteredItems.slice(start, start + pageSize);
-
-  return {
-    data: {
-      items,
-      total,
-      page: safePage,
-      pageSize,
-      totalPages,
-      classes: buildClassOptions(allItems),
-    },
-    error: null,
-  };
+  return { data: paginateExamSessions(data ?? [], filters), error: null };
 }
 
 /**
@@ -318,4 +320,59 @@ export async function countExamReadyQuestionsInBank(questionBankId, teacherId) {
   }).length;
 
   return { count, error: null };
+}
+
+export function listActiveClassMemberships(learnerId) {
+  return db
+    .from(CLASS_MEMBER_TABLE)
+    .select("class_id")
+    .eq("learner_id", learnerId)
+    .eq("status", "active");
+}
+
+export async function listLearnerExamSessions(classIds) {
+  if (!classIds.length) return { data: [], error: null };
+
+  return db
+    .from(EXAM_SESSION_TABLE)
+    .select(EXAM_SESSION_SELECT)
+    .in("class_id", classIds)
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .order("updated_at", { ascending: false, nullsFirst: false })
+    .limit(1000);
+}
+
+export function closeExpiredLearnerExamSessions(classIds, nowIso) {
+  if (!classIds.length) return Promise.resolve({ data: [], error: null });
+
+  return db
+    .from(EXAM_SESSION_TABLE)
+    .update({ status: "closed", updated_at: nowIso })
+    .in("class_id", classIds)
+    .eq("status", "active")
+    .lte("end_at", nowIso)
+    .is("deleted_at", null);
+}
+
+export function findLearnerExamSession(examSessionId, classIds) {
+  if (!classIds.length) return Promise.resolve({ data: null, error: null });
+
+  return db
+    .from(EXAM_SESSION_TABLE)
+    .select(EXAM_SESSION_SELECT)
+    .eq("exam_session_id", examSessionId)
+    .in("class_id", classIds)
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .maybeSingle();
+}
+
+export function listLearnerExamAttempts(examSessionId, learnerId) {
+  return db
+    .from(EXAM_ATTEMPT_TABLE)
+    .select("exam_attempt_id, attempt_number, status, started_at, submitted_at, total_score, max_score")
+    .eq("exam_session_id", examSessionId)
+    .eq("learner_id", learnerId)
+    .order("attempt_number", { ascending: true });
 }
