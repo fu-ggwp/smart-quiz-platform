@@ -11,6 +11,7 @@ router.get("/question-banks", requireAuth, requireRole("teacher"), studySetsCont
 router.get("/question-banks/:bankId/questions", requireAuth, requireRole("teacher"), studySetsController.getQuestionsByBank);
 
 router.get("/mine", requireAuth, studySetsController.listMine);
+router.get("/learner", requireAuth, requireRole("learner"), studySetsController.listLearnerStudySets);
 router.get("/", requireAuth, studySetsController.listAvailable);
 router.post("/", requireAuth, studySetsController.create);
 router.get("/:id", requireAuth, studySetsController.getOne);

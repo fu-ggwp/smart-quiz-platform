@@ -6,6 +6,8 @@ import { QUESTION_BANK_TABLE } from "../../models/question-bank.model.js";
 import { QUESTION_TABLE } from "../../models/question.model.js";
 import { ANSWER_OPTION_TABLE } from "../../models/answer-option.model.js";
 import { USER_TABLE } from "../../models/user.model.js";
+import { STUDY_SET_ASSIGNMENT_TABLE } from "../../models/study-set-assignment.model.js";
+import { CLASS_MEMBER_TABLE } from "../../models/join-request.model.js";
 
 // Tìm theo gv sở hữu là teacher_id
 export function findByTeacher(teacherId) {
@@ -158,4 +160,39 @@ export function listQuestionByStudySet(studysetId) {
     .eq("study_set_id", studysetId)
     .is("deleted_at", null)
     .order("created_at", { ascending: true });
+}
+
+//Lấy dsach lớp của hsinh
+export function getLearnerClassMemberships(learnerId) {
+  return supabase
+    .from(CLASS_MEMBER_TABLE)
+    .select("class_id")
+    .eq("learner_id", learnerId)
+    .eq("status", "active");
+}
+
+//Lấy ttin gán với hphan 
+export function getAssignmentsByClassIds(classIds) {
+  return supabase
+    .from(STUDY_SET_ASSIGNMENT_TABLE)
+    .select("study_set_id, class_id, classes(class_name)")
+    .in("class_id", classIds);
+}
+
+//Lấy lsu làm bài
+export function getPracticeAttempts(learnerId) {
+  return supabase
+    .from(PRACTICE_ATTEMPT_TABLE)
+    .select("study_set_id, started_at")
+    .eq("learner_id", learnerId);
+}
+
+//Lấy ttin chi tiết study set
+export function getStudySetsByIds(ids) {
+  return supabase
+    .from(STUDY_SET_TABLE)
+    .select("*, teacher:users!teacher_id(full_name, avatar_url)")
+    .in("study_set_id", ids)
+    .is("deleted_at", null)
+    .eq("is_admin_hidden", false);
 }

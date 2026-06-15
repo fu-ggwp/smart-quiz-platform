@@ -109,3 +109,13 @@ export const getQuestionsByBank = async (req, res) => {
     return fail(res, err, err.status || 500);
   }
 }
+
+export const listLearnerStudySets = async (req, res) => {
+  try {
+    const learnerId = req.user.id || req.user.user_id;
+    const data = await service.listLearnerStudySets(learnerId);
+    return ok(res, data);
+  } catch (err) {
+    return fail(res, err, err.status || 500);
+  }
+};

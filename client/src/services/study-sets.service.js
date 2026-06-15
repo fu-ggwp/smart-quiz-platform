@@ -17,4 +17,6 @@ export const studySetsService = {
     api.patch(`/api/study-sets/sessions/${sessionId}/complete`, { score }).then((r) => r.data),
   getSessionResults: (sessionId) =>
     api.get(`/api/study-sets/sessions/${sessionId}/results`).then((r) => r.data),
+  listLearnerStudySets: () =>
+    api.get("/api/study-sets/learner").then((r) => r.data),
 };

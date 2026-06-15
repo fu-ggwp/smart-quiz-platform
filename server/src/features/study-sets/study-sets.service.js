@@ -248,3 +248,48 @@ export async function getQuestionsByBank(questionBankId) {
   }
   return data;
 }
+
+export async function listLearnerStudySets(learnerId) {
+  const { data: memberships, error: memberError } = await dao.getLearnerClassMemberships(learnerId);
+  if (memberError) throw dbError(memberError, 500);
+  let assignedStudySets = [];
+  if (memberships && memberships.length > 0) {
+    const classIds = memberships.map(m => m.class_id);
+    
+    const { data: assignments, error: assignError } = await dao.getAssignmentsByClassIds(classIds);
+    if (assignError) throw dbError(assignError, 500);
+    assignedStudySets = assignments || [];
+  }
+  const { data: attempts, error: attemptError } = await dao.getPracticeAttempts(learnerId);
+  if (attemptError) throw dbError(attemptError, 500);
+  const assignedMap = new Map();
+  assignedStudySets.forEach(a => {
+    assignedMap.set(a.study_set_id, {
+      class_id: a.class_id,
+      class_name: a.classes?.class_name || "Lớp học"
+    });
+  });
+  const startedMap = new Map();
+  (attempts || []).forEach(att => {
+    const current = startedMap.get(att.study_set_id);
+    if (!current || new Date(att.started_at) > new Date(current.started_at)) {
+      startedMap.set(att.study_set_id, { started_at: att.started_at });
+    }
+  });
+  const allIds = [...new Set([...assignedMap.keys(), ...startedMap.keys()])];
+  if (allIds.length === 0) return [];
+  const { data: studySets, error: fetchError } = await dao.getStudySetsByIds(allIds);
+  if (fetchError) throw dbError(fetchError, 500);
+  return studySets.map(set => {
+    const assignment = assignedMap.get(set.study_set_id);
+    const attempt = startedMap.get(set.study_set_id);
+    return {
+      ...set,
+      is_assigned: !!assignment,
+      assigned_class: assignment || null,
+      is_started: !!attempt,
+      last_studied_at: attempt ? attempt.started_at : null,
+      source_type: assignment ? "assigned" : "public-started"
+    };
+  });
+}

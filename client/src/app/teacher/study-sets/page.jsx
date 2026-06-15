@@ -326,11 +326,14 @@ function StudySetsTable({ studySets }) {
           <thead className="bg-muted text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
             <tr>
               {["Study Set", "Source", "Visibility", "Questions", "Assigned Classes", "Learners", "Actions"].map(
-                (header) => (
-                  <th className="px-4 py-3" key={header}>
-                    {header}
-                  </th>
-                )
+                (header) => {
+                  const isCentered = ["Questions", "Assigned Classes", "Learners"].includes(header);
+                  return (
+                    <th className={`px-4 py-3 ${isCentered ? "text-center" : ""}`} key={header}>
+                      {header}
+                    </th>
+                  );
+                }
               )}
             </tr>
           </thead>
@@ -356,11 +359,11 @@ function StudySetsTable({ studySets }) {
                   <td className="px-4 py-3">
                     <VisibilityBadge visibility={studySet.visibility} />
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{getQuestionCount(studySet)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-4 py-3 text-muted-foreground text-center">{getQuestionCount(studySet)}</td>
+                  <td className="px-4 py-3 text-muted-foreground text-center">
                     {assignedClasses.length ? assignedClasses.join(", ") : "Not assigned"}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{getLearnerCount(studySet)}</td>
+                  <td className="px-4 py-3 text-muted-foreground text-center">{getLearnerCount(studySet)}</td>
                   <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-wrap gap-2">
                       <Button asChild size="sm" variant="secondary">
