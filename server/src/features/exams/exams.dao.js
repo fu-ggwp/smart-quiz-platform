@@ -1,5 +1,8 @@
 import supabase, { supabaseAdmin } from "../../config/supabase.js";
-import { EXAM_SESSION_TABLE } from "../../models/exam.model.js";
+import { CLASS_TABLE } from "../../models/class.model.js";
+import { EXAM_QUESTION_TABLE, EXAM_SESSION_TABLE } from "../../models/exam.model.js";
+import { QUESTION_TABLE } from "../../models/question.model.js";
+import { QUESTION_BANK_TABLE } from "../../models/question-bank.model.js";
 
 const db = supabaseAdmin ?? supabase;
 
@@ -31,7 +34,6 @@ const EXAM_SESSION_SELECT = `
   question_bank:question_banks (
     question_bank_id,
     title,
-    subject,
     topic
   )
 `;
@@ -128,7 +130,7 @@ export async function listTeacherExamSessions(teacherId, filters = {}) {
     .limit(1000);
 
   if (error) {
-    throw error;
+    return { data: null, error };
   }
 
   const allItems = data ?? [];
@@ -140,11 +142,130 @@ export async function listTeacherExamSessions(teacherId, filters = {}) {
   const items = filteredItems.slice(start, start + pageSize);
 
   return {
-    items,
-    total,
-    page: safePage,
-    pageSize,
-    totalPages,
-    classes: buildClassOptions(allItems),
+    data: {
+      items,
+      total,
+      page: safePage,
+      pageSize,
+      totalPages,
+      classes: buildClassOptions(allItems),
+    },
+    error: null,
   };
+}
+
+export function findManagedActiveClass(classId, teacherId) {
+  return db
+    .from(CLASS_TABLE)
+    .select("class_id, teacher_id, class_name, status")
+    .eq("class_id", classId)
+    .eq("teacher_id", teacherId)
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .maybeSingle();
+}
+
+export function findOwnedQuestionBank(questionBankId, teacherId) {
+  return db
+    .from(QUESTION_BANK_TABLE)
+    .select("question_bank_id, teacher_id, title, status, topic")
+    .eq("question_bank_id", questionBankId)
+    .eq("teacher_id", teacherId)
+    .is("deleted_at", null)
+    .neq("status", "archived")
+    .maybeSingle();
+}
+
+export function listQuestionBankSourceQuestions(questionBankId) {
+  return db
+    .from(QUESTION_TABLE)
+    .select(`
+      question_id,
+      question_text,
+      question_type,
+      score,
+      explanation,
+      subject,
+      topic,
+      chapter,
+      lesson,
+      difficulty,
+      answer_options:answer_options (
+        answer_option_id,
+        option_text,
+        is_correct,
+        display_order
+      )
+    `)
+    .eq("question_bank_id", questionBankId)
+    .is("study_set_id", null)
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: true });
+}
+
+export function insertExamSession(payload) {
+  return db
+    .from(EXAM_SESSION_TABLE)
+    .insert(payload)
+    .select(EXAM_SESSION_SELECT)
+    .single();
+}
+
+export function insertExamQuestions(rows) {
+  if (!rows.length) {
+    return Promise.resolve({ data: [], error: null });
+  }
+
+  return db
+    .from(EXAM_QUESTION_TABLE)
+    .insert(rows)
+    .select("*");
+}
+
+export function deleteExamSession(examSessionId) {
+  return db
+    .from(EXAM_SESSION_TABLE)
+    .delete()
+    .eq("exam_session_id", examSessionId);
+}
+
+export async function countExamReadyQuestionsInBank(questionBankId, teacherId) {
+  const { data, error } = await db
+    .from(QUESTION_TABLE)
+    .select(`
+      question_id,
+      question_type,
+      answer_options:answer_options (
+        is_correct,
+        display_order
+      )
+    `)
+    .eq("question_bank_id", questionBankId)
+    .eq("owner_id", teacherId)
+    .is("study_set_id", null)
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    return { count: 0, error };
+  }
+
+  const count = (data ?? []).filter((question) => {
+    const options = question.answer_options ?? [];
+    const correctCount = options.filter((option) => option.is_correct).length;
+
+    if (question.question_type === "multiple_choice") {
+      return options.length >= 2 && correctCount >= 1;
+    }
+
+    if (question.question_type === "true_false") {
+      return options.length === 2 && correctCount === 1;
+    }
+
+    return false;
+  }).length;
+
+  return { count, error: null };
 }

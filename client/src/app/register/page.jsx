@@ -45,6 +45,16 @@ const registerSchema = z
   });
 
 function getApiMessage(error) {
+  const authMessage = error?.message || "";
+  const authStatus = error?.status;
+
+  if (authStatus === 422 || /password/i.test(authMessage)) {
+    return "Please use a stronger password and try again.";
+  }
+  if (/already registered|already exists|user already/i.test(authMessage)) {
+    return "This email is already associated with another account.";
+  }
+
   return (
     error?.response?.data?.message ||
     "Registration failed. Please try again."

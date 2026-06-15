@@ -7,14 +7,14 @@ const publicRoutes = [
   "/auth/callback",
   "/forgot-password",
   "/reset-password",
+  "/plans",
+  "/search",
+  "/study-sets",
 ];
 const protectedRoutes = [
   "/profile",
   "/upgrade",
-  "/plans",
-  "/search",
   "/users",
-  "/study-sets",
 ];
 const roleRoutes = {
   admin: ["/admin"],

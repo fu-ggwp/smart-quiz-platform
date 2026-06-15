@@ -1,14 +1,13 @@
 // The earlier scaffold assumed a single `exams` table — the real schema splits
 // this into `exam_sessions` (the scheduled exam) and `exam_questions` (a frozen
 // snapshot of each question used in that session, including the answer options
-// as JSON so edits to the source question don't change a published exam).
+// as JSON so edits to the source question don't change an existing exam).
 // Learner attempts live in `exam_attempts` — see exam-attempt.model.js.
 export const EXAM_SESSION_TABLE = "exam_sessions";
 export const EXAM_QUESTION_TABLE = "exam_questions";
 
 export const ExamSessionStatus = Object.freeze({
   DRAFT: "draft",
-  PUBLISHED: "published",
   ACTIVE: "active",
   CLOSED: "closed",
   ARCHIVED: "archived",
@@ -27,7 +26,7 @@ export const ExamResultVisibility = Object.freeze({
  * @property {string} question_bank_id   - FK -> question_banks.question_bank_id
  * @property {string} title
  * @property {string} [description]
- * @property {"draft"|"published"|"active"|"closed"|"archived"} status
+ * @property {"draft"|"active"|"closed"|"archived"} status
  * @property {string} [start_at]
  * @property {string} [end_at]
  * @property {number} duration_minutes
@@ -51,6 +50,7 @@ export const ExamResultVisibility = Object.freeze({
  * @property {"multiple_choice"|"true_false"} question_type
  * @property {number} score
  * @property {string} [explanation]
+ * @property {string} [subject]
  * @property {Object} answer_options_json    - jsonb snapshot of the options
  * @property {number[]} correct_option_indexes
  * @property {number} display_order

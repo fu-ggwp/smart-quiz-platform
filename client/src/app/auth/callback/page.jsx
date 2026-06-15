@@ -12,11 +12,18 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     let active = true;
 
+    const roleHome = {
+      admin: "/admin/dashboard",
+      teacher: "/teacher/dashboard",
+      learner: "/learner/dashboard",
+    };
+
     async function completeAuth() {
       try {
-        await completeLogin();
+        const { profile } = await completeLogin();
         cleanOAuthHash();
-        router.replace("/");
+        const destination = roleHome[profile?.activeRole] ?? "/";
+        router.replace(destination);
         router.refresh();
       } catch (error) {
         if (active) {

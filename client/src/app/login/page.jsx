@@ -39,6 +39,8 @@ const SAFE_LOGIN_MESSAGES = new Set([
 ]);
 
 function getApiMessage(error) {
+  const authMessage = error?.message || "";
+  const authStatus = error?.status;
   const message = error?.response?.data?.message;
   const status = error?.response?.status;
 
@@ -48,6 +50,12 @@ function getApiMessage(error) {
   }
   if (status === 403) {
     return "This account is not available. Please contact support.";
+  }
+  if (/email not confirmed/i.test(authMessage)) {
+    return "Please confirm your email before logging in.";
+  }
+  if (authStatus === 400 || /invalid login credentials/i.test(authMessage)) {
+    return "Incorrect email or password. Please try again.";
   }
 
   return "Login failed. Please try again.";
@@ -93,13 +101,20 @@ export default function LoginPage() {
     if (error) setFormMessage("Google login failed. Please try again.");
   }
 
+  const roleHome = {
+    admin: "/admin/dashboard",
+    teacher: "/teacher/dashboard",
+    learner: "/learner/dashboard",
+  };
+
   async function onSubmit(values) {
     setFormMessage("");
 
     try {
       const response = await authService.login(values);
-      await completeLogin(response?.session);
-      router.push("/");
+      const { profile } = await completeLogin(response?.session);
+      const destination = roleHome[profile?.activeRole] ?? "/";
+      router.push(destination);
       router.refresh();
     } catch (error) {
       const fields = error?.response?.data?.fields || {};
