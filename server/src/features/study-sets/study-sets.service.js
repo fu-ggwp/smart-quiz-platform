@@ -34,19 +34,23 @@ export async function getOne(id) {
     throw notFound();
   }
 
-  const { data: questions, error: qError } = await dao.listQuestionByStudySet(id);
+  const { data: questions, error: qError } =
+    await dao.listQuestionByStudySet(id);
   if (qError) {
     throw dbError(qError, 500);
   }
 
   return {
     ...studySet,
-    questions: questions || []
+    questions: questions || [],
   };
 }
 
 // Tạo mới 1 study set
-export async function create(teacherId, { title, description, visibility, classId, questionBankId, questions }) {
+export async function create(
+  teacherId,
+  { title, description, visibility, classId, questionBankId, questions },
+) {
   if (!title?.trim()) {
     throw Object.assign(new Error("Title is required"), { status: 422 });
   }
@@ -73,13 +77,11 @@ export async function create(teacherId, { title, description, visibility, classI
       subject: q.subject || studySet.subject || null,
       topic: q.topic || studySet.topic || null,
       chapter: q.chapter || null,
-      lesson: q.lesson || null,
-      difficulty: q.difficulty,
-      status: "active",
       source_question_id: q.source_question_id || null,
     }));
 
-    const { data: insertedQuestions, error: qError } = await dao.creationQuestions(questionsPayload);
+    const { data: insertedQuestions, error: qError } =
+      await dao.creationQuestions(questionsPayload);
     if (qError) {
       throw dbError(qError);
     }
@@ -108,7 +110,10 @@ export async function create(teacherId, { title, description, visibility, classI
       }
     }
 
-    await dao.updateQuestionCount(studySet.study_set_id, insertedQuestions.length);
+    await dao.updateQuestionCount(
+      studySet.study_set_id,
+      insertedQuestions.length,
+    );
     studySet.question_count = insertedQuestions.length;
   }
 
@@ -156,7 +161,8 @@ export async function remove(id, teacherId) {
 // Bắt đầu session
 export async function startSession(learnerId, studySetId, mode) {
   await getOne(studySetId);
-  const normalizedMode = (mode === "flashcards" || mode === "flashcard") ? "flashcard" : "quiz";
+  const normalizedMode =
+    mode === "flashcards" || mode === "flashcard" ? "flashcard" : "quiz";
 
   const { data, error } = await dao.createAttempt({
     learner_id: learnerId,
@@ -231,7 +237,7 @@ export async function getSessionResults(sessionId) {
   return { session: session.data, answers: data };
 }
 
-//List dsach bank 
+//List dsach bank
 export async function listQuestionBank(teacherId) {
   const { data, error } = await dao.listQuestionBankByTeacher(teacherId);
   if (error) {
@@ -250,27 +256,30 @@ export async function getQuestionsByBank(questionBankId) {
 }
 
 export async function listLearnerStudySets(learnerId) {
-  const { data: memberships, error: memberError } = await dao.getLearnerClassMemberships(learnerId);
+  const { data: memberships, error: memberError } =
+    await dao.getLearnerClassMemberships(learnerId);
   if (memberError) throw dbError(memberError, 500);
   let assignedStudySets = [];
   if (memberships && memberships.length > 0) {
-    const classIds = memberships.map(m => m.class_id);
-    
-    const { data: assignments, error: assignError } = await dao.getAssignmentsByClassIds(classIds);
+    const classIds = memberships.map((m) => m.class_id);
+
+    const { data: assignments, error: assignError } =
+      await dao.getAssignmentsByClassIds(classIds);
     if (assignError) throw dbError(assignError, 500);
     assignedStudySets = assignments || [];
   }
-  const { data: attempts, error: attemptError } = await dao.getPracticeAttempts(learnerId);
+  const { data: attempts, error: attemptError } =
+    await dao.getPracticeAttempts(learnerId);
   if (attemptError) throw dbError(attemptError, 500);
   const assignedMap = new Map();
-  assignedStudySets.forEach(a => {
+  assignedStudySets.forEach((a) => {
     assignedMap.set(a.study_set_id, {
       class_id: a.class_id,
-      class_name: a.classes?.class_name || "Lớp học"
+      class_name: a.classes?.class_name || "Lớp học",
     });
   });
   const startedMap = new Map();
-  (attempts || []).forEach(att => {
+  (attempts || []).forEach((att) => {
     const current = startedMap.get(att.study_set_id);
     if (!current || new Date(att.started_at) > new Date(current.started_at)) {
       startedMap.set(att.study_set_id, { started_at: att.started_at });
@@ -278,9 +287,10 @@ export async function listLearnerStudySets(learnerId) {
   });
   const allIds = [...new Set([...assignedMap.keys(), ...startedMap.keys()])];
   if (allIds.length === 0) return [];
-  const { data: studySets, error: fetchError } = await dao.getStudySetsByIds(allIds);
+  const { data: studySets, error: fetchError } =
+    await dao.getStudySetsByIds(allIds);
   if (fetchError) throw dbError(fetchError, 500);
-  return studySets.map(set => {
+  return studySets.map((set) => {
     const assignment = assignedMap.get(set.study_set_id);
     const attempt = startedMap.get(set.study_set_id);
     return {
@@ -289,7 +299,7 @@ export async function listLearnerStudySets(learnerId) {
       assigned_class: assignment || null,
       is_started: !!attempt,
       last_studied_at: attempt ? attempt.started_at : null,
-      source_type: assignment ? "assigned" : "public-started"
+      source_type: assignment ? "assigned" : "public-started",
     };
   });
 }

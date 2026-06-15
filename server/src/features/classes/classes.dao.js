@@ -22,7 +22,7 @@ export async function getClassesByTeacher(teacherId) {
 export async function findClassByCode(classCode) {
   const { data, error } = await supabaseAdmin
     .from(CLASS_TABLE)
-    .select("class_id")
+    .select("*, teacher:users!teacher_id(username, full_name)")
     .eq("class_code", classCode)
     .maybeSingle();
 
@@ -123,6 +123,84 @@ export async function updateJoinRequest(requestId, updates) {
 export async function insertClassMember(payload) {
   const { data, error } = await supabaseAdmin
     .from(CLASS_MEMBER_TABLE)
+    .insert(payload)
+    .select()
+    .single();
+
+  return { data, error };
+}
+
+/**
+ * Find a class by invitation token (not deleted).
+ */
+export async function findClassByInvitationToken(token) {
+  const { data, error } = await supabaseAdmin
+    .from(CLASS_TABLE)
+    .select("*, teacher:users!teacher_id(username, full_name)")
+    .eq("invitation_token", token)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  return { data, error };
+}
+
+/**
+ * Check if a learner is already an active member of a class.
+ */
+export async function findExistingMember(classId, learnerId) {
+  const { data, error } = await supabaseAdmin
+    .from(CLASS_MEMBER_TABLE)
+    .select("class_member_id")
+    .eq("class_id", classId)
+    .eq("learner_id", learnerId)
+    .eq("status", "active")
+    .maybeSingle();
+
+  return { data, error };
+}
+
+/**
+ * Check if a learner already has a pending join request for a class.
+ */
+export async function findExistingJoinRequest(classId, learnerId) {
+  const { data, error } = await supabaseAdmin
+    .from(JOIN_REQUEST_TABLE)
+    .select("join_request_id, status")
+    .eq("class_id", classId)
+    .eq("learner_id", learnerId)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  return { data, error };
+}
+
+/**
+ * Get all classes a learner has actively joined, with teacher info and member count.
+ */
+export async function getJoinedClasses(learnerId) {
+  const { data, error } = await supabaseAdmin
+    .from(CLASS_MEMBER_TABLE)
+    .select(`
+      joined_at,
+      class:classes!class_id(
+        *,
+        teacher:users!teacher_id(username, full_name),
+        member_count:class_members(count)
+      )
+    `)
+    .eq("learner_id", learnerId)
+    .eq("status", "active")
+    .order("joined_at", { ascending: false });
+
+  return { data, error };
+}
+
+/**
+ * Insert a new join request row.
+ */
+export async function insertJoinRequest(payload) {
+  const { data, error } = await supabaseAdmin
+    .from(JOIN_REQUEST_TABLE)
     .insert(payload)
     .select()
     .single();

@@ -9,8 +9,13 @@ import {
   getJoinRequestById,
   updateJoinRequest,
   insertClassMember,
+  findClassByInvitationToken,
+  findExistingMember,
+  findExistingJoinRequest,
+  insertJoinRequest,
+  getJoinedClasses,
 } from "./classes.dao.js";
-import { ClassStatus, ClassJoinPolicy } from "../../models/class.model.js";
+import { ClassJoinPolicy } from "../../models/class.model.js";
 import { JoinRequestStatus, ClassMemberStatus } from "../../models/join-request.model.js";
 
 /**
@@ -82,7 +87,6 @@ export async function createClass({
     description: description || null,
     learner_capacity: learnerCapacity || 50,
     join_policy: joinPolicy || ClassJoinPolicy.TEACHER_APPROVAL,
-    status: ClassStatus.ACTIVE,
     class_code: classCode,
     invitation_token: generateInvitationToken(),
     start_date: startDate || null,
@@ -169,4 +173,84 @@ export async function resolveJoinRequest(requestId, status, reviewerId) {
   }
 
   return updated;
+}
+
+/**
+ * Return all classes a learner has actively joined.
+ */
+export async function listJoinedClasses(learnerId) {
+  const { data, error } = await getJoinedClasses(learnerId);
+  if (error) throw new Error(error.message);
+
+  return data.map((row) => ({
+    ...row.class,
+    joined_at: row.joined_at,
+    member_count: row.class?.member_count?.[0]?.count ?? 0,
+  }));
+}
+
+/**
+ * Learner joins a class via class code or invitation token.
+ * - auto_approve  → insert directly into class_members
+ * - teacher_approval → insert a pending join request
+ */
+export async function joinClass(learnerId, { classCode, invitationToken }) {
+  // 1. Find the class
+  let cls = null;
+  if (classCode) {
+    const { data, error } = await findClassByCode(classCode.toUpperCase());
+    if (error) throw new Error(error.message);
+    cls = data;
+  } else if (invitationToken) {
+    const { data, error } = await findClassByInvitationToken(invitationToken);
+    if (error) throw new Error(error.message);
+    cls = data;
+  } else {
+    const err = new Error("class_code or invitation_token is required.");
+    err.status = 400;
+    throw err;
+  }
+
+  if (!cls) {
+    const err = new Error("Class not found. Check the code and try again.");
+    err.status = 404;
+    throw err;
+  }
+
+  // 2. Already a member?
+  const { data: existingMember } = await findExistingMember(cls.class_id, learnerId);
+  if (existingMember) {
+    const err = new Error("You are already a member of this class.");
+    err.status = 409;
+    throw err;
+  }
+
+  // 3. Already has a pending request?
+  const { data: existingRequest } = await findExistingJoinRequest(cls.class_id, learnerId);
+  if (existingRequest) {
+    const err = new Error("You already have a pending join request for this class.");
+    err.status = 409;
+    throw err;
+  }
+
+  // 4. Auto approve → straight into class_members
+  if (cls.join_policy === ClassJoinPolicy.AUTO_APPROVE) {
+    const { data, error } = await insertClassMember({
+      class_id: cls.class_id,
+      learner_id: learnerId,
+      status: ClassMemberStatus.ACTIVE,
+      joined_at: new Date().toISOString(),
+    });
+    if (error) throw new Error(error.message);
+    return { joined: true, class: cls, member: data };
+  }
+
+  // 5. Teacher approval → create join request
+  const { data, error } = await insertJoinRequest({
+    class_id: cls.class_id,
+    learner_id: learnerId,
+    status: JoinRequestStatus.PENDING,
+  });
+  if (error) throw new Error(error.message);
+  return { joined: false, class: cls, joinRequest: data };
 }

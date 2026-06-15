@@ -6,12 +6,6 @@ export const ClassJoinPolicy = Object.freeze({
   TEACHER_APPROVAL: "teacher_approval",
 });
 
-export const ClassStatus = Object.freeze({
-  ACTIVE: "active",
-  INACTIVE: "inactive",
-  CLOSED: "closed",
-  ARCHIVED: "archived",
-});
 
 /**
  * @typedef {Object} Class
@@ -26,7 +20,6 @@ export const ClassStatus = Object.freeze({
  * @property {string} [invitation_expires_at]
  * @property {number} learner_capacity        - default 50
  * @property {"auto_approve"|"teacher_approval"} join_policy
- * @property {"active"|"inactive"|"closed"|"archived"} status
  * @property {string} [start_date]
  * @property {string} [end_date]
  * @property {string} [description]

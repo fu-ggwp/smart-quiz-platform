@@ -26,7 +26,18 @@ export default function QuestionBankSelector({
 
   // Sync state if lockedBankId changes dynamically
   useEffect(() => {
-    setSelectedBankId(lockedBankId || "");
+    let ignore = false;
+
+    async function syncLockedBank() {
+      await Promise.resolve();
+      if (!ignore) setSelectedBankId(lockedBankId || "");
+    }
+
+    syncLockedBank();
+
+    return () => {
+      ignore = true;
+    };
   }, [lockedBankId]);
 
   // 1. Fetch Question Banks on component mount
@@ -45,10 +56,21 @@ export default function QuestionBankSelector({
   // 2. Fetch questions when a specific Question Bank is selected
   useEffect(() => {
     if (!selectedBankId) {
-      setQuestions([]);
-      setGroupedQuestions({});
-      setSelectedQIds(new Set());
-      return;
+      let ignore = false;
+
+      async function clearQuestions() {
+        await Promise.resolve();
+        if (ignore) return;
+        setQuestions([]);
+        setGroupedQuestions({});
+        setSelectedQIds(new Set());
+      }
+
+      clearQuestions();
+
+      return () => {
+        ignore = true;
+      };
     }
 
     async function fetchQuestions() {
@@ -324,9 +346,6 @@ export default function QuestionBankSelector({
                                             </span>
                                           )}
                                         </div>
-                                        <p className="text-xs text-muted-foreground mt-1 font-semibold">
-                                          Difficulty: <span className="capitalize">{q.difficulty || "medium"}</span>
-                                        </p>
                                       </div>
                                     </div>
                                   ))}

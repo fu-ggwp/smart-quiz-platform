@@ -188,9 +188,6 @@ export default function TeacherStudySetDetailPage() {
                       Question #{index + 1}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs capitalize font-semibold px-2 py-0.5 bg-muted text-muted-foreground rounded-md">
-                        {q.difficulty || "medium"}
-                      </span>
                       <Button
                         onClick={() => toggleRevealQuestion(q.question_id)}
                         variant="ghost"

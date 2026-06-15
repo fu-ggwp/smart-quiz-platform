@@ -35,7 +35,6 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
       "Option 5",
       "Correct Option",
       "Explanation",
-      "Difficulty",
       "Topic",
       "Chapter"
     ];
@@ -49,7 +48,6 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
         "",
         3,
         "Paris is the capital of France.",
-        "easy",
         "Geography",
         "Europe"
       ],
@@ -62,7 +60,6 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
         "",
         1,
         "It is a scientific fact.",
-        "easy",
         "Science",
         "Physics"
       ]
@@ -96,7 +93,6 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
         const textIdx = headers.indexOf("question text");
         const correctIdx = headers.indexOf("correct option");
         const explanationIdx = headers.indexOf("explanation");
-        const difficultyIdx = headers.indexOf("difficulty");
         const topicIdx = headers.indexOf("topic");
         const chapterIdx = headers.indexOf("chapter");
 
@@ -133,7 +129,6 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
           const qText = String(row[textIdx] || "").trim();
           const correctVal = parseInt(row[correctIdx], 10);
           const explanation = row[explanationIdx] ? String(row[explanationIdx]).trim() : "";
-          const difficulty = row[difficultyIdx] ? String(row[difficultyIdx]).trim().toLowerCase() : "medium";
           const topic = row[topicIdx] ? String(row[topicIdx]).trim() : "";
           const chapter = row[chapterIdx] ? String(row[chapterIdx]).trim() : "";
 
@@ -161,19 +156,10 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
             });
             return;
           }
-          if (difficulty && !["easy", "medium", "hard"].includes(difficulty)) {
-            errorList.push({ 
-              row: rowNum, 
-              message: `Invalid 'Difficulty' value: '${difficulty}'. It must be 'easy', 'medium', or 'hard'.` 
-            });
-            return;
-          }
-
           options[correctVal - 1].is_correct = true;
 
           validList.push({
             question_text: qText,
-            difficulty,
             explanation,
             topic,
             chapter,

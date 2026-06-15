@@ -25,7 +25,6 @@ export default function CreateStudySetPage() {
   const [questions, setQuestions] = useState([
     {
       question_text: "",
-      difficulty: "medium",
       explanation: "",
       topic: "",
       chapter: "",
@@ -49,7 +48,6 @@ export default function CreateStudySetPage() {
       ...prev,
       {
         question_text: "",
-        difficulty: "medium",
         explanation: "",
         topic: "",
         chapter: "",
@@ -101,7 +99,7 @@ export default function CreateStudySetPage() {
     });
   };
 
-  // Update question text, explanation, difficulty, etc.
+  // Update question text, explanation, metadata, etc.
   const handleQuestionFieldChange = (qIndex, field, value) => {
     setQuestions((prev) => {
       const updated = [...prev];
@@ -111,7 +109,6 @@ export default function CreateStudySetPage() {
     setErrors((prev) => {
       const next = { ...prev };
       delete next[`q_${qIndex}_text`];
-      delete next[`q_${qIndex}_difficulty`];
       delete next.submit;
       return next;
     });
@@ -187,7 +184,6 @@ export default function CreateStudySetPage() {
     // Format imported questions to match the draft structure
     const formattedQs = importedQs.map((q) => ({
       question_text: q.question_text,
-      difficulty: q.difficulty || "medium",
       explanation: q.explanation || "",
       topic: q.topic || "",
       chapter: q.chapter || "",
@@ -211,7 +207,6 @@ export default function CreateStudySetPage() {
   const handleExcelQuestionsImported = (importedQs) => {
     const formattedQs = importedQs.map((q) => ({
       question_text: q.question_text,
-      difficulty: q.difficulty || "medium",
       explanation: q.explanation || "",
       topic: q.topic || "",
       chapter: q.chapter || "",
@@ -243,9 +238,6 @@ export default function CreateStudySetPage() {
     questions.forEach((q, idx) => {
       if (!q.question_text.trim()) {
         newErrors[`q_${idx}_text`] = "Question prompt cannot be empty.";
-      }
-      if (!q.difficulty) {
-        newErrors[`q_${idx}_difficulty`] = "Please select a difficulty level.";
       }
       if (q.options.length < 2) {
         newErrors[`q_${idx}_options`] = "Question must have at least 2 options.";
@@ -447,23 +439,7 @@ export default function CreateStudySetPage() {
                   </div>
 
                   {/* Question metadata */}
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-foreground">Difficulty *</label>
-                      <select
-                        className="h-9 w-full rounded-lg border border-input bg-background px-2.5 text-xs outline-none focus:border-ring"
-                        value={q.difficulty}
-                        onChange={(e) => handleQuestionFieldChange(qIndex, "difficulty", e.target.value)}
-                      >
-                        <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
-                      </select>
-                      {errors[`q_${qIndex}_difficulty`] && (
-                        <p className="text-xs font-semibold text-rose-500 mt-0.5">{errors[`q_${qIndex}_difficulty`]}</p>
-                      )}
-                    </div>
-
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-foreground">Topic</label>
                       <Input

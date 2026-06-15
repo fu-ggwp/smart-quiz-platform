@@ -5,8 +5,23 @@ import {
   listMembers as listMembersService,
   listJoinRequests as listJoinRequestsService,
   resolveJoinRequest as resolveJoinRequestService,
+  joinClass as joinClassService,
+  listJoinedClasses as listJoinedClassesService,
 } from "./classes.service.js";
 import { JoinRequestStatus } from "../../models/join-request.model.js";
+
+/**
+ * GET /api/classes/joined
+ * Returns all classes the logged-in learner has joined.
+ */
+export async function getJoinedClasses(req, res) {
+  try {
+    const classes = await listJoinedClassesService(req.user.id);
+    res.json({ ok: true, data: classes });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+}
 
 /**
  * GET /api/classes
@@ -93,6 +108,29 @@ export async function getJoinRequests(req, res) {
   try {
     const requests = await listJoinRequestsService(req.params.id, req.user.id);
     res.json({ ok: true, data: requests });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+}
+
+/**
+ * POST /api/classes/join
+ * Body: { class_code? } | { invitation_token? }
+ * Learner joins a class by code or invitation token.
+ */
+export async function joinClass(req, res) {
+  const { class_code, invitation_token } = req.body;
+
+  if (!class_code && !invitation_token) {
+    return res.status(400).json({ ok: false, error: "class_code or invitation_token is required." });
+  }
+
+  try {
+    const result = await joinClassService(req.user.id, {
+      classCode: class_code,
+      invitationToken: invitation_token,
+    });
+    res.status(result.joined ? 200 : 201).json({ ok: true, data: result });
   } catch (err) {
     res.status(err.status || 500).json({ ok: false, error: err.message });
   }

@@ -6,6 +6,8 @@ import {
   getClassMembers,
   getJoinRequests,
   resolveJoinRequest,
+  joinClass,
+  getJoinedClasses,
 } from "./classes.controller.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 
@@ -15,7 +17,13 @@ const classesRouter = Router();
 classesRouter.get("/", requireAuth, getMyClasses);
 classesRouter.post("/", requireAuth, createClass);
 
-// Join request resolve — must be defined before /:id to avoid "join-requests" matching as an id
+// Learner: list joined classes — must be before /:id
+classesRouter.get("/joined", requireAuth, getJoinedClasses);
+
+// Learner joins a class — must be before /:id
+classesRouter.post("/join", requireAuth, joinClass);
+
+// Join request resolve — must be before /:id
 classesRouter.patch("/join-requests/:requestId", requireAuth, resolveJoinRequest);
 
 // Class detail routes
