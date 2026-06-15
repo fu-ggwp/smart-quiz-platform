@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import classesService from "../../../../services/classes.service";
 
-
 function InfoRow({ label, value }) {
   if (!value) return null;
   return (
@@ -40,13 +39,17 @@ export default function ClassDetailPage() {
       setMembers(membersData);
       setJoinRequests(requestsData);
     } catch (err) {
-      setError(err?.response?.data?.error || err.message || "Failed to load class.");
+      setError(
+        err?.response?.data?.error || err.message || "Failed to load class.",
+      );
     } finally {
       setLoading(false);
     }
   }, [id]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function handleResolve(requestId, status) {
     setResolving(requestId);
@@ -60,7 +63,11 @@ export default function ClassDetailPage() {
       setMembers(membersData);
       setJoinRequests(requestsData);
     } catch (err) {
-      alert(err?.response?.data?.error || err.message || "Failed to resolve request.");
+      alert(
+        err?.response?.data?.error ||
+          err.message ||
+          "Failed to resolve request.",
+      );
     } finally {
       setResolving(null);
     }
@@ -93,7 +100,6 @@ export default function ClassDetailPage() {
   return (
     <main className="min-h-screen px-6 py-10">
       <div className="mx-auto w-full max-w-3xl space-y-6">
-
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-1">
@@ -112,15 +118,24 @@ export default function ClassDetailPage() {
 
         {/* Class Info */}
         <div className="rounded-xl border border-neutral-200 p-5">
-          <h2 className="mb-4 text-sm font-semibold text-neutral-700">Class Info</h2>
+          <h2 className="mb-4 text-sm font-semibold text-neutral-700">
+            Class Info
+          </h2>
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
             <InfoRow label="Subject" value={cls.subject} />
             <InfoRow label="Grade Level" value={cls.grade_level} />
             <InfoRow label="Academic Year" value={cls.academic_year} />
-            <InfoRow label="Max Students" value={String(cls.learner_capacity)} />
+            <InfoRow
+              label="Max Students"
+              value={String(cls.learner_capacity)}
+            />
             <InfoRow
               label="Join Policy"
-              value={cls.join_policy === "auto_approve" ? "Auto Approve" : "Teacher Approval"}
+              value={
+                cls.join_policy === "auto_approve"
+                  ? "Auto Approve"
+                  : "Teacher Approval"
+              }
             />
             <InfoRow label="Start Date" value={cls.start_date} />
             <InfoRow label="End Date" value={cls.end_date} />
@@ -149,7 +164,9 @@ export default function ClassDetailPage() {
         {cls.join_policy === "teacher_approval" && (
           <div className="rounded-xl border border-neutral-200 p-5">
             <div className="mb-4 flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-neutral-700">Join Requests</h2>
+              <h2 className="text-sm font-semibold text-neutral-700">
+                Join Requests
+              </h2>
               {joinRequests.length > 0 && (
                 <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
                   {joinRequests.length} pending
@@ -158,16 +175,23 @@ export default function ClassDetailPage() {
             </div>
 
             {joinRequests.length === 0 ? (
-              <p className="text-sm text-neutral-400">No pending join requests.</p>
+              <p className="text-sm text-neutral-400">
+                No pending join requests.
+              </p>
             ) : (
               <ul className="divide-y divide-neutral-100">
                 {joinRequests.map((req) => (
-                  <li key={req.join_request_id} className="flex items-center justify-between py-3">
+                  <li
+                    key={req.join_request_id}
+                    className="flex items-center justify-between py-3"
+                  >
                     <div className="flex flex-col gap-0.5">
                       <span className="text-sm font-medium text-neutral-800">
                         {req.user?.full_name || req.user?.username || "Unknown"}
                       </span>
-                      <span className="text-xs text-neutral-400">{req.user?.email}</span>
+                      <span className="text-xs text-neutral-400">
+                        {req.user?.email}
+                      </span>
                       {req.request_message && (
                         <span className="mt-0.5 text-xs italic text-neutral-500">
                           "{req.request_message}"
@@ -176,14 +200,18 @@ export default function ClassDetailPage() {
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleResolve(req.join_request_id, "approved")}
+                        onClick={() =>
+                          handleResolve(req.join_request_id, "approved")
+                        }
                         disabled={resolving === req.join_request_id}
                         className="rounded-lg bg-black px-3 py-1.5 text-xs font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
                       >
                         Approve
                       </button>
                       <button
-                        onClick={() => handleResolve(req.join_request_id, "rejected")}
+                        onClick={() =>
+                          handleResolve(req.join_request_id, "rejected")
+                        }
                         disabled={resolving === req.join_request_id}
                         className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50 disabled:opacity-50"
                       >
@@ -219,15 +247,22 @@ export default function ClassDetailPage() {
           ) : (
             <ul className="divide-y divide-neutral-100">
               {previewMembers.map((m) => (
-                <li key={m.class_member_id} className="flex items-center gap-3 py-2.5">
+                <li
+                  key={m.class_member_id}
+                  className="flex items-center gap-3 py-2.5"
+                >
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-medium text-neutral-600">
-                    {(m.user?.full_name || m.user?.username || "?")[0].toUpperCase()}
+                    {(m.user?.full_name ||
+                      m.user?.username ||
+                      "?")[0].toUpperCase()}
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-sm font-medium text-neutral-800">
                       {m.user?.full_name || m.user?.username || "Unknown"}
                     </span>
-                    <span className="text-xs text-neutral-400">{m.user?.email}</span>
+                    <span className="text-xs text-neutral-400">
+                      {m.user?.email}
+                    </span>
                   </div>
                 </li>
               ))}
@@ -246,7 +281,6 @@ export default function ClassDetailPage() {
             </p>
           )}
         </div>
-
       </div>
     </main>
   );

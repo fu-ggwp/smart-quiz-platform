@@ -33,7 +33,6 @@ export const QuestionStatus = Object.freeze({
  * @property {"multiple_choice"|"true_false"} question_type
  * @property {number} score
  * @property {string} [explanation]
- * @property {string} [subject]
  * @property {string} [topic]
  * @property {string} [chapter]
  * @property {string} [lesson]

@@ -7,9 +7,7 @@ const db = supabaseAdmin || supabase;
 
 const sortableColumns = new Set([
   "title",
-  "subject",
   "topic",
-  "visibility",
   "status",
   "created_at",
   "updated_at",
@@ -21,7 +19,9 @@ function cleanKeyword(value = "") {
 
 export function listByTeacher(teacherId, filters = {}) {
   const { page, limit, from, to } = getPagination(filters);
-  const sortBy = sortableColumns.has(filters.sortBy) ? filters.sortBy : "updated_at";
+  const sortBy = sortableColumns.has(filters.sortBy)
+    ? filters.sortBy
+    : "updated_at";
   const ascending = filters.sortOrder === "asc";
   const keyword = cleanKeyword(filters.keyword);
 
@@ -29,34 +29,24 @@ export function listByTeacher(teacherId, filters = {}) {
     .from(QUESTION_BANK_TABLE)
     .select("*", { count: "exact" })
     .eq("teacher_id", teacherId)
-    .is("deleted_at", null);
+    .neq("status", "Deleted");
 
   if (keyword) {
     query = query.or(
-      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,subject.ilike.%${keyword}%,topic.ilike.%${keyword}%`
+      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%`,
     );
   }
 
-  if (filters.subject) query = query.eq("subject", filters.subject);
-  if (filters.visibility) query = query.eq("visibility", filters.visibility);
   if (filters.status) query = query.eq("status", filters.status);
 
-  return query.order(sortBy, { ascending }).range(from, to).then((result) => ({
-    ...result,
-    page,
-    limit,
-  }));
-}
-
-export function listSubjectsByTeacher(teacherId) {
-  return db
-    .from(QUESTION_BANK_TABLE)
-    .select("subject")
-    .eq("teacher_id", teacherId)
-    .is("deleted_at", null)
-    .not("subject", "is", null)
-    .neq("subject", "")
-    .order("subject", { ascending: true });
+  return query
+    .order(sortBy, { ascending })
+    .range(from, to)
+    .then((result) => ({
+      ...result,
+      page,
+      limit,
+    }));
 }
 
 export function findOwnedById(questionBankId, teacherId) {
@@ -65,7 +55,7 @@ export function findOwnedById(questionBankId, teacherId) {
     .select("*")
     .eq("question_bank_id", questionBankId)
     .eq("teacher_id", teacherId)
-    .is("deleted_at", null)
+    .neq("status", "Deleted")
     .maybeSingle();
 }
 
@@ -79,18 +69,22 @@ export function update(questionBankId, teacherId, changes) {
     .update(changes)
     .eq("question_bank_id", questionBankId)
     .eq("teacher_id", teacherId)
-    .is("deleted_at", null)
+    .neq("status", "Deleted")
     .select("*")
     .maybeSingle();
 }
 
-export function softDelete(questionBankId, teacherId) {
+export function archive(questionBankId, teacherId) {
+  const now = new Date().toISOString();
+
   return update(questionBankId, teacherId, {
-    status: "archived",
-    deleted_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    status: "Deleted",
+    deleted_at: now,
+    updated_at: now,
   });
 }
+
+export const softDelete = archive;
 
 export async function countQuestions(questionBankId) {
   const { count, error } = await db
@@ -102,4 +96,3 @@ export async function countQuestions(questionBankId) {
   if (error) throw error;
   return count || 0;
 }
-
