@@ -18,7 +18,7 @@ export function ExamSessionsPagination({ meta, showingText, visiblePages, onGoTo
             onClick={() => onGoToPage(page)}
             className={`h-9 min-w-9 rounded-md border px-3 text-sm font-bold transition ${
               page === meta.page
-                ? "border-auth-action bg-auth-action text-auth-action-foreground"
+                ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground"
             }`}
           >

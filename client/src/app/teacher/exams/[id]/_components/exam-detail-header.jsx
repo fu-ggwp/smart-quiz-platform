@@ -28,7 +28,7 @@ export function ExamDetailHeader({ exam, examId }) {
       <div className="flex flex-wrap gap-2">
         <Link
           href={`/teacher/exams/${examId}/settings`}
-          className="inline-flex h-9 items-center gap-2 rounded-md border border-auth-action bg-auth-action px-3 text-sm font-bold text-auth-action-foreground hover:bg-[color-mix(in_oklch,var(--auth-action),var(--foreground)_10%)]"
+          className="inline-flex h-9 items-center gap-2 rounded-md border border-primary bg-primary px-3 text-sm font-bold text-primary-foreground hover:bg-[color-mix(in_oklch,var(--color-primary),var(--color-foreground)_10%)]"
         >
           <Settings className="size-4" />
           Configure

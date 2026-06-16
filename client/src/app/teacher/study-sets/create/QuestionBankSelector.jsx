@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight, Folder, BookOpen, AlertTriangle } from "lucide-react";
-import api from "@/services/api";
+import axiosClient from "@/services/axiosClient";
 import { Button } from "@/components/ui/button";
 
 export default function QuestionBankSelector({ 
@@ -44,7 +44,7 @@ export default function QuestionBankSelector({
   useEffect(() => {
     async function fetchBanks() {
       try {
-        const res = await api.get("/api/study-sets/question-banks");
+        const res = await axiosClient.get("/api/study-sets/question-banks");
         setBanks(res.data?.data || []);
       } catch (err) {
         console.error("Failed to load question banks:", err);
@@ -76,7 +76,7 @@ export default function QuestionBankSelector({
     async function fetchQuestions() {
       setLoading(true);
       try {
-        const res = await api.get(`/api/study-sets/question-banks/${selectedBankId}/questions`);
+        const res = await axiosClient.get(`/api/study-sets/question-banks/${selectedBankId}/questions`);
         const qList = res.data?.data || [];
         setQuestions(qList);
         setSelectedQIds(new Set()); // Reset previous selections

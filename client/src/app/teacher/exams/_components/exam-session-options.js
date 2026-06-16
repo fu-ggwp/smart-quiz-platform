@@ -30,7 +30,7 @@ export const SORT_OPTIONS = [
 ];
 
 const STATUS_STYLES = {
-  active: "border-auth-action/30 bg-auth-action/10 text-auth-action",
+  active: "border-primary/30 bg-primary/10 text-primary",
   draft: "border-border bg-muted text-muted-foreground",
   closed: "border-destructive/30 bg-destructive/10 text-destructive",
   archived: "border-border bg-muted text-muted-foreground",

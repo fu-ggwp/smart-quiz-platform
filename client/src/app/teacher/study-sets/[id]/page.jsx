@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Edit3, Calendar, BookOpen, Layers, Eye, EyeOff, Check, AlertCircle } from "lucide-react";
-import api from "@/services/api";
+import axiosClient from "@/services/axiosClient";
 import { Button } from "@/components/ui/button";
 
 export default function TeacherStudySetDetailPage() {
@@ -25,7 +25,7 @@ export default function TeacherStudySetDetailPage() {
     async function fetchDetails() {
       setLoading(true);
       try {
-        const res = await api.get(`/api/study-sets/${id}`);
+        const res = await axiosClient.get(`/api/study-sets/${id}`);
         setStudySet(res.data?.data || null);
       } catch (err) {
         console.error("Failed to load study set:", err);
