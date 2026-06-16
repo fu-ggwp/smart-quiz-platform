@@ -1,464 +1,198 @@
 import { randomBytes } from "crypto";
 
-import supabase, { supabaseAdmin } from "../../config/supabase.js";
 import {
   ExamResultVisibility,
   ExamSessionStatus,
   EXAM_SESSION_CONFIG_COLUMNS,
 } from "../../models/exam.model.js";
-import { createUserModel } from "../../models/user.model.js";
-import {
-  closeExpiredTeacherExamSessions,
-  closeTeacherExamSession,
-  countExamReadyQuestionsInBank,
-  deleteExamSession,
-  findManagedActiveClass,
-  findOwnedQuestionBank,
-  findTeacherExamSession,
-  insertExamQuestions,
-  insertExamSession,
-  listQuestionBankSourceQuestions,
-  listTeacherExamSessions as listTeacherExamSessionsDao,
-  updateTeacherExamSessionConfig,
-} from "./exams.dao.js";
-
-const db = supabaseAdmin ?? supabase;
-const userModel = createUserModel(db);
+import * as dao from "./exams.dao.js";
 
 const createSavedMessage = "Exam session has been created successfully.";
 const settingsSavedMessage = "Exam settings have been updated successfully.";
-const invalidSettingsMessage = "The exam settings are invalid. Please check and try again.";
-const invalidActivationMessage =
-  "The exam session cannot be activated. Please complete the required configuration.";
-const invalidInfoMessage = "The information is invalid. Please check and try again.";
-const resultVisibilityValues = new Set(Object.values(ExamResultVisibility));
-const allowedCreateStatuses = new Set([ExamSessionStatus.DRAFT, ExamSessionStatus.ACTIVE]);
-const editableStatusValues = new Set([ExamSessionStatus.DRAFT, ExamSessionStatus.ACTIVE]);
-const uuidRegex =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function serviceError(message, statusCode = 400, fields) {
-  const error = new Error(message);
-  error.status = statusCode;
-  error.statusCode = statusCode;
-  error.fields = fields;
-  return error;
+// Small error helpers keep controller responses consistent.
+function dbError(error, status = 400) {
+  return Object.assign(new Error(error.message || "Database request failed"), { status });
 }
 
-function validationError(message, fields) {
-  return serviceError(message, 400, fields);
+function fail(message, status = 400, fields) {
+  return Object.assign(new Error(message), { status, statusCode: status, fields });
 }
 
-function requireTeacherId(userId) {
-  if (!userId) {
-    throw serviceError("Missing authenticated user.", 401);
-  }
+function notFound(message = "Exam session not found") {
+  return fail(message, 404);
 }
 
-async function requireActiveTeacher(userId) {
-  requireTeacherId(userId);
-
-  const profile = await userModel.findById(userId);
-
-  if (!profile || profile.deleted_at) {
-    throw serviceError("You do not have permission to access or perform this action.", 403);
-  }
-
-  if (profile.account_status !== "active" || profile.active_role !== "teacher") {
-    throw serviceError("You do not have permission to access or perform this action.", 403);
-  }
-
-  return profile;
+function requireUser(userId) {
+  if (!userId) throw fail("Missing authenticated user.", 401);
 }
 
-function normalizeText(value) {
-  if (value === undefined || value === null) return "";
-  return String(value).trim();
+function text(value) {
+  return value === undefined || value === null ? "" : String(value).trim();
 }
 
-function normalizeNullableText(value) {
-  const normalized = normalizeText(value);
-  return normalized || null;
+function nullableText(value) {
+  return text(value) || null;
 }
 
-function ensureObjectPayload(payload) {
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    throw validationError("Request body is required.", {
-      body: "Request body is required.",
-    });
-  }
+function toIso(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
-function validateExamSessionId(examSessionId) {
-  if (!uuidRegex.test(String(examSessionId || ""))) {
-    throw serviceError(invalidInfoMessage, 400, {
-      id: "Exam session id is invalid.",
-    });
-  }
+function toPositiveInt(value, fallback = null) {
+  const number = Number(value ?? fallback);
+  return Number.isInteger(number) && number > 0 ? number : null;
 }
 
-function ensureEditableExamSession(exam) {
-  const now = Date.now();
-  const startTime = exam.start_at ? new Date(exam.start_at).getTime() : null;
-  const endTime = exam.end_at ? new Date(exam.end_at).getTime() : null;
-  const statusLocked = [ExamSessionStatus.CLOSED, ExamSessionStatus.ARCHIVED].includes(
-    exam.status
-  );
-  const timeLocked =
-    (Number.isFinite(startTime) && startTime <= now) ||
-    (Number.isFinite(endTime) && endTime <= now);
-
-  if (statusLocked || timeLocked) {
-    throw serviceError("You do not have permission to access or perform this action.", 409);
-  }
+function toBoolean(value, fallback = false) {
+  if (value === undefined || value === null) return fallback;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return Boolean(value);
 }
 
-function resolveNextValue(changes, field, fallback) {
-  return Object.prototype.hasOwnProperty.call(changes, field) ? changes[field] : fallback;
+// Teacher can type a code, otherwise generate a short readable one.
+function buildAccessCode(value) {
+  return text(value).toUpperCase().replace(/[^A-Z0-9-]/g, "") ||
+    `EXAM-${randomBytes(4).toString("hex").toUpperCase()}`;
 }
 
-function ensureValidTimeWindow(exam, changes) {
-  const nextStartAt = resolveNextValue(changes, "start_at", exam.start_at);
-  const nextEndAt = resolveNextValue(changes, "end_at", exam.end_at);
+// Expired active exams are closed lazily when teacher opens list/detail.
+function isExpiredActiveExam(exam, now = Date.now()) {
+  if (exam?.status !== ExamSessionStatus.ACTIVE || !exam.end_at) return false;
+  const endTime = new Date(exam.end_at).getTime();
+  return Number.isFinite(endTime) && endTime <= now;
+}
 
-  if (!nextStartAt || !nextEndAt) {
-    return;
-  }
+function getNext(exam, changes, field) {
+  return Object.prototype.hasOwnProperty.call(changes, field) ? changes[field] : exam[field];
+}
 
-  if (new Date(nextEndAt).getTime() <= new Date(nextStartAt).getTime()) {
-    throw serviceError(invalidSettingsMessage, 400, {
+function assertTimeWindow(startAt, endAt) {
+  if (startAt && endAt && new Date(endAt).getTime() <= new Date(startAt).getTime()) {
+    throw fail("End time must be later than start time.", 400, {
       start_at: "End time must be later than start time.",
       end_at: "End time must be later than start time.",
     });
   }
 }
 
-function normalizePositiveInteger(value, fieldName, errors) {
-  if (value === undefined || value === null || value === "") {
-    errors[fieldName] = "Please complete all required information.";
-    return null;
-  }
+// Active exams need the minimum config learners need to start safely.
+function assertActivatable(exam, changes) {
+  const status = getNext(exam, changes, "status");
+  if (status !== ExamSessionStatus.ACTIVE) return;
 
-  const number = Number(value);
+  const fields = {};
+  if (!text(getNext(exam, changes, "title"))) fields.title = "Exam title is required.";
+  if (!getNext(exam, changes, "class_id")) fields.class_id = "Class is required.";
+  if (!getNext(exam, changes, "question_bank_id")) fields.question_bank_id = "Question bank is required.";
+  if (!getNext(exam, changes, "start_at")) fields.start_at = "Start time is required before activating.";
+  if (!getNext(exam, changes, "end_at")) fields.end_at = "End time is required before activating.";
+  if (!toPositiveInt(getNext(exam, changes, "duration_minutes"))) fields.duration_minutes = "Duration is required.";
+  if (!toPositiveInt(getNext(exam, changes, "attempt_limit"))) fields.attempt_limit = "Attempt limit is required.";
+  if (!toPositiveInt(getNext(exam, changes, "question_count"))) fields.question_count = "Question count is required.";
 
-  if (!Number.isInteger(number) || number <= 0) {
-    errors[fieldName] = "Please enter a positive whole number.";
-    return null;
-  }
-
-  return number;
-}
-
-function normalizeOptionalDate(value, fieldName, errors) {
-  const normalized = normalizeText(value);
-  if (!normalized) return null;
-
-  const parsed = new Date(normalized);
-  if (Number.isNaN(parsed.getTime())) {
-    errors[fieldName] = "Please enter a valid date and time.";
-    return null;
-  }
-
-  return parsed.toISOString();
-}
-
-function normalizeStatus(value, errors) {
-  const normalized = normalizeText(value || ExamSessionStatus.DRAFT).toLowerCase();
-
-  if (!allowedCreateStatuses.has(normalized)) {
-    errors.status = "Status must be draft or active.";
-    return ExamSessionStatus.DRAFT;
-  }
-
-  return normalized;
-}
-
-function normalizeResultVisibility(value, errors) {
-  const normalized = normalizeText(value || ExamResultVisibility.SCORE_ONLY).toLowerCase();
-
-  if (!resultVisibilityValues.has(normalized)) {
-    errors.result_visibility = "Result visibility is invalid.";
-    return ExamResultVisibility.SCORE_ONLY;
-  }
-
-  return normalized;
-}
-
-function buildAccessCode(value) {
-  const normalized = normalizeText(value).toUpperCase().replace(/[^A-Z0-9-]/g, "");
-  return normalized || `EXAM-${randomBytes(4).toString("hex").toUpperCase()}`;
-}
-
-function isExpiredActiveExam(exam, now = Date.now()) {
-  if (exam?.status !== ExamSessionStatus.ACTIVE || !exam.end_at) {
-    return false;
-  }
-
-  const endTime = new Date(exam.end_at).getTime();
-  return Number.isFinite(endTime) && endTime <= now;
-}
-
-function assertValidTimeWindow({ status, startAt, endAt, errors }) {
-  if (status === ExamSessionStatus.ACTIVE && (!startAt || !endAt)) {
-    errors.start_at = errors.start_at || "Start time is required before activating an exam.";
-    errors.end_at = errors.end_at || "End time is required before activating an exam.";
-    return;
-  }
-
-  if (!startAt && !endAt) return;
-
-  if (!startAt || !endAt) {
-    errors.start_at = errors.start_at || "Start and end time must be provided together.";
-    errors.end_at = errors.end_at || "Start and end time must be provided together.";
-    return;
-  }
-
-  const startTime = new Date(startAt).getTime();
-  const endTime = new Date(endAt).getTime();
-
-  if (endTime <= startTime) {
-    errors.end_at = "End time must be later than start time.";
-  }
-
-  if (status === ExamSessionStatus.ACTIVE && startTime < Date.now()) {
-    errors.start_at = "Start time cannot be in the past.";
+  if (Object.keys(fields).length) {
+    throw fail("The exam session cannot be activated. Please complete the required configuration.", 400, fields);
   }
 }
 
-function addTextField(changes, errors, payload, field, { required = false, maxLength } = {}) {
-  if (payload[field] === undefined) return;
-
-  const value = payload[field] === null ? "" : String(payload[field]).trim();
-  if (required && !value) {
-    errors[field] = "Please complete all required information.";
-    return;
-  }
-
-  if (maxLength && value.length > maxLength) {
-    errors[field] = `Use ${maxLength} characters or fewer.`;
-    return;
-  }
-
-  changes[field] = value || null;
+function normalizeStatus(value, fallback = ExamSessionStatus.DRAFT) {
+  const status = text(value || fallback).toLowerCase();
+  return [ExamSessionStatus.DRAFT, ExamSessionStatus.ACTIVE].includes(status)
+    ? status
+    : ExamSessionStatus.DRAFT;
 }
 
-function addPositiveIntegerField(changes, errors, payload, field) {
-  if (payload[field] === undefined) return;
-
-  const value = Number(payload[field]);
-  if (!Number.isInteger(value) || value <= 0) {
-    errors[field] = invalidInfoMessage;
-    return;
-  }
-
-  changes[field] = value;
+function normalizeVisibility(value) {
+  const visibility = text(value || ExamResultVisibility.SCORE_ONLY).toLowerCase();
+  return Object.values(ExamResultVisibility).includes(visibility)
+    ? visibility
+    : ExamResultVisibility.SCORE_ONLY;
 }
 
-function addBooleanField(changes, errors, payload, field) {
-  if (payload[field] === undefined) return;
-
-  if (typeof payload[field] === "boolean") {
-    changes[field] = payload[field];
-    return;
-  }
-
-  if (payload[field] === "true" || payload[field] === "false") {
-    changes[field] = payload[field] === "true";
-    return;
-  }
-
-  errors[field] = invalidInfoMessage;
-}
-
-function addDateTimeField(changes, errors, payload, field) {
-  if (payload[field] === undefined) return;
-
-  if (payload[field] === null || payload[field] === "") {
-    changes[field] = null;
-    return;
-  }
-
-  const value = new Date(payload[field]);
-  if (Number.isNaN(value.getTime())) {
-    errors[field] = invalidInfoMessage;
-    return;
-  }
-
-  changes[field] = value.toISOString();
-}
-
-function addResultVisibilityField(changes, errors, payload) {
-  if (payload.result_visibility === undefined) return;
-
-  const value = String(payload.result_visibility || "").trim();
-  if (!resultVisibilityValues.has(value)) {
-    errors.result_visibility = invalidInfoMessage;
-    return;
-  }
-
-  changes.result_visibility = value;
-}
-
-function addStatusField(changes, errors, payload) {
-  if (payload.status === undefined) return;
-
-  const value = String(payload.status || "").trim();
-  if (!editableStatusValues.has(value)) {
-    errors.status = "Status can only be changed to draft or active before the exam starts.";
-    return;
-  }
-
-  changes.status = value;
-}
-
-function validateSubmittedTimeWindow(changes, errors) {
-  if (!changes.start_at || !changes.end_at) return;
-
-  if (new Date(changes.end_at).getTime() <= new Date(changes.start_at).getTime()) {
-    errors.start_at = invalidSettingsMessage;
-    errors.end_at = invalidSettingsMessage;
-  }
-}
-
-function buildExamSettingsChanges(payload = {}) {
-  ensureObjectPayload(payload);
-
-  const errors = {};
+// Only allow columns declared in the exam model to be updated from settings.
+function pickConfigChanges(payload = {}) {
   const changes = {};
 
-  addTextField(changes, errors, payload, "title", { required: true, maxLength: 255 });
-  addTextField(changes, errors, payload, "description", { maxLength: 5000 });
-  addTextField(changes, errors, payload, "access_code", { maxLength: 50 });
-  addDateTimeField(changes, errors, payload, "start_at");
-  addDateTimeField(changes, errors, payload, "end_at");
-  addPositiveIntegerField(changes, errors, payload, "duration_minutes");
-  addPositiveIntegerField(changes, errors, payload, "attempt_limit");
-  addPositiveIntegerField(changes, errors, payload, "question_count");
-  addBooleanField(changes, errors, payload, "randomize_questions");
-  addBooleanField(changes, errors, payload, "randomize_answers");
-  addResultVisibilityField(changes, errors, payload);
-  addStatusField(changes, errors, payload);
-  validateSubmittedTimeWindow(changes, errors);
-
-  if (Object.keys(errors).length > 0) {
-    const message = errors.start_at || errors.end_at ? invalidSettingsMessage : invalidInfoMessage;
-    throw validationError(message, errors);
+  for (const field of EXAM_SESSION_CONFIG_COLUMNS) {
+    if (payload[field] !== undefined) changes[field] = payload[field];
   }
+
+  if (changes.title !== undefined) changes.title = text(changes.title);
+  if (changes.description !== undefined) changes.description = nullableText(changes.description);
+  if (changes.access_code !== undefined) changes.access_code = nullableText(changes.access_code);
+  if (changes.start_at !== undefined) changes.start_at = toIso(changes.start_at);
+  if (changes.end_at !== undefined) changes.end_at = toIso(changes.end_at);
+  if (changes.duration_minutes !== undefined) changes.duration_minutes = toPositiveInt(changes.duration_minutes);
+  if (changes.attempt_limit !== undefined) changes.attempt_limit = toPositiveInt(changes.attempt_limit);
+  if (changes.question_count !== undefined) changes.question_count = toPositiveInt(changes.question_count);
+  if (changes.randomize_questions !== undefined) changes.randomize_questions = toBoolean(changes.randomize_questions);
+  if (changes.randomize_answers !== undefined) changes.randomize_answers = toBoolean(changes.randomize_answers);
+  if (changes.result_visibility !== undefined) changes.result_visibility = normalizeVisibility(changes.result_visibility);
+  if (changes.status !== undefined) changes.status = normalizeStatus(changes.status);
 
   return changes;
 }
 
-function getNextValue(exam, changes, field) {
-  return resolveNextValue(changes, field, exam[field]);
+// Create uses light validation because the frontend already checks most fields.
+function normalizeCreatePayload(payload = {}) {
+  const normalized = {
+    class_id: text(payload.class_id),
+    question_bank_id: text(payload.question_bank_id),
+    title: text(payload.title),
+    description: nullableText(payload.description),
+    status: normalizeStatus(payload.status),
+    start_at: toIso(payload.start_at),
+    end_at: toIso(payload.end_at),
+    duration_minutes: toPositiveInt(payload.duration_minutes),
+    attempt_limit: toPositiveInt(payload.attempt_limit, 1),
+    question_count: toPositiveInt(payload.question_count),
+    randomize_questions: toBoolean(payload.randomize_questions, true),
+    randomize_answers: toBoolean(payload.randomize_answers, true),
+    result_visibility: normalizeVisibility(payload.result_visibility),
+    access_code: nullableText(payload.access_code),
+  };
+
+  const fields = {};
+  if (!normalized.title) fields.title = "Exam title is required.";
+  if (!normalized.class_id) fields.class_id = "Class is required.";
+  if (!normalized.question_bank_id) fields.question_bank_id = "Question bank is required.";
+  if (!normalized.duration_minutes) fields.duration_minutes = "Duration is required.";
+  if (!normalized.attempt_limit) fields.attempt_limit = "Attempt limit is required.";
+  if (!normalized.question_count) fields.question_count = "Question count is required.";
+  if (normalized.status === ExamSessionStatus.ACTIVE && !normalized.start_at) fields.start_at = "Start time is required.";
+  if (normalized.status === ExamSessionStatus.ACTIVE && !normalized.end_at) fields.end_at = "End time is required.";
+
+  assertTimeWindow(normalized.start_at, normalized.end_at);
+  if (Object.keys(fields).length) throw fail("The information is invalid. Please check and try again.", 400, fields);
+
+  return normalized;
 }
 
-function isPositiveInteger(value) {
-  return Number.isInteger(Number(value)) && Number(value) > 0;
-}
-
-function ensureActivatableExamSession(exam, changes) {
-  const nextStatus = getNextValue(exam, changes, "status");
-  if (nextStatus !== ExamSessionStatus.ACTIVE) {
-    return;
-  }
-
-  const errors = {};
-  const nextTitle = String(getNextValue(exam, changes, "title") || "").trim();
-  const nextStartAt = getNextValue(exam, changes, "start_at");
-  const nextEndAt = getNextValue(exam, changes, "end_at");
-  const nextDuration = getNextValue(exam, changes, "duration_minutes");
-  const nextAttemptLimit = getNextValue(exam, changes, "attempt_limit");
-  const nextQuestionCount = getNextValue(exam, changes, "question_count");
-  const nextVisibility = getNextValue(exam, changes, "result_visibility");
-
-  if (!exam.class_id) errors.class_id = "Please select a class before activating.";
-  if (!exam.question_bank_id) {
-    errors.question_bank_id = "Please select a question bank before activating.";
-  }
-  if (!nextTitle) errors.title = "Please complete all required information.";
-  if (!nextStartAt) errors.start_at = "Start time is required before activating.";
-  if (!nextEndAt) errors.end_at = "End time is required before activating.";
-  if (!isPositiveInteger(nextDuration)) errors.duration_minutes = invalidInfoMessage;
-  if (!isPositiveInteger(nextAttemptLimit)) errors.attempt_limit = invalidInfoMessage;
-  if (!isPositiveInteger(nextQuestionCount)) errors.question_count = invalidInfoMessage;
-  if (!resultVisibilityValues.has(nextVisibility)) errors.result_visibility = invalidInfoMessage;
-
-  if (nextStartAt && nextEndAt) {
-    const startTime = new Date(nextStartAt).getTime();
-    const endTime = new Date(nextEndAt).getTime();
-
-    if (Number.isNaN(startTime) || Number.isNaN(endTime) || endTime <= startTime) {
-      errors.start_at = "End time must be later than start time.";
-      errors.end_at = "End time must be later than start time.";
-    }
-  }
-
-  if (Object.keys(errors).length > 0) {
-    throw validationError(invalidActivationMessage, errors);
-  }
-}
-
-function normalizeConfigChanges(changes = {}) {
-  return Object.fromEntries(
-    Object.entries(changes).filter(([field, value]) =>
-      EXAM_SESSION_CONFIG_COLUMNS.includes(field) && value !== undefined
-    )
-  );
-}
-
-function handleDaoError(error) {
-  if (error) {
-    throw serviceError("Failed to load data. Please check your connection and try again.", 500);
-  }
-}
-
-function validateSourceQuestion(question) {
-  const options = [...(question.answer_options ?? [])].sort(
-    (left, right) => left.display_order - right.display_order
-  );
+// Only snapshot questions that have enough answer data for an exam.
+function validQuestion(question) {
+  const options = question.answer_options ?? [];
   const correctCount = options.filter((option) => option.is_correct).length;
 
-  if (question.question_type === "multiple_choice") {
-    return options.length >= 2 && correctCount >= 1;
-  }
-
-  if (question.question_type === "true_false") {
-    return options.length === 2 && correctCount === 1;
-  }
-
+  if (question.question_type === "multiple_choice") return options.length >= 2 && correctCount >= 1;
+  if (question.question_type === "true_false") return options.length === 2 && correctCount === 1;
   return false;
 }
 
-function shuffleItems(items) {
-  const shuffled = [...items];
-
-  for (let index = shuffled.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
-  }
-
-  return shuffled;
+function shuffle(items) {
+  return [...items].sort(() => Math.random() - 0.5);
 }
 
-function getOrderedAnswerOptions(question, shouldRandomizeAnswers) {
-  const orderedOptions = [...(question.answer_options ?? [])].sort(
-    (left, right) => left.display_order - right.display_order
-  );
-
-  return shouldRandomizeAnswers ? shuffleItems(orderedOptions) : orderedOptions;
-}
-
-function toExamQuestionRows(examSessionId, sourceQuestions, shouldRandomizeAnswers) {
-  return sourceQuestions.map((question, index) => {
-    const orderedOptions = getOrderedAnswerOptions(question, shouldRandomizeAnswers);
-    const answerOptions = orderedOptions.map((option, optionIndex) => ({
-      index: optionIndex,
-      text: option.option_text,
-    }));
-
-    const correctOptionIndexes = orderedOptions
-      .map((option, optionIndex) => (option.is_correct ? optionIndex : null))
-      .filter((optionIndex) => optionIndex !== null);
+// Store a frozen copy so later bank edits do not change this exam.
+function toExamQuestionRows(examSessionId, questions, randomizeAnswers) {
+  return questions.map((question, index) => {
+    const options = [...(question.answer_options ?? [])].sort(
+      (left, right) => left.display_order - right.display_order
+    );
+    const orderedOptions = randomizeAnswers ? shuffle(options) : options;
 
     return {
       exam_session_id: examSessionId,
@@ -470,265 +204,248 @@ function toExamQuestionRows(examSessionId, sourceQuestions, shouldRandomizeAnswe
       subject: question.subject || null,
       topic: question.topic || null,
       chapter: question.chapter || null,
-      lesson: null,
-      difficulty: null,
-      answer_options_json: answerOptions,
-      correct_option_indexes: correctOptionIndexes,
+      answer_options_json: orderedOptions.map((option, optionIndex) => ({
+        index: optionIndex,
+        text: option.option_text,
+      })),
+      correct_option_indexes: orderedOptions
+        .map((option, optionIndex) => (option.is_correct ? optionIndex : null))
+        .filter((optionIndex) => optionIndex !== null),
       display_order: index + 1,
     };
   });
 }
 
-function selectSourceQuestions(questions, requestedCount, shouldRandomize) {
-  const candidates = shouldRandomize ? shuffleItems(questions) : questions;
-  return candidates.slice(0, requestedCount);
-}
-
-function normalizeCreatePayload(payload = {}) {
-  ensureObjectPayload(payload);
-
-  const errors = {};
-  const title = normalizeText(payload.title);
-  const classId = normalizeText(payload.class_id);
-  const questionBankId = normalizeText(payload.question_bank_id);
-  const status = normalizeStatus(payload.status, errors);
-  const startAt = normalizeOptionalDate(payload.start_at, "start_at", errors);
-  const endAt = normalizeOptionalDate(payload.end_at, "end_at", errors);
-  const durationMinutes = normalizePositiveInteger(
-    payload.duration_minutes,
-    "duration_minutes",
-    errors
-  );
-  const attemptLimit = normalizePositiveInteger(payload.attempt_limit ?? 1, "attempt_limit", errors);
-  const questionCount = normalizePositiveInteger(payload.question_count, "question_count", errors);
-  const resultVisibility = normalizeResultVisibility(payload.result_visibility, errors);
-
-  if (!title) errors.title = "Exam title is required.";
-  if (!classId) errors.class_id = "Class is required.";
-  if (!questionBankId) errors.question_bank_id = "Question bank is required.";
-
-  assertValidTimeWindow({ status, startAt, endAt, errors });
-
-  if (Object.keys(errors).length > 0) {
-    throw validationError(invalidInfoMessage, errors);
-  }
-
-  return {
-    class_id: classId,
-    question_bank_id: questionBankId,
-    title,
-    description: normalizeNullableText(payload.description),
-    status,
-    start_at: startAt,
-    end_at: endAt,
-    duration_minutes: durationMinutes,
-    attempt_limit: attemptLimit,
-    question_count: questionCount,
-    randomize_questions:
-      payload.randomize_questions === undefined ? true : Boolean(payload.randomize_questions),
-    randomize_answers:
-      payload.randomize_answers === undefined ? true : Boolean(payload.randomize_answers),
-    result_visibility: resultVisibility,
-    access_code: normalizeNullableText(payload.access_code),
-  };
-}
-
-/**
- * Return all exam sessions owned by the teacher.
- */
+// List teacher exams and close old active sessions before returning them.
 export async function listTeacherExamSessions(teacherId, filters = {}) {
-  requireTeacherId(teacherId);
+  requireUser(teacherId);
 
-  const nowIso = new Date().toISOString();
-  const { error: closeError } = await closeExpiredTeacherExamSessions(teacherId, nowIso);
-  handleDaoError(closeError);
+  const { error: closeError } = await dao.closeExpiredTeacherExamSessions(
+    teacherId,
+    new Date().toISOString()
+  );
+  if (closeError) throw dbError(closeError, 500);
 
-  const { data, error } = await listTeacherExamSessionsDao(teacherId, filters);
-  handleDaoError(error);
-
+  const { data, error } = await dao.listTeacherExamSessions(teacherId, filters);
+  if (error) throw dbError(error, 500);
   return data;
 }
 
-/**
- * Get a single exam session, asserting the requester is the owner.
- */
 export async function getExamDetail(examSessionId, teacherId) {
-  requireTeacherId(teacherId);
-  validateExamSessionId(examSessionId);
+  requireUser(teacherId);
 
-  const { data, error } = await findTeacherExamSession(examSessionId, teacherId);
-  handleDaoError(error);
-
-  if (!data) {
-    throw serviceError("Exam session not found.", 404);
-  }
+  const { data, error } = await dao.findTeacherExamSession(examSessionId, teacherId);
+  if (error) throw dbError(error, 500);
+  if (!data) throw notFound();
 
   if (isExpiredActiveExam(data)) {
-    const { data: closedExam, error: closeError } = await closeTeacherExamSession(
+    const { data: closedExam, error: closeError } = await dao.closeTeacherExamSession(
       examSessionId,
       teacherId,
       new Date().toISOString()
     );
-    handleDaoError(closeError);
-    return closedExam ?? { ...data, status: ExamSessionStatus.CLOSED };
+    if (closeError) throw dbError(closeError, 500);
+    return closedExam || { ...data, status: ExamSessionStatus.CLOSED };
   }
 
   return data;
 }
 
-/**
- * Update configurable exam settings before the exam starts.
- */
+// Update the configurable fields from the settings screen.
 export async function updateExamSettings(examSessionId, teacherId, payload = {}) {
   const exam = await getExamDetail(examSessionId, teacherId);
-  ensureEditableExamSession(exam);
 
-  const normalizedChanges = normalizeConfigChanges(buildExamSettingsChanges(payload));
-  if (Object.keys(normalizedChanges).length === 0) {
-    throw serviceError("No valid exam settings were provided.", 400);
+  if ([ExamSessionStatus.CLOSED, ExamSessionStatus.ARCHIVED].includes(exam.status)) {
+    throw fail("You do not have permission to access or perform this action.", 409);
   }
 
-  ensureValidTimeWindow(exam, normalizedChanges);
-  ensureActivatableExamSession(exam, normalizedChanges);
+  const changes = pickConfigChanges(payload);
+  if (!Object.keys(changes).length) throw fail("No valid exam settings were provided.", 400);
 
-  const isActivating =
-    normalizedChanges.status === ExamSessionStatus.ACTIVE &&
-    exam.status !== ExamSessionStatus.ACTIVE;
-  if (isActivating && !normalizeText(getNextValue(exam, normalizedChanges, "access_code"))) {
-    normalizedChanges.access_code = buildAccessCode();
+  assertTimeWindow(getNext(exam, changes, "start_at"), getNext(exam, changes, "end_at"));
+  assertActivatable(exam, changes);
+
+  const isActivating = changes.status === ExamSessionStatus.ACTIVE && exam.status !== ExamSessionStatus.ACTIVE;
+  if (isActivating && !text(getNext(exam, changes, "access_code"))) {
+    changes.access_code = buildAccessCode();
   }
 
-  if (normalizedChanges.question_count !== undefined || isActivating) {
-    const { count: availableCount, error } = await countExamReadyQuestionsInBank(
-      exam.question_bank_id,
-      teacherId
-    );
-    handleDaoError(error);
+  if (changes.question_count || isActivating) {
+    const { count, error } = await dao.countExamReadyQuestionsInBank(exam.question_bank_id, teacherId);
+    if (error) throw dbError(error, 500);
 
-    const nextQuestionCount = Number(getNextValue(exam, normalizedChanges, "question_count"));
-    if (nextQuestionCount > availableCount) {
-      throw serviceError(isActivating ? invalidActivationMessage : invalidSettingsMessage, 400, {
-        question_count: `Only ${availableCount} valid questions are available in the selected question bank.`,
+    const nextQuestionCount = Number(getNext(exam, changes, "question_count"));
+    if (nextQuestionCount > count) {
+      throw fail(`Only ${count} valid questions are available in the selected question bank.`, 400, {
+        question_count: `Only ${count} valid questions are available in the selected question bank.`,
       });
     }
   }
 
-  const { data, error } = await updateTeacherExamSessionConfig(examSessionId, teacherId, {
-    ...normalizedChanges,
+  const { data, error } = await dao.updateTeacherExamSessionConfig(examSessionId, teacherId, {
+    ...changes,
     updated_at: new Date().toISOString(),
   });
 
-  if (error) {
-    throw serviceError(error.message || invalidInfoMessage, 400);
-  }
-
-  if (!data) {
-    throw serviceError("Exam session not found.", 404);
-  }
-
+  if (error) throw dbError(error);
+  if (!data) throw notFound();
   return { message: settingsSavedMessage, exam: data };
 }
 
+// Create an exam and snapshot selected questions into exam_questions.
 export async function createExamSession(teacherId, payload = {}) {
-  await requireActiveTeacher(teacherId);
+  requireUser(teacherId);
 
   const normalized = normalizeCreatePayload(payload);
-  const [classResult, bankResult] = await Promise.all([
-    findManagedActiveClass(normalized.class_id, teacherId),
-    findOwnedQuestionBank(normalized.question_bank_id, teacherId),
+  const [classResult, bankResult, questionsResult] = await Promise.all([
+    dao.findManagedActiveClass(normalized.class_id, teacherId),
+    dao.findOwnedQuestionBank(normalized.question_bank_id, teacherId),
+    dao.listQuestionBankSourceQuestions(normalized.question_bank_id),
   ]);
-  handleDaoError(classResult.error);
-  handleDaoError(bankResult.error);
 
-  const errors = {};
+  if (classResult.error) throw dbError(classResult.error, 500);
+  if (bankResult.error) throw dbError(bankResult.error, 500);
+  if (questionsResult.error) throw dbError(questionsResult.error, 500);
+  if (!classResult.data) throw fail("Select one of your active classes.", 400, { class_id: "Select one of your active classes." });
+  if (!bankResult.data) throw fail("Select one of your available question banks.", 400, { question_bank_id: "Select one of your available question banks." });
 
-  if (!classResult.data) {
-    errors.class_id = "Select one of your active classes.";
+  const questions = (questionsResult.data ?? []).filter(validQuestion);
+  if (normalized.question_count > questions.length) {
+    throw fail(`Only ${questions.length} valid questions are available in this question bank.`, 400, {
+      question_count: `Only ${questions.length} valid questions are available in this question bank.`,
+    });
   }
 
-  if (!bankResult.data) {
-    errors.question_bank_id = "Select one of your available question banks.";
-  }
+  const accessCode =
+    normalized.access_code || normalized.status === ExamSessionStatus.ACTIVE
+      ? buildAccessCode(normalized.access_code)
+      : null;
 
-  if (Object.keys(errors).length > 0) {
-    throw validationError(invalidInfoMessage, errors);
-  }
-
-  const { count: availableCount, error: countError } = await countExamReadyQuestionsInBank(
-    normalized.question_bank_id,
-    teacherId
-  );
-  handleDaoError(countError);
-
-  if (availableCount === 0) {
-    errors.question_bank_id = "The selected question bank does not contain valid active questions.";
-  }
-
-  if (normalized.question_count > availableCount) {
-    errors.question_count = `Only ${availableCount} valid questions are available in this question bank.`;
-  }
-
-  if (Object.keys(errors).length > 0) {
-    throw validationError(
-      normalized.status === ExamSessionStatus.ACTIVE ? invalidActivationMessage : invalidInfoMessage,
-      errors
-    );
-  }
-
-  const { data: sourceQuestionsData, error: sourceQuestionsError } =
-    await listQuestionBankSourceQuestions(normalized.question_bank_id);
-  handleDaoError(sourceQuestionsError);
-
-  const sourceQuestions = sourceQuestionsData ?? [];
-  const validQuestions = sourceQuestions.filter(validateSourceQuestion);
-
-  if (normalized.question_count > validQuestions.length) {
-    errors.question_count = `Only ${validQuestions.length} valid questions are available in this question bank.`;
-  }
-
-  if (Object.keys(errors).length > 0) {
-    throw validationError(
-      normalized.status === ExamSessionStatus.ACTIVE ? invalidActivationMessage : invalidInfoMessage,
-      errors
-    );
-  }
-
-  const shouldCreateAccessCode = normalized.access_code || normalized.status === ExamSessionStatus.ACTIVE;
-  const accessCode = shouldCreateAccessCode ? buildAccessCode(normalized.access_code) : null;
-
-  const { data: examSession, error: examSessionError } = await insertExamSession({
+  const { data: examSession, error: examError } = await dao.insertExamSession({
     ...normalized,
     access_code: accessCode,
     teacher_id: teacherId,
   });
+  if (examError) throw dbError(examError);
 
-  if (examSessionError) {
-    throw serviceError(examSessionError.message || invalidInfoMessage, 400);
+  const orderedQuestions = normalized.randomize_questions ? shuffle(questions) : questions;
+  const selectedQuestions = orderedQuestions.slice(0, normalized.question_count);
+  const { data: examQuestions, error: questionError } = await dao.insertExamQuestions(
+    toExamQuestionRows(examSession.exam_session_id, selectedQuestions, normalized.randomize_answers)
+  );
+
+  if (questionError) {
+    await dao.deleteExamSession(examSession.exam_session_id);
+    throw dbError(questionError);
   }
 
-  try {
-    const selectedQuestions = selectSourceQuestions(
-      validQuestions,
-      normalized.question_count,
-      normalized.randomize_questions
-    );
-    const { data: examQuestions, error: examQuestionsError } = await insertExamQuestions(
-      toExamQuestionRows(examSession.exam_session_id, selectedQuestions, normalized.randomize_answers)
-    );
+  return {
+    ...examSession,
+    message: createSavedMessage,
+    question_bank: bankResult.data,
+    classes: classResult.data,
+    exam_questions_count: examQuestions?.length ?? 0,
+  };
+}
+function filterLearnerExams(items, filters = {}) {
+  const search = text(filters.search).toLowerCase();
+  const classId = text(filters.classId);
 
-    if (examQuestionsError) {
-      throw serviceError(examQuestionsError.message || invalidInfoMessage, 400);
-    }
+  return items.filter((exam) => {
+    const matchesSearch =
+      !search ||
+      text(exam.title).toLowerCase().includes(search) ||
+      text(exam.description).toLowerCase().includes(search) ||
+      text(exam.classes?.class_name).toLowerCase().includes(search);
 
-    return {
-      ...examSession,
-      message: createSavedMessage,
-      question_bank: bankResult.data,
-      classes: classResult.data,
-      exam_questions_count: examQuestions?.length ?? 0,
-    };
-  } catch (error) {
-    await deleteExamSession(examSession.exam_session_id);
-    throw error;
+    return (
+      matchesSearch &&
+      (!classId || exam.class_id === classId)
+    );
+  });
+}
+
+function sortLearnerExams(items, sortBy) {
+  if (sortBy === "title_asc") return [...items].sort((a, b) => text(a.title).localeCompare(text(b.title)));
+  if (sortBy === "start_asc" || sortBy === "start_desc") {
+    const direction = sortBy === "start_asc" ? 1 : -1;
+    return [...items].sort((a, b) => ((new Date(a.start_at).getTime() || 0) - (new Date(b.start_at).getTime() || 0)) * direction);
   }
+  return [...items].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+}
+
+function learnerClassOptions(items) {
+  const classes = new Map();
+  items.forEach((exam) => {
+    if (exam.classes?.class_id) classes.set(exam.classes.class_id, exam.classes);
+  });
+  return Array.from(classes.values()).sort((a, b) => text(a.class_name).localeCompare(text(b.class_name)));
+}
+
+function paginateLearnerExams(items, filters = {}) {
+  const page = Math.max(Number(filters.page) || 1, 1);
+  const pageSize = Math.min(Math.max(Number(filters.pageSize) || 5, 1), 50);
+  const filtered = sortLearnerExams(filterLearnerExams(items, filters), filters.sortBy);
+  const total = filtered.length;
+  const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+
+  return {
+    items: filtered.slice(start, start + pageSize),
+    total,
+    page: safePage,
+    pageSize,
+    totalPages,
+    classes: learnerClassOptions(items),
+  };
+}
+
+// List exams assigned to classes the learner has joined.
+export async function listLearnerExamSessions(learnerId, filters = {}) {
+  requireUser(learnerId);
+
+  const { data: memberships, error: memberError } = await dao.listActiveClassMemberships(learnerId);
+  if (memberError) throw dbError(memberError, 500);
+
+  const classIds = (memberships ?? []).map((item) => item.class_id).filter(Boolean);
+  const { error: closeError } = await dao.closeExpiredLearnerExamSessions(
+    classIds,
+    new Date().toISOString()
+  );
+  if (closeError) throw dbError(closeError, 500);
+
+  const { data, error } = await dao.listLearnerExamSessions(classIds);
+  if (error) throw dbError(error, 500);
+
+  return paginateLearnerExams(data ?? [], filters);
+}
+
+// Learner detail includes attempt history so the next attempt can be calculated.
+export async function getLearnerExamDetail(examSessionId, learnerId) {
+  requireUser(learnerId);
+
+  const { data: memberships, error: memberError } = await dao.listActiveClassMemberships(learnerId);
+  if (memberError) throw dbError(memberError, 500);
+
+  const classIds = (memberships ?? []).map((item) => item.class_id).filter(Boolean);
+  const { error: closeError } = await dao.closeExpiredLearnerExamSessions(
+    classIds,
+    new Date().toISOString()
+  );
+  if (closeError) throw dbError(closeError, 500);
+
+  const { data, error } = await dao.findLearnerExamSession(examSessionId, classIds);
+  if (error) throw dbError(error, 500);
+  if (!data) throw notFound();
+
+  const { data: attempts, error: attemptError } = await dao.listLearnerExamAttempts(examSessionId, learnerId);
+  if (attemptError) throw dbError(attemptError, 500);
+
+  return {
+    ...data,
+    attempts: attempts ?? [],
+    attempts_used: attempts?.length ?? 0,
+    attempts_remaining: Math.max(Number(data.attempt_limit || 0) - (attempts?.length ?? 0), 0),
+  };
 }

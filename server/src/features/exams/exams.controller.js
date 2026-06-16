@@ -1,6 +1,8 @@
 import {
   createExamSession as createExamSessionService,
   getExamDetail as getExamDetailService,
+  getLearnerExamDetail as getLearnerExamDetailService,
+  listLearnerExamSessions,
   listTeacherExamSessions,
   updateExamSettings as updateExamSettingsService,
 } from "./exams.service.js";
@@ -61,6 +63,30 @@ export async function getExamDetail(req, res) {
 export async function updateExamSettings(req, res) {
   try {
     const data = await updateExamSettingsService(req.params.id, getUserId(req), req.body);
+    res.json({ ok: true, data });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+/**
+ * GET /api/exams/learner
+ */
+export async function getAvailableExamSessions(req, res) {
+  try {
+    const data = await listLearnerExamSessions(getUserId(req), req.query);
+    res.json({ ok: true, data });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+/**
+ * GET /api/exams/learner/:id
+ */
+export async function getLearnerExamDetail(req, res) {
+  try {
+    const data = await getLearnerExamDetailService(req.params.id, getUserId(req));
     res.json({ ok: true, data });
   } catch (error) {
     sendError(res, error);
