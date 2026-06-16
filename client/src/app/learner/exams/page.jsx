@@ -3,6 +3,7 @@
 import { LockKeyhole, Search, SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { AppPagination } from "@/components/common/app-pagination";
 
 import { Button } from "@/components/ui/button";
 import { examsService } from "@/services/exams.service";
@@ -206,14 +207,11 @@ export default function LearnerExamsPage() {
               </div>
             </section>
 
-            <section className="flex items-center justify-between rounded-md border border-border bg-card px-4 py-3 text-sm font-medium text-muted-foreground">
-              <span>Showing {exams.length} of {meta.total} available exams</span>
-              <div className="flex gap-2">
-                <Button variant="outline" disabled={meta.page <= 1} onClick={() => goToPage(meta.page - 1)}>Previous</Button>
-                <Button variant="outline" disabled>{meta.page}</Button>
-                <Button variant="outline" disabled={meta.page >= meta.totalPages} onClick={() => goToPage(meta.page + 1)}>Next</Button>
-              </div>
-            </section>
+            <AppPagination
+              currentPage={meta.page}
+              totalPages={meta.totalPages}
+              onPageChange={goToPage}
+            />
           </>
         ) : null}
       </section>

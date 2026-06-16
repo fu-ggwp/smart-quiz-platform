@@ -17,7 +17,7 @@ export function TextField({ label, name, value, onChange, error, disabled, type 
         disabled={disabled}
         aria-invalid={Boolean(error)}
         onChange={(event) => onChange(name, event.target.value)}
-        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground outline-none transition focus:border-auth-action focus:ring-2 focus:ring-auth-action/20 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20"
+        className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20"
       />
       <FieldError message={error} />
     </label>
@@ -43,7 +43,7 @@ export function ToggleRow({ label, name, checked, onChange, disabled }) {
         checked={checked}
         disabled={disabled}
         onChange={(event) => onChange(name, event.target.checked)}
-        className="size-4 accent-auth-action disabled:cursor-not-allowed"
+        className="size-4 accent-primary disabled:cursor-not-allowed"
       />
       <span>{label}</span>
     </label>

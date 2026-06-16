@@ -3,8 +3,6 @@ import { CLASS_TABLE } from "../../models/class.model.js";
 import { CLASS_MEMBER_TABLE } from "../../models/join-request.model.js";
 import { EXAM_ATTEMPT_TABLE } from "../../models/exam-attempt.model.js";
 import { EXAM_QUESTION_TABLE, EXAM_SESSION_TABLE } from "../../models/exam.model.js";
-import { QUESTION_TABLE } from "../../models/question.model.js";
-import { QUESTION_BANK_TABLE } from "../../models/question-bank.model.js";
 
 const db = supabaseAdmin ?? supabase;
 
@@ -221,42 +219,6 @@ export function findManagedActiveClass(classId, teacherId) {
     .maybeSingle();
 }
 
-export function findOwnedQuestionBank(questionBankId, teacherId) {
-  return db
-    .from(QUESTION_BANK_TABLE)
-    .select("question_bank_id, teacher_id, title, status, topic")
-    .eq("question_bank_id", questionBankId)
-    .eq("teacher_id", teacherId)
-    .is("deleted_at", null)
-    .neq("status", "archived")
-    .maybeSingle();
-}
-
-export function listQuestionBankSourceQuestions(questionBankId) {
-  return db
-    .from(QUESTION_TABLE)
-    .select(`
-      question_id,
-      question_text,
-      question_type,
-      score,
-      explanation,
-      subject,
-      topic,
-      chapter,
-      answer_options:answer_options (
-        answer_option_id,
-        option_text,
-        is_correct,
-        display_order
-      )
-    `)
-    .eq("question_bank_id", questionBankId)
-    .is("study_set_id", null)
-    .is("deleted_at", null)
-    .order("created_at", { ascending: true });
-}
-
 export function insertExamSession(payload) {
   return db
     .from(EXAM_SESSION_TABLE)
@@ -281,45 +243,6 @@ export function deleteExamSession(examSessionId) {
     .from(EXAM_SESSION_TABLE)
     .delete()
     .eq("exam_session_id", examSessionId);
-}
-
-export async function countExamReadyQuestionsInBank(questionBankId, teacherId) {
-  const { data, error } = await db
-    .from(QUESTION_TABLE)
-    .select(`
-      question_id,
-      question_type,
-      answer_options:answer_options (
-        is_correct,
-        display_order
-      )
-    `)
-    .eq("question_bank_id", questionBankId)
-    .eq("owner_id", teacherId)
-    .is("study_set_id", null)
-    .is("deleted_at", null)
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    return { count: 0, error };
-  }
-
-  const count = (data ?? []).filter((question) => {
-    const options = question.answer_options ?? [];
-    const correctCount = options.filter((option) => option.is_correct).length;
-
-    if (question.question_type === "multiple_choice") {
-      return options.length >= 2 && correctCount >= 1;
-    }
-
-    if (question.question_type === "true_false") {
-      return options.length === 2 && correctCount === 1;
-    }
-
-    return false;
-  }).length;
-
-  return { count, error: null };
 }
 
 export function listActiveClassMemberships(learnerId) {

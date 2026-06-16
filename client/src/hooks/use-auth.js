@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import supabase from "../lib/supabaseClient";
-import { completeLogin } from "../services/auth.service";
+import {
+  AUTH_SESSION_CHANGED_EVENT,
+  completeLogin,
+} from "../services/auth.service";
 import { profileService } from "../services/profile.service";
 
 /**
@@ -55,8 +58,11 @@ export function useAuth() {
       }
     );
 
+    window.addEventListener(AUTH_SESSION_CHANGED_EVENT, syncAuthState);
+
     return () => {
       active = false;
+      window.removeEventListener(AUTH_SESSION_CHANGED_EVENT, syncAuthState);
       subscription?.subscription?.unsubscribe();
     };
   }, []);

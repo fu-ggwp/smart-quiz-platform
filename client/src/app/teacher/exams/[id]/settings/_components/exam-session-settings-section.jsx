@@ -49,7 +49,7 @@ export function ExamSessionSettingsSection({
               disabled={saving}
               aria-invalid={Boolean(fieldErrors.status)}
               onChange={(event) => onFieldChange("status", event.target.value)}
-              className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground outline-none transition focus:border-auth-action focus:ring-2 focus:ring-auth-action/20 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20"
+              className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20"
             >
               {editableStatusOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -115,7 +115,7 @@ export function ExamSessionSettingsSection({
             disabled={locked || saving}
             aria-invalid={Boolean(fieldErrors.result_visibility)}
             onChange={(event) => onFieldChange("result_visibility", event.target.value)}
-            className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground outline-none transition focus:border-auth-action focus:ring-2 focus:ring-auth-action/20 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20"
+            className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20"
           >
             {RESULT_VISIBILITY_OPTIONS.filter((option) => option.value).map((option) => (
               <option key={option.value} value={option.value}>
@@ -141,7 +141,7 @@ export function ExamSessionSettingsSection({
           value={form.description}
           disabled={locked || saving}
           onChange={(event) => onFieldChange("description", event.target.value)}
-          className="min-h-24 w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground focus:border-auth-action focus:ring-2 focus:ring-auth-action/20 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
+          className="min-h-24 w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm font-medium text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
           placeholder="Optional notes for this exam session"
         />
       </label>

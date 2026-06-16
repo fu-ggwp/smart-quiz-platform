@@ -3,6 +3,7 @@ import { profileService } from "@/services/profile.service";
 
 const ACCESS_TOKEN_COOKIE = "access_token";
 const ROLE_COOKIE = "role";
+export const AUTH_SESSION_CHANGED_EVENT = "smart-quiz-auth-session-changed";
 
 function getCookieMaxAge(session) {
   if (!session?.expires_at) return 60 * 60;
@@ -37,8 +38,18 @@ function clearAuthCookies() {
   deleteCookie(ROLE_COOKIE);
 }
 
+function notifyAuthSessionChanged() {
+  if (typeof window === "undefined") return;
+
+  window.dispatchEvent(new Event(AUTH_SESSION_CHANGED_EVENT));
+}
+
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function withTimeout(promise, ms) {
+  return Promise.race([promise, wait(ms)]);
 }
 
 async function getProfileWithRetry() {
@@ -88,8 +99,10 @@ export const authService = {
     return data;
   },
 
-  async logout() {
-    const { error } = await supabase.auth.signOut();
+  async logout(options = {}) {
+    const { error } = await supabase.auth.signOut({
+      scope: options.scope ?? "local",
+    });
     if (error) throw error;
   },
 
@@ -145,10 +158,14 @@ export async function completeLogin(session = null) {
 }
 
 export async function completeLogout() {
+  clearAuthCookies();
+  notifyAuthSessionChanged();
+
   try {
-    await authService.logout();
+    await withTimeout(authService.logout(), 1500);
   } finally {
     clearAuthCookies();
+    notifyAuthSessionChanged();
   }
 }
 

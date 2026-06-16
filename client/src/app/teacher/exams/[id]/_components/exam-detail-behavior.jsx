@@ -5,7 +5,7 @@ function BooleanItem({ label, enabled }) {
       <span
         className={`rounded-full border px-2.5 py-1 text-xs font-bold ${
           enabled
-            ? "border-auth-action/30 bg-auth-action/10 text-auth-action"
+            ? "border-primary/30 bg-primary/10 text-primary"
             : "border-border bg-muted text-muted-foreground"
         }`}
       >

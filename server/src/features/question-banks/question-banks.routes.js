@@ -4,6 +4,8 @@ import {
   create,
   getById,
   getQuestionById,
+  listAssigned,
+  listAssignedQuestions,
   list,
   listQuestions,
   remove,
@@ -15,6 +17,8 @@ const questionBanksRouter = Router();
 
 questionBanksRouter.get("/", requireAuth, list);
 questionBanksRouter.post("/", requireAuth, create);
+questionBanksRouter.get("/assigned", requireAuth, listAssigned);
+questionBanksRouter.get("/assigned/:id/questions", requireAuth, listAssignedQuestions);
 questionBanksRouter.get("/questions/:questionId", requireAuth, getQuestionById);
 questionBanksRouter.patch("/questions/:questionId", requireAuth, updateQuestion);
 questionBanksRouter.get("/:id/questions", requireAuth, listQuestions);

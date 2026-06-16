@@ -166,12 +166,12 @@ export default function LearnerStudySetsPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center gap-2">
                       {set.is_assigned ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-500 ring-1 ring-amber-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-warning/10 text-warning ring-1 ring-warning/20">
                           <GraduationCap className="size-3" />
                           {set.assigned_class?.class_name}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 dark:text-blue-500 ring-1 ring-blue-500/20">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-info/10 text-info ring-1 ring-info/20">
                           Self-Study
                         </span>
                       )}

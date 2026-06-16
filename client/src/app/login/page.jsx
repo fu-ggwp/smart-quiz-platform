@@ -129,9 +129,9 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-background p-2 text-foreground md:p-3">
       <section className="grid min-h-[calc(100vh-1rem)] overflow-hidden rounded-none bg-card shadow-sm md:min-h-[calc(100vh-1.5rem)] md:grid-cols-[minmax(330px,0.95fr)_1fr]">
-        <aside className="relative hidden overflow-hidden bg-auth-panel md:block">
+        <aside className="relative hidden overflow-hidden bg-secondary md:block">
           <div className="absolute left-10 top-9 z-10 max-w-sm">
-            <h1 className="text-5xl font-bold leading-[1.12] text-auth-panel-foreground">
+            <h1 className="text-5xl font-bold leading-[1.12] text-secondary-foreground">
               Study better,
               <br />
               without the
@@ -280,7 +280,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="h-14 w-full rounded-lg bg-auth-action text-auth-action-foreground hover:bg-auth-action/90"
+                  className="h-14 w-full rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Please wait..." : "Login"}

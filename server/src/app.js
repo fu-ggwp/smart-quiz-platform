@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import healthRouter from "./routes/health.routes.js";
+import healthRouter from "./features/health/health.routes.js";
 import authRouter from "./features/auth/auth.routes.js";
 import examsRouter from "./features/exams/exams.routes.js";
 import studySetsRouter from "./features/study-sets/study-sets.routes.js";

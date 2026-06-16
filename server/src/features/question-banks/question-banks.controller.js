@@ -1,6 +1,8 @@
 import {
   archiveQuestionBank,
   createQuestionBank,
+  listAssignedQuestionBankQuestions,
+  listAssignedQuestionBanks,
   getQuestion,
   getQuestionBank,
   listQuestionBankQuestions,
@@ -214,6 +216,15 @@ export async function list(req, res) {
   }
 }
 
+export async function listAssigned(req, res) {
+  try {
+    const data = await listAssignedQuestionBanks(getUserId(req));
+    return res.status(200).json({ data });
+  } catch (error) {
+    return sendError(res, error);
+  }
+}
+
 export async function getById(req, res) {
   try {
     const data = await getQuestionBank(getUserId(req), req.params.id);
@@ -226,6 +237,15 @@ export async function getById(req, res) {
 export async function listQuestions(req, res) {
   try {
     const data = await listQuestionBankQuestions(getUserId(req), req.params.id);
+    return res.status(200).json({ data });
+  } catch (error) {
+    return sendError(res, error);
+  }
+}
+
+export async function listAssignedQuestions(req, res) {
+  try {
+    const data = await listAssignedQuestionBankQuestions(getUserId(req), req.params.id);
     return res.status(200).json({ data });
   } catch (error) {
     return sendError(res, error);

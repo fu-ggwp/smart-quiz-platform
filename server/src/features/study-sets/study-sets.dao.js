@@ -2,7 +2,6 @@ import supabase from "../../config/supabase.js";
 import { STUDY_SET_TABLE } from "../../models/study-set.model.js";
 import { PRACTICE_ATTEMPT_TABLE } from "../../models/practice-attempt.model.js";
 import { ATTEMPT_ANSWER_TABLE } from "../../models/attempt-answer.model.js";
-import { QUESTION_BANK_TABLE } from "../../models/question-bank.model.js";
 import { QUESTION_TABLE } from "../../models/question.model.js";
 import { ANSWER_OPTION_TABLE } from "../../models/answer-option.model.js";
 import { USER_TABLE } from "../../models/user.model.js";
@@ -99,29 +98,6 @@ export function listAnswersByAttempt(attemptId) {
   return supabase.from(ATTEMPT_ANSWER_TABLE).select("*").eq("practice_attempt_id", attemptId);
 }
 
-//List dsach ngân hàng câu hỏi của gvien
-export function listQuestionBankByTeacher(teacherId) {
-  return supabase.from(QUESTION_BANK_TABLE).select("*").eq("teacher_id", teacherId).is("deleted_at", null).order("created_at", { ascending: false });
-}
-
-// List dsach ques và ans trong nghang câu hỏi
-export function listQuestionByBank(questionBankId) {
-  return supabase
-    .from(QUESTION_TABLE)
-    .select(`
-      *,
-      answer_options:${ANSWER_OPTION_TABLE} (
-        answer_option_id,
-        question_id,
-        option_text,
-        is_correct,
-        display_order
-      )
-    `)
-    .eq("question_bank_id", questionBankId)
-    .is("deleted_at", null)
-    .order("created_at", { ascending: true });
-}
 
 //Check tkhoan premium
 export function checkPremium(userId) {

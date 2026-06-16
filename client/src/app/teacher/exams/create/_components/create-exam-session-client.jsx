@@ -37,11 +37,11 @@ export function CreateExamSessionClient() {
     try {
       const [classRows, bankResult] = await Promise.all([
         classesService.listMine(),
-        questionBanksService.listMine({ limit: 100, sortBy: "updated_at", sortOrder: "desc" }),
+        questionBanksService.listAssigned(),
       ]);
 
       const activeClasses = (classRows ?? []).filter((item) => item.status === "active");
-      const availableBanks = (bankResult?.items ?? []).filter((bank) => bank.status !== "archived");
+      const availableBanks = bankResult ?? [];
       const firstUsableBank = availableBanks.find((bank) => getQuestionCount(bank) > 0);
 
       setClasses(activeClasses);

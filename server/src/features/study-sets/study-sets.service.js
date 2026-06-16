@@ -237,23 +237,6 @@ export async function getSessionResults(sessionId) {
   return { session: session.data, answers: data };
 }
 
-//List dsach bank
-export async function listQuestionBank(teacherId) {
-  const { data, error } = await dao.listQuestionBankByTeacher(teacherId);
-  if (error) {
-    throw dbError(error, 500);
-  }
-  return data;
-}
-
-//List dsach quest từ 1 bank
-export async function getQuestionsByBank(questionBankId) {
-  const { data, error } = await dao.listQuestionByBank(questionBankId);
-  if (error) {
-    throw dbError(error, 500);
-  }
-  return data;
-}
 
 export async function listLearnerStudySets(learnerId) {
   const { data: memberships, error: memberError } =

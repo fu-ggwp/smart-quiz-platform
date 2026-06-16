@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useMemo } from "react";
+import { AppPagination } from "@/components/common/app-pagination";
 import { useClasses } from "../../../hooks/use-classes.js";
 
 const SORT_OPTIONS = [
@@ -172,40 +173,12 @@ export default function TeacherClassesPage() {
               ))}
             </ul>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-8 flex items-center justify-center gap-2">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  ← Prev
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`rounded-lg border px-3 py-1.5 text-sm ${
-                      p === currentPage
-                        ? "border-black bg-black text-white"
-                        : "border-neutral-200 hover:border-neutral-400"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Next →
-                </button>
-              </div>
-            )}
+            <AppPagination
+              className="mt-6"
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
           </>
         )}
 

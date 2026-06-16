@@ -14,7 +14,7 @@ export function ExamSettingsAlerts({ locked, error, success }) {
       ) : null}
 
       {success ? (
-        <div className="rounded-md border border-auth-action/30 bg-auth-action/10 px-4 py-3 text-sm font-bold text-auth-action">
+        <div className="rounded-md border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-bold text-primary">
           {success}
         </div>
       ) : null}

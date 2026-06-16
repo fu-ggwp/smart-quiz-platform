@@ -2,13 +2,8 @@ import { Router } from "express";
 import * as studySetsController from "./study-sets.controller.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requireRole } from "../../middlewares/role.middleware.js";
-import { StudySetCardOrder } from "../../models/study-set.model.js";
 
 const router = Router();
-
-router.get("/question-banks", requireAuth, requireRole("teacher"), studySetsController.listQuestionBanks);
-
-router.get("/question-banks/:bankId/questions", requireAuth, requireRole("teacher"), studySetsController.getQuestionsByBank);
 
 router.get("/mine", requireAuth, studySetsController.listMine);
 router.get("/learner", requireAuth, requireRole("learner"), studySetsController.listLearnerStudySets);

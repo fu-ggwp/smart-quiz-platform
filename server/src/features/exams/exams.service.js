@@ -5,6 +5,10 @@ import {
   ExamSessionStatus,
   EXAM_SESSION_CONFIG_COLUMNS,
 } from "../../models/exam.model.js";
+import {
+  getAssignedQuestionBank,
+  listAssignedQuestionBankQuestions,
+} from "../question-banks/question-banks.service.js";
 import * as dao from "./exams.dao.js";
 
 const createSavedMessage = "Exam session has been created successfully.";
@@ -271,8 +275,8 @@ export async function updateExamSettings(examSessionId, teacherId, payload = {})
   }
 
   if (changes.question_count || isActivating) {
-    const { count, error } = await dao.countExamReadyQuestionsInBank(exam.question_bank_id, teacherId);
-    if (error) throw dbError(error, 500);
+    const sourceQuestions = await listAssignedQuestionBankQuestions(teacherId, exam.question_bank_id);
+    const count = sourceQuestions.filter(validQuestion).length;
 
     const nextQuestionCount = Number(getNext(exam, changes, "question_count"));
     if (nextQuestionCount > count) {
@@ -297,19 +301,16 @@ export async function createExamSession(teacherId, payload = {}) {
   requireUser(teacherId);
 
   const normalized = normalizeCreatePayload(payload);
-  const [classResult, bankResult, questionsResult] = await Promise.all([
+  const [classResult, questionBank, sourceQuestions] = await Promise.all([
     dao.findManagedActiveClass(normalized.class_id, teacherId),
-    dao.findOwnedQuestionBank(normalized.question_bank_id, teacherId),
-    dao.listQuestionBankSourceQuestions(normalized.question_bank_id),
+    getAssignedQuestionBank(teacherId, normalized.question_bank_id),
+    listAssignedQuestionBankQuestions(teacherId, normalized.question_bank_id),
   ]);
 
   if (classResult.error) throw dbError(classResult.error, 500);
-  if (bankResult.error) throw dbError(bankResult.error, 500);
-  if (questionsResult.error) throw dbError(questionsResult.error, 500);
   if (!classResult.data) throw fail("Select one of your active classes.", 400, { class_id: "Select one of your active classes." });
-  if (!bankResult.data) throw fail("Select one of your available question banks.", 400, { question_bank_id: "Select one of your available question banks." });
 
-  const questions = (questionsResult.data ?? []).filter(validQuestion);
+  const questions = (sourceQuestions ?? []).filter(validQuestion);
   if (normalized.question_count > questions.length) {
     throw fail(`Only ${questions.length} valid questions are available in this question bank.`, 400, {
       question_count: `Only ${questions.length} valid questions are available in this question bank.`,
@@ -342,7 +343,7 @@ export async function createExamSession(teacherId, payload = {}) {
   return {
     ...examSession,
     message: createSavedMessage,
-    question_bank: bankResult.data,
+    question_bank: questionBank,
     classes: classResult.data,
     exam_questions_count: examQuestions?.length ?? 0,
   };

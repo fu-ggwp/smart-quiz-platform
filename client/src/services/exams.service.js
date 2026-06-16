@@ -1,24 +1,24 @@
-import api from "./api";
+import axiosClient from "./axiosClient";
 
 export const examsService = {
-  listMine: (params) => api.get("/api/exams", { params }).then((r) => r.data),
-  listAvailable: (params) => api.get("/api/exams/learner", { params }).then((r) => r.data),
-  listForClass: (classId) => api.get(`/api/exams/class/${classId}`).then((r) => r.data),
-  getOne: (id) => api.get(`/api/exams/${id}`).then((r) => r.data.data),
-  getLearnerExam: (id) => api.get(`/api/exams/learner/${id}`).then((r) => r.data.data),
-  create: (payload) => api.post("/api/exams", payload).then((r) => r.data),
+  listMine: (params) => axiosClient.get("/api/exams", { params }).then((r) => r.data),
+  listAvailable: (params) => axiosClient.get("/api/exams/learner", { params }).then((r) => r.data),
+  listForClass: (classId) => axiosClient.get(`/api/exams/class/${classId}`).then((r) => r.data),
+  getOne: (id) => axiosClient.get(`/api/exams/${id}`).then((r) => r.data.data),
+  getLearnerExam: (id) => axiosClient.get(`/api/exams/learner/${id}`).then((r) => r.data.data),
+  create: (payload) => axiosClient.post("/api/exams", payload).then((r) => r.data),
   updateSettings: (id, changes) =>
-    api.patch(`/api/exams/${id}/settings`, changes).then((r) => r.data),
-  remove: (id) => api.delete(`/api/exams/${id}`).then((r) => r.data),
-  listAttempts: (id) => api.get(`/api/exams/${id}/attempts`).then((r) => r.data),
+    axiosClient.patch(`/api/exams/${id}/settings`, changes).then((r) => r.data),
+  remove: (id) => axiosClient.delete(`/api/exams/${id}`).then((r) => r.data),
+  listAttempts: (id) => axiosClient.get(`/api/exams/${id}/attempts`).then((r) => r.data),
 
   // Learner: take exams
-  startAttempt: (id) => api.post(`/api/exams/${id}/attempts`).then((r) => r.data),
-  listMyAttempts: () => api.get("/api/exams/attempts/mine").then((r) => r.data),
+  startAttempt: (id) => axiosClient.post(`/api/exams/${id}/attempts`).then((r) => r.data),
+  listMyAttempts: () => axiosClient.get("/api/exams/attempts/mine").then((r) => r.data),
   submitAnswer: (attemptId, payload) =>
-    api.post(`/api/exams/attempts/${attemptId}/answers`, payload).then((r) => r.data),
+    axiosClient.post(`/api/exams/attempts/${attemptId}/answers`, payload).then((r) => r.data),
   submitAttempt: (attemptId, score) =>
-    api.patch(`/api/exams/attempts/${attemptId}/submit`, { score }).then((r) => r.data),
+    axiosClient.patch(`/api/exams/attempts/${attemptId}/submit`, { score }).then((r) => r.data),
   getAttemptResults: (attemptId) =>
-    api.get(`/api/exams/attempts/${attemptId}/results`).then((r) => r.data),
+    axiosClient.get(`/api/exams/attempts/${attemptId}/results`).then((r) => r.data),
 };

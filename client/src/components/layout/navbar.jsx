@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
-import { useState } from "react";
+import { LogOut, User } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -13,21 +13,43 @@ export function Navbar() {
   const router = useRouter();
   const { isAuthenticated, loading } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutMessage, setLogoutMessage] = useState(() => {
+    if (typeof window === "undefined") return "";
+
+    return new URLSearchParams(window.location.search).get("logout") ===
+      "success"
+      ? "Logged out successfully."
+      : "";
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("logout") !== "success") return;
+
+    params.delete("logout");
+
+    const query = params.toString();
+    const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+    window.history.replaceState(null, "", nextUrl);
+  }, []);
 
   async function handleLogout() {
     setIsLoggingOut(true);
 
     try {
       await completeLogout();
-      router.push("/");
-      router.refresh();
+    } catch (error) {
+      console.error("Logout failed after clearing local auth", error);
     } finally {
+      router.replace("/login");
+      router.refresh();
       setIsLoggingOut(false);
     }
   }
 
   return (
-    <header className="border-b border-border bg-background/95">
+    <header className="shrink-0 border-b border-border bg-background/95">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
         <Link href="/" className="text-lg font-bold text-foreground">
           Smart Quiz Platform
@@ -42,15 +64,23 @@ export function Navbar() {
           </Button>
 
           {!loading && isAuthenticated ? (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-            >
-              <LogOut data-icon="inline-start" />
-              {isLoggingOut ? "Logging out..." : "Logout"}
-            </Button>
+            <>
+              <Button asChild variant="ghost">
+                <Link href="/profile">
+                  <User data-icon="inline-start" />
+                  Profile
+                </Link>
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+              >
+                <LogOut data-icon="inline-start" />
+                {isLoggingOut ? "Logging out..." : "Logout"}
+              </Button>
+            </>
           ) : null}
 
           {!loading && !isAuthenticated ? (
@@ -64,6 +94,12 @@ export function Navbar() {
             </>
           ) : null}
         </nav>
+
+        {logoutMessage ? (
+          <p className="w-full text-sm font-medium text-primary" role="status">
+            {logoutMessage}
+          </p>
+        ) : null}
       </div>
     </header>
   );

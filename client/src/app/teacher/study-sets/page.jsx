@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AlertCircle, Eye, Layers3, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { AppPagination } from "@/components/common/app-pagination";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,12 +193,10 @@ export default function TeacherStudySetsPage() {
         ) : filteredStudySets.length ? (
           <>
             <StudySetsTable studySets={paginatedStudySets} />
-            <PaginationBar
-              count={filteredStudySets.length}
+            <AppPagination
               currentPage={activePage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
-              itemsPerPage={ITEMS_PER_PAGE}
             />
           </>
         ) : (
@@ -449,47 +448,3 @@ function StatePanel({ action, description, icon, title }) {
   );
 }
 
-function PaginationBar({ count, currentPage, totalPages, onPageChange, itemsPerPage = 10 }) {
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-
-  const startItem = count === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, count);
-
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm">
-      <span className="font-semibold text-muted-foreground">
-        Showing {startItem}–{endItem} of {count} study sets
-      </span>
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          variant="secondary"
-          disabled={currentPage === 1}
-          onClick={() => onPageChange(currentPage - 1)}
-        >
-          Previous
-        </Button>
-        
-        {pages.map((page) => (
-          <Button
-            key={page}
-            size="sm"
-            variant={page === currentPage ? "default" : "secondary"}
-            onClick={() => onPageChange(page)}
-          >
-            {page}
-          </Button>
-        ))}
-
-        <Button
-          size="sm"
-          variant="secondary"
-          disabled={currentPage === totalPages || totalPages === 0}
-          onClick={() => onPageChange(currentPage + 1)}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-}

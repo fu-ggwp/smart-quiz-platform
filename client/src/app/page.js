@@ -10,7 +10,7 @@ export default function Home() {
     <main className="min-h-screen bg-background text-foreground">
       <Navbar />
 
-      <section className="border-b border-border bg-auth-panel/40">
+      <section className="border-b border-border bg-secondary/40">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-20">
           <div className="flex flex-col justify-center gap-6">
             <div className="flex flex-col gap-4">
@@ -47,7 +47,7 @@ export default function Home() {
                   Biology flashcards
                 </h2>
               </div>
-              <span className="rounded-full bg-auth-action px-3 py-1 text-xs font-semibold text-auth-action-foreground">
+              <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
                 Public
               </span>
             </div>

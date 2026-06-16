@@ -2,13 +2,13 @@
 
 import { useMemo, useState } from "react";
 
+import { AppPagination } from "@/components/common/app-pagination";
 import { useExams } from "@/hooks/use-exams";
 
 import { ExamSessionsEmptyState, ExamSessionsError, ExamSessionsLoading } from "./exam-sessions-state";
 import { ExamSessionsFilters } from "./exam-sessions-filters";
-import { ExamSessionsPagination } from "./exam-sessions-pagination";
 import { ExamSessionsTable } from "./exam-sessions-table";
-import { getVisiblePages, INITIAL_FILTERS, PAGE_SIZE } from "./exam-session-options";
+import { INITIAL_FILTERS, PAGE_SIZE } from "./exam-session-options";
 
 export function TeacherExamSessionsClient() {
   const [filters, setFilters] = useState(INITIAL_FILTERS);
@@ -22,11 +22,6 @@ export function TeacherExamSessionsClient() {
   const { exams, meta, loading, error } = useExams({ params: queryParams });
 
   const classOptions = meta.classes ?? [];
-  const visiblePages = getVisiblePages(meta.totalPages ?? 1);
-  const showingText =
-    meta.total === exams.length
-      ? `Showing ${meta.total} exam sessions`
-      : `Showing ${exams.length} of ${meta.total} exam sessions`;
 
   function updateFilter(name, value) {
     setFilters((current) => ({ ...current, [name]: value }));
@@ -62,11 +57,10 @@ export function TeacherExamSessionsClient() {
       {!loading && !error && exams.length > 0 ? (
         <>
           <ExamSessionsTable exams={exams} />
-          <ExamSessionsPagination
-            meta={meta}
-            showingText={showingText}
-            visiblePages={visiblePages}
-            onGoToPage={goToPage}
+          <AppPagination
+            currentPage={meta.page}
+            totalPages={meta.totalPages}
+            onPageChange={goToPage}
           />
         </>
       ) : null}

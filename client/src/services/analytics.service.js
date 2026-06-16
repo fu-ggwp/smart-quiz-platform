@@ -1,9 +1,9 @@
-import api from "./api";
+import axiosClient from "./axiosClient";
 
 export const analyticsService = {
-  listReports: () => api.get("/api/analytics/reports").then((r) => r.data),
-  getReport: (id) => api.get(`/api/analytics/reports/${id}`).then((r) => r.data),
+  listReports: () => axiosClient.get("/api/analytics/reports").then((r) => r.data),
+  getReport: (id) => axiosClient.get(`/api/analytics/reports/${id}`).then((r) => r.data),
   generateClassReport: (classId) =>
-    api.post(`/api/analytics/classes/${classId}/report`).then((r) => r.data),
-  generateLearnerReport: () => api.post("/api/analytics/progress").then((r) => r.data),
+    axiosClient.post(`/api/analytics/classes/${classId}/report`).then((r) => r.data),
+  generateLearnerReport: () => axiosClient.post("/api/analytics/progress").then((r) => r.data),
 };

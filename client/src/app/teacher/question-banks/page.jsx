@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { AlertCircle, BookOpen, Plus } from "lucide-react";
+import { AppPagination } from "@/components/common/app-pagination";
 
 import { Button } from "@/components/ui/button";
 import { useQuestionBanksPage } from "@/hooks/use-question-banks-page";
 
 import { QuestionBanksFilterBar } from "./_components/question-banks-filter-bar";
 import { QuestionBanksHeader } from "./_components/question-banks-header";
-import { QuestionBanksPagination } from "./_components/question-banks-pagination";
 import { QuestionBanksStatePanel } from "./_components/question-banks-state-panel";
 import { QuestionBanksTable } from "./_components/question-banks-table";
 
@@ -58,7 +58,11 @@ export default function QuestionBanksPage() {
         ) : questionBanks.length ? (
           <>
             <QuestionBanksTable questionBanks={questionBanks} />
-            <QuestionBanksPagination pagination={pagination} onPageChange={onPageChange} />
+            <AppPagination
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={onPageChange}
+            />
           </>
         ) : (
           <QuestionBanksStatePanel

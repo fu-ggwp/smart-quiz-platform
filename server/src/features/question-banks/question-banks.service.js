@@ -196,6 +196,15 @@ export async function listQuestionBanks(userId, query) {
   };
 }
 
+export async function listAssignedQuestionBanks(userId) {
+  await requireActiveTeacher(userId);
+
+  const { data, error } = await questionBanksDao.listAssignedByTeacher(userId);
+  handleLoadError(error);
+
+  return Promise.all((data || []).map(attachQuestionCount));
+}
+
 export async function getQuestionBank(userId, questionBankId) {
   await requireActiveTeacher(userId);
 
@@ -207,6 +216,25 @@ export async function getQuestionBank(userId, questionBankId) {
 
   if (!data) {
     throw serviceError("Question bank not found.", 404);
+  }
+
+  return attachQuestionCount(data);
+}
+
+export async function getAssignedQuestionBank(userId, questionBankId) {
+  await requireActiveTeacher(userId);
+
+  const { data, error } = await questionBanksDao.findAssignedOwnedById(
+    questionBankId,
+    userId,
+  );
+  handleLoadError(error);
+
+  if (!data) {
+    throw serviceError("Select one of your assigned question banks.", 400, {
+      questionBankId: "Select one of your assigned question banks.",
+      question_bank_id: "Select one of your assigned question banks.",
+    });
   }
 
   return attachQuestionCount(data);
@@ -224,6 +252,18 @@ export async function listQuestionBankQuestions(userId, questionBankId) {
   if (!bankResult.data) {
     throw serviceError("Question bank not found.", 404);
   }
+
+  const { data, error } = await questionBanksDao.listQuestionsByBank(
+    questionBankId,
+    userId,
+  );
+  handleLoadError(error);
+
+  return (data || []).map(sortQuestionAnswerOptions);
+}
+
+export async function listAssignedQuestionBankQuestions(userId, questionBankId) {
+  await getAssignedQuestionBank(userId, questionBankId);
 
   const { data, error } = await questionBanksDao.listQuestionsByBank(
     questionBankId,

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Save, ArrowLeft, Database, FileSpreadsheet } from "lucide-react";
-import api from "@/services/api";
+import axiosClient from "@/services/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import QuestionBankSelector from "./QuestionBankSelector";
@@ -262,7 +262,7 @@ export default function CreateStudySetPage() {
     // C. Send POST request
     setSaving(true);
     try {
-      await api.post("/api/study-sets", {
+      await axiosClient.post("/api/study-sets", {
         title,
         description,
         subject: subject || null,
