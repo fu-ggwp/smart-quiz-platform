@@ -69,7 +69,7 @@ export default function TeacherStudySetDetailPage() {
           <AlertCircle className="size-12 text-rose-500 mx-auto" />
           <h2 className="text-xl font-bold text-foreground">Error Occurred</h2>
           <p className="text-sm text-muted-foreground">{error || "Study set not found."}</p>
-          <Button onClick={() => router.back()} className="w-full">
+          <Button onClick={() => router.push("/teacher/study-sets")} className="w-full">
             Go Back
           </Button>
         </div>
@@ -84,7 +84,7 @@ export default function TeacherStudySetDetailPage() {
         {/* Navigation & Header Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <Button onClick={() => router.back()} variant="ghost" size="icon" type="button">
+            <Button onClick={() => router.push("/teacher/study-sets")} variant="ghost" size="icon" type="button">
               <ArrowLeft className="size-5" />
             </Button>
             <div>

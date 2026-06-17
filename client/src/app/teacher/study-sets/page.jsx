@@ -365,13 +365,6 @@ function StudySetsTable({ studySets }) {
                   <td className="px-4 py-3 text-muted-foreground text-center">{getLearnerCount(studySet)}</td>
                   <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-wrap gap-2">
-                      <Button asChild size="sm" variant="secondary">
-                        <Link href={`/teacher/study-sets/${id}`}>
-                          <Eye className="size-4" />
-                          Preview
-                        </Link>
-                      </Button>
-
                       <Button asChild size="sm">
                         <Link href={`/teacher/study-sets/${id}/assign`}>Assign</Link>
                       </Button>
