@@ -103,16 +103,19 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
           }
         });
 
+        const headerErrors = [];
         if (textIdx === -1) {
-          setErrors(["Missing required column: 'Question Text'"]);
-          return;
+          headerErrors.push("Missing required column: 'Question Text'");
         }
         if (correctIdx === -1) {
-          setErrors(["Missing required column: 'Correct Option'"]);
-          return;
+          headerErrors.push("Missing required column: 'Correct Option'");
         }
         if (optionIndices.length < 2) {
-          setErrors(["You must include at least two option columns (e.g., 'Option 1', 'Option 2')."]);
+          headerErrors.push("You must include at least two option columns (e.g., 'Option 1', 'Option 2').");
+        }
+
+        if (headerErrors.length > 0) {
+          setErrors(headerErrors);
           return;
         }
 
@@ -269,7 +272,9 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
               <ul className="space-y-1.5 text-xs text-rose-700 list-disc pl-4">
                 {errors.map((err, idx) => (
                   <li key={idx}>
-                    {err.row ? `Row ${err.row}: ` : ""}{err.message}
+                    {typeof err === "string"
+                      ? err
+                      : `${err.row ? `Row ${err.row}: ` : ""}${err.message}`}
                   </li>
                 ))}
               </ul>
