@@ -204,7 +204,7 @@ export default function QuestionBankSelector({
             Select questions from a question bank to add to your drafting list.
           </p>
         </div>
-        <Button onClick={onCancel} variant="ghost" size="sm">
+        <Button onClick={onCancel} variant="ghost" size="sm" type="button font-bold">
           Cancel
         </Button>
       </div>
@@ -369,13 +369,14 @@ export default function QuestionBankSelector({
           Selected: <span className="text-foreground font-bold">{selectedQIds.size}</span> questions
         </span>
         <div className="flex gap-2">
-          <Button onClick={onCancel} variant="outline" size="sm">
+          <Button onClick={onCancel} variant="outline" size="sm" type="button">
             Cancel
           </Button>
           <Button
             onClick={handleImport}
             disabled={selectedQIds.size === 0}
             size="sm"
+            type="button"
           >
             Import {selectedQIds.size > 0 ? `(${selectedQIds.size})` : ""}
           </Button>
@@ -398,6 +399,7 @@ export default function QuestionBankSelector({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowConfirmSwitch(false)}
+                type="button"
               >
                 Cancel
               </Button>
@@ -408,6 +410,7 @@ export default function QuestionBankSelector({
                   onResetBank();
                   setShowConfirmSwitch(false);
                 }}
+                type="button"
               >
                 Yes, Switch Bank
               </Button>

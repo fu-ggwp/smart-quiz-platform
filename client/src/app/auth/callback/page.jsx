@@ -3,7 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { cleanOAuthHash, completeLogin } from "@/services/auth.service";
+import {
+  authService,
+  cleanOAuthHash,
+  clearAuthCookie,
+  getCurrentProfile,
+  getCurrentSession,
+  getPostLoginRedirect,
+  syncAuthCookie,
+} from "@/services/auth.service";
+
+function getCallbackNextPath() {
+  if (typeof window === "undefined") return null;
+
+  return new URLSearchParams(window.location.search).get("next");
+}
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -12,24 +26,29 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     let active = true;
 
-    const roleHome = {
-      admin: "/admin/dashboard",
-      teacher: "/teacher/dashboard",
-      learner: "/learner/dashboard",
-    };
-
     async function completeAuth() {
       try {
-        const { profile } = await completeLogin();
+        const session = await getCurrentSession();
+
+        if (!session) {
+          throw new Error("Could not complete sign in.");
+        }
+
+        syncAuthCookie(session);
+        const profile = await getCurrentProfile();
+        const destination = getPostLoginRedirect(profile, getCallbackNextPath());
+
         cleanOAuthHash();
-        const destination = roleHome[profile?.activeRole] ?? "/";
         router.replace(destination);
         router.refresh();
       } catch (error) {
+        await authService.logout().catch(() => clearAuthCookie());
+        cleanOAuthHash();
+
         if (active) {
           setMessage(error.message || "Could not complete sign in.");
         }
-        cleanOAuthHash();
+
         router.replace("/login");
       }
     }

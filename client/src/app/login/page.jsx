@@ -5,12 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Eye, EyeOff, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
   FieldDescription,
@@ -20,8 +19,13 @@ import {
   FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import supabase from "@/lib/supabaseClient";
-import { authService, completeLogin } from "@/services/auth.service";
+import {
+  authService,
+  clearAuthCookie,
+  getCurrentProfile,
+  getPostLoginRedirect,
+  syncAuthCookie,
+} from "@/services/auth.service";
 
 const heroImage =
   "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1100&q=80";
@@ -29,7 +33,6 @@ const heroImage =
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address."),
   password: z.string().min(1, "Please enter your password."),
-  rememberMe: z.boolean().optional(),
 });
 
 const SAFE_LOGIN_MESSAGES = new Set([
@@ -61,6 +64,21 @@ function getApiMessage(error) {
   return "Login failed. Please try again.";
 }
 
+function getLoginNextPath() {
+  if (typeof window === "undefined") return null;
+
+  return new URLSearchParams(window.location.search).get("next");
+}
+
+function getOAuthCallbackUrl() {
+  const callbackUrl = new URL("/auth/callback", window.location.origin);
+  const nextPath = getLoginNextPath();
+
+  if (nextPath) callbackUrl.searchParams.set("next", nextPath);
+
+  return callbackUrl.toString();
+}
+
 function GoogleMark() {
   return (
     <span className="grid size-5 place-items-center rounded-full bg-background text-xs font-semibold text-primary">
@@ -74,7 +92,6 @@ export default function LoginPage() {
   const [formMessage, setFormMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const {
-    control,
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
@@ -84,39 +101,32 @@ export default function LoginPage() {
     defaultValues: {
       email: "",
       password: "",
-      rememberMe: false,
     },
   });
 
   async function handleGoogleLogin() {
     setFormMessage("");
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) setFormMessage("Google login failed. Please try again.");
+    try {
+      await authService.signInWithGoogle(getOAuthCallbackUrl());
+    } catch {
+      setFormMessage("Google login failed. Please try again.");
+    }
   }
-
-  const roleHome = {
-    admin: "/admin/dashboard",
-    teacher: "/teacher/dashboard",
-    learner: "/learner/dashboard",
-  };
 
   async function onSubmit(values) {
     setFormMessage("");
 
     try {
       const response = await authService.login(values);
-      const { profile } = await completeLogin(response?.session);
-      const destination = roleHome[profile?.activeRole] ?? "/";
+      syncAuthCookie(response?.session);
+      const profile = await getCurrentProfile();
+      const destination = getPostLoginRedirect(profile, getLoginNextPath());
       router.push(destination);
       router.refresh();
     } catch (error) {
+      await authService.logout().catch(() => clearAuthCookie());
+
       const fields = error?.response?.data?.fields || {};
 
       Object.entries(fields).forEach(([name, message]) => {
@@ -241,22 +251,7 @@ export default function LoginPage() {
                     <FieldError>{errors.password?.message}</FieldError>
                   </Field>
 
-                  <div className="flex items-center justify-between gap-3 text-sm">
-                    <Controller
-                      control={control}
-                      name="rememberMe"
-                      render={({ field }) => (
-                        <label className="flex items-center gap-2 text-muted-foreground">
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={(checked) =>
-                              field.onChange(Boolean(checked))
-                            }
-                          />
-                          Remember me
-                        </label>
-                      )}
-                    />
+                  <div className="flex items-center justify-end gap-3 text-sm">
                     <Link
                       href="/forgot-password"
                       className="font-semibold text-primary hover:underline"

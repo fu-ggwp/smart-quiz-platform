@@ -7,6 +7,7 @@ const router = Router();
 
 router.get("/mine", requireAuth, studySetsController.listMine);
 router.get("/learner", requireAuth, requireRole("learner"), studySetsController.listLearnerStudySets);
+router.get("/public", studySetsController.listPublic);
 router.get("/", requireAuth, studySetsController.listAvailable);
 router.post("/", requireAuth, studySetsController.create);
 router.get("/:id", requireAuth, studySetsController.getOne);

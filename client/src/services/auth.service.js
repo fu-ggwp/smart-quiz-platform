@@ -2,8 +2,12 @@ import supabase from "@/lib/supabaseClient";
 import { profileService } from "@/services/profile.service";
 
 const ACCESS_TOKEN_COOKIE = "access_token";
-const ROLE_COOKIE = "role";
-export const AUTH_SESSION_CHANGED_EVENT = "smart-quiz-auth-session-changed";
+const ROLE_HOME = {
+  admin: "/admin/dashboard",
+  teacher: "/teacher/dashboard",
+  learner: "/learner/dashboard",
+};
+const BLOCKED_NEXT_ROUTES = ["/login", "/register", "/auth/callback"];
 
 function getCookieMaxAge(session) {
   if (!session?.expires_at) return 60 * 60;
@@ -12,64 +16,63 @@ function getCookieMaxAge(session) {
 }
 
 function setCookie(name, value, maxAge) {
+  if (typeof document === "undefined") return;
+
   document.cookie = `${name}=${encodeURIComponent(
     value
   )}; path=/; max-age=${maxAge}; samesite=lax`;
 }
 
 function deleteCookie(name) {
+  if (typeof document === "undefined") return;
+
   document.cookie = `${name}=; path=/; max-age=0; samesite=lax`;
 }
 
-function saveAuthCookies({ session, role }) {
-  if (!session?.access_token || !role || typeof document === "undefined") {
+function matchesRoute(pathname, routes) {
+  return routes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+}
+
+function isSafeNextPath(nextPath) {
+  if (!nextPath || typeof nextPath !== "string") return false;
+  if (!nextPath.startsWith("/") || nextPath.startsWith("//")) return false;
+
+  try {
+    const url = new URL(nextPath, "http://smart-quiz.local");
+    return !matchesRoute(url.pathname, BLOCKED_NEXT_ROUTES);
+  } catch {
+    return false;
+  }
+}
+
+export function clearAuthCookie() {
+  deleteCookie(ACCESS_TOKEN_COOKIE);
+}
+
+export function syncAuthCookie(session) {
+  if (!session?.access_token) {
+    clearAuthCookie();
     return;
   }
 
-  const maxAge = getCookieMaxAge(session);
-  setCookie(ACCESS_TOKEN_COOKIE, session.access_token, maxAge);
-  setCookie(ROLE_COOKIE, role, maxAge);
+  setCookie(ACCESS_TOKEN_COOKIE, session.access_token, getCookieMaxAge(session));
 }
 
-function clearAuthCookies() {
-  if (typeof document === "undefined") return;
-
-  deleteCookie(ACCESS_TOKEN_COOKIE);
-  deleteCookie(ROLE_COOKIE);
-}
-
-function notifyAuthSessionChanged() {
-  if (typeof window === "undefined") return;
-
-  window.dispatchEvent(new Event(AUTH_SESSION_CHANGED_EVENT));
-}
-
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function withTimeout(promise, ms) {
-  return Promise.race([promise, wait(ms)]);
-}
-
-async function getProfileWithRetry() {
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    try {
-      return await profileService.getMine();
-    } catch (error) {
-      const status = error?.response?.status;
-      if (status === 401) return null;
-      if (status !== 404 || attempt === 2) throw error;
-      await wait(300);
-    }
-  }
-
-  return null;
-}
-
-async function getCurrentSession() {
+export async function getCurrentSession() {
   const { data } = await supabase.auth.getSession();
   return data?.session ?? null;
+}
+
+export async function getCurrentProfile() {
+  return profileService.getMine();
+}
+
+export function getPostLoginRedirect(profile, nextPath) {
+  if (isSafeNextPath(nextPath)) return nextPath;
+
+  return ROLE_HOME[profile?.activeRole] ?? "/";
 }
 
 export const authService = {
@@ -99,11 +102,28 @@ export const authService = {
     return data;
   },
 
-  async logout(options = {}) {
-    const { error } = await supabase.auth.signOut({
-      scope: options.scope ?? "local",
+  async signInWithGoogle(redirectTo) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
     });
+
     if (error) throw error;
+    return data;
+  },
+
+  async logout(options = {}) {
+    clearAuthCookie();
+
+    try {
+      const { error } = await supabase.auth.signOut({
+        scope: options.scope ?? "local",
+      });
+
+      if (error) throw error;
+    } finally {
+      clearAuthCookie();
+    }
   },
 
   async forgotPassword(email, redirectTo) {
@@ -121,53 +141,11 @@ export const authService = {
     if (error) throw error;
     return data;
   },
-  me: () => profileService.getMine(),
+
+  getSession: getCurrentSession,
+  getProfile: getCurrentProfile,
+  me: getCurrentProfile,
 };
-
-export async function completeLogin(session = null) {
-  const currentSession = session || (await getCurrentSession());
-
-  if (!currentSession) {
-    clearAuthCookies();
-    return { session: null, profile: null };
-  }
-
-  if (session?.access_token && session?.refresh_token) {
-    const { error } = await supabase.auth.setSession({
-      access_token: session.access_token,
-      refresh_token: session.refresh_token,
-    });
-
-    if (error) throw error;
-  }
-
-  const profile = await getProfileWithRetry();
-
-  if (!profile) {
-    await supabase.auth.signOut();
-    clearAuthCookies();
-    return { session: null, profile: null };
-  }
-
-  saveAuthCookies({
-    session: currentSession,
-    role: profile?.activeRole,
-  });
-
-  return { session: currentSession, profile };
-}
-
-export async function completeLogout() {
-  clearAuthCookies();
-  notifyAuthSessionChanged();
-
-  try {
-    await withTimeout(authService.logout(), 1500);
-  } finally {
-    clearAuthCookies();
-    notifyAuthSessionChanged();
-  }
-}
 
 export function cleanOAuthHash() {
   if (

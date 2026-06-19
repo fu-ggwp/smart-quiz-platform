@@ -3,42 +3,22 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { completeLogout } from "@/services/auth.service";
+import { authService } from "@/services/auth.service";
 
 export function Navbar() {
   const router = useRouter();
   const { isAuthenticated, loading } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [logoutMessage, setLogoutMessage] = useState(() => {
-    if (typeof window === "undefined") return "";
-
-    return new URLSearchParams(window.location.search).get("logout") ===
-      "success"
-      ? "Logged out successfully."
-      : "";
-  });
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-
-    if (params.get("logout") !== "success") return;
-
-    params.delete("logout");
-
-    const query = params.toString();
-    const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
-    window.history.replaceState(null, "", nextUrl);
-  }, []);
 
   async function handleLogout() {
     setIsLoggingOut(true);
 
     try {
-      await completeLogout();
+      await authService.logout();
     } catch (error) {
       console.error("Logout failed after clearing local auth", error);
     } finally {
@@ -94,12 +74,6 @@ export function Navbar() {
             </>
           ) : null}
         </nav>
-
-        {logoutMessage ? (
-          <p className="w-full text-sm font-medium text-primary" role="status">
-            {logoutMessage}
-          </p>
-        ) : null}
       </div>
     </header>
   );

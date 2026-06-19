@@ -16,16 +16,7 @@ const protectedRoutes = [
   "/upgrade",
   "/users",
 ];
-const roleRoutes = {
-  admin: ["/admin"],
-  teacher: ["/teacher"],
-  learner: ["/learner"],
-};
-const homeByRole = {
-  admin: "/admin/dashboard",
-  teacher: "/teacher/dashboard",
-  learner: "/learner/dashboard",
-};
+const workspaceRoutes = ["/admin", "/teacher", "/learner"];
 
 function matches(pathname, routes) {
   return routes.some(
@@ -48,30 +39,21 @@ function redirectToLogin(request) {
 export function proxy(request) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("access_token")?.value;
-  const role = request.cookies.get("role")?.value;
   const isLoggedIn = Boolean(token);
 
   if (matches(pathname, guestRoutes)) {
-    return isLoggedIn
-      ? redirect(request, homeByRole[role] || "/")
-      : NextResponse.next();
+    return isLoggedIn ? redirect(request, "/") : NextResponse.next();
   }
 
   if (matches(pathname, publicRoutes)) {
     return NextResponse.next();
   }
 
-  const requiredRole = Object.entries(roleRoutes).find(([, routes]) =>
-    matches(pathname, routes)
-  )?.[0];
-  const needsLogin = requiredRole || matches(pathname, protectedRoutes);
+  const needsLogin =
+    matches(pathname, protectedRoutes) || matches(pathname, workspaceRoutes);
 
   if (needsLogin && !isLoggedIn) {
     return redirectToLogin(request);
-  }
-
-  if (requiredRole && role !== requiredRole) {
-    return redirect(request, "/403");
   }
 
   return NextResponse.next();
