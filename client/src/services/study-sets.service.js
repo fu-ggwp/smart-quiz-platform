@@ -1,7 +1,7 @@
 import axiosClient from "./axiosClient";
 
 export const studySetsService = {
-  listMine: () => axiosClient.get("/api/study-sets/mine").then((r) => r.data),
+  listMine: (params) => axiosClient.get("/api/study-sets/mine", { params }).then((r) => r.data),
   listPublic: () =>
     axiosClient.get("/api/study-sets/public").then((r) => r.data),
   listAvailable: (params) => axiosClient.get("/api/study-sets", { params }).then((r) => r.data),

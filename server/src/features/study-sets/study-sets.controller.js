@@ -3,7 +3,7 @@ import { ok, fail } from "../../utils/api-response.js";
 
 export const listMine = async (req, res) => {
   try {
-    return ok(res, await service.listMine(req.user.user_id || req.user.id));
+    return ok(res, await service.listMine(req.user.user_id || req.user.id, req.query));
   } catch (err) {
     return fail(res, err, err.status || 500);
   }

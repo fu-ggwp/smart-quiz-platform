@@ -7,10 +7,77 @@ import { ANSWER_OPTION_TABLE } from "../../models/answer-option.model.js";
 import { USER_TABLE } from "../../models/user.model.js";
 import { STUDY_SET_ASSIGNMENT_TABLE } from "../../models/study-set-assignment.model.js";
 import { CLASS_MEMBER_TABLE } from "../../models/join-request.model.js";
+import { getPagination } from "../../utils/pagination.js";
 
-// Tìm theo gv sở hữu là teacher_id
-export function findByTeacher(teacherId) {
-  return supabase.from(STUDY_SET_TABLE).select("*").eq("teacher_id", teacherId);
+// Tìm theo gv sở hữu là teacher_id, hỗ trợ pagination và filters
+export async function findByTeacher(teacherId, filters = {}) {
+  const { page, limit, from, to } = getPagination(filters, { defaultLimit: 10 });
+  const keyword = filters.keyword ? String(filters.keyword).trim() : "";
+  const visibility = filters.visibility && filters.visibility !== "all" ? filters.visibility : null;
+  const assignment = filters.assignment && filters.assignment !== "all" ? filters.assignment : null;
+  const sortBy = filters.sortBy || "latest";
+
+  let assignedIds = [];
+  if (assignment) {
+    const { data: assignments } = await supabase
+      .from("study_set_assignments")
+      .select("study_set_id")
+      .eq("assigned_by", teacherId);
+    
+    assignedIds = [...new Set((assignments || []).map((a) => a.study_set_id))];
+  }
+
+  let query = supabase
+    .from(STUDY_SET_TABLE)
+    .select(`
+      *,
+      study_set_assignments (
+        class_id,
+        classes (
+          class_name
+        )
+      )
+    `, { count: "exact" })
+    .eq("teacher_id", teacherId)
+    .is("deleted_at", null);
+
+  if (keyword) {
+    query = query.or(`title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%,subject.ilike.%${keyword}%`);
+  }
+
+  if (visibility) {
+    query = query.eq("visibility", visibility);
+  }
+
+  if (assignment === "assigned") {
+    if (assignedIds.length === 0) {
+      query = query.eq("study_set_id", "00000000-0000-0000-0000-000000000000");
+    } else {
+      query = query.in("study_set_id", assignedIds);
+    }
+  } else if (assignment === "unassigned") {
+    if (assignedIds.length > 0) {
+      query = query.not("study_set_id", "in", `(${assignedIds.join(",")})`);
+    }
+  }
+
+  if (sortBy === "name-asc") {
+    query = query.order("title", { ascending: true });
+  } else if (sortBy === "name-desc") {
+    query = query.order("title", { ascending: false });
+  } else {
+    query = query.order("updated_at", { ascending: false });
+  }
+
+  const { data, error, count } = await query.range(from, to);
+
+  return {
+    data,
+    error,
+    count,
+    page,
+    limit,
+  };
 }
 
 // Tìm kiếm học phần public hoặc được assign cho lớp học cụ thể

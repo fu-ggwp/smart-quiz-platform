@@ -10,12 +10,45 @@ function notFound(message = "Study set not found") {
 }
 
 // List toàn bộ study set của giáo viên
-export async function listMine(teacherId) {
-  const { data, error } = await dao.findByTeacher(teacherId);
+export async function listMine(teacherId, query = {}) {
+  const filters = {
+    page: parseInt(query.page, 10) || 1,
+    limit: parseInt(query.limit, 10) || 10,
+    keyword: query.keyword || "",
+    visibility: query.visibility || "all",
+    assignment: query.assignment || "all",
+    sortBy: query.sortBy || "latest",
+  };
+
+  const { data, error, count, page, limit } = await dao.findByTeacher(teacherId, filters);
   if (error) {
     throw dbError(error, 500);
   }
-  return data;
+
+  const items = (data || []).map((set) => {
+    const assignedClassIds = (set.study_set_assignments || [])
+      .map((a) => a.classes?.class_name)
+      .filter(Boolean);
+    
+    const setCopy = { ...set };
+    delete setCopy.study_set_assignments;
+
+    return {
+      ...setCopy,
+      assigned_class_ids: assignedClassIds,
+      assignedClassIds: assignedClassIds,
+    };
+  });
+
+  return {
+    items,
+    pagination: {
+      page,
+      limit,
+      total: count ?? items.length,
+      totalPages: count ? Math.ceil(count / limit) : 1,
+    },
+  };
 }
 
 // List study set public hoặc thuộc 1 lớp

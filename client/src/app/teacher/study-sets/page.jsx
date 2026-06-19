@@ -19,12 +19,6 @@ const visibilityOptions = [
   { value: "archived", label: "Archived" },
 ];
 
-const subjectOptions = [
-  { value: "all", label: "All subjects" },
-  { value: "Biology", label: "Biology" },
-  { value: "Chemistry", label: "Chemistry" },
-  { value: "Mathematics", label: "Mathematics" },
-];
 
 const assignmentOptions = [
   { value: "all", label: "All assignments" },
@@ -69,91 +63,60 @@ function getLearnerCount(studySet) {
 }
 
 export default function TeacherStudySetsPage() {
-  const { studySets, loading, error, reload } = useStudySets({ mine: true });
+  // Pending filters (changed in the UI but not applied yet)
+  const [pendingQuery, setPendingQuery] = useState("");
+  const [pendingVisibility, setPendingVisibility] = useState("all");
+  const [pendingAssignment, setPendingAssignment] = useState("all");
+  const [pendingSortBy, setPendingSortBy] = useState("latest");
 
-  const [query, setQuery] = useState("");
-  const [visibility, setVisibility] = useState("all");
-  const [subject, setSubject] = useState("all");
-  const [assignment, setAssignment] = useState("all");
-  const [sortBy, setSortBy] = useState("latest");
+  // Applied filters (used for query parameters)
+  const [appliedQuery, setAppliedQuery] = useState("");
+  const [appliedVisibility, setAppliedVisibility] = useState("all");
+  const [appliedAssignment, setAppliedAssignment] = useState("all");
+  const [appliedSortBy, setAppliedSortBy] = useState("latest");
+
   const [currentPage, setCurrentPage] = useState(1);
 
-  const ITEMS_PER_PAGE = 10;
+  const params = useMemo(() => ({
+    keyword: appliedQuery.trim() || undefined,
+    visibility: appliedVisibility === "all" ? undefined : appliedVisibility,
+    assignment: appliedAssignment === "all" ? undefined : appliedAssignment,
+    sortBy: appliedSortBy,
+    page: currentPage,
+    limit: 10,
+  }), [appliedQuery, appliedVisibility, appliedAssignment, appliedSortBy, currentPage]);
 
-  const handleQueryChange = (val) => {
-    setQuery(val);
-    setCurrentPage(1);
-  };
-  const handleVisibilityChange = (val) => {
-    setVisibility(val);
-    setCurrentPage(1);
-  };
-  const handleSubjectChange = (val) => {
-    setSubject(val);
-    setCurrentPage(1);
-  };
-  const handleAssignmentChange = (val) => {
-    setAssignment(val);
-    setCurrentPage(1);
-  };
-  const handleSortChange = (val) => {
-    setSortBy(val);
-    setCurrentPage(1);
-  };
+  const { studySets, pagination, loading, error } = useStudySets({
+    mine: true,
+    params,
+  });
 
-  const filteredStudySets = useMemo(() => {
-    const keyword = query.trim().toLowerCase();
+  const totalPages = pagination?.totalPages ?? 1;
+  const activePage = pagination?.page ?? 1;
 
-    return [...studySets]
-      .filter((studySet) => {
-        const assignedClasses = getAssignedClasses(studySet);
-        const searchText = [
-          studySet.title,
-          studySet.subject,
-          studySet.topic,
-          studySet.description,
-          studySet.ownerName,
-          studySet.teacher_name,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-
-        const matchesQuery = !keyword || searchText.includes(keyword);
-        const matchesVisibility =
-          visibility === "all" || normalizeVisibility(studySet.visibility) === visibility;
-        const matchesSubject = subject === "all" || studySet.subject === subject;
-        const matchesAssignment =
-          assignment === "all" ||
-          (assignment === "assigned" && assignedClasses.length > 0) ||
-          (assignment === "unassigned" && assignedClasses.length === 0);
-
-        return matchesQuery && matchesVisibility && matchesSubject && matchesAssignment;
-      })
-      .sort((a, b) => {
-        if (sortBy === "name-asc") return (a.title ?? "").localeCompare(b.title ?? "");
-        if (sortBy === "name-desc") return (b.title ?? "").localeCompare(a.title ?? "");
-
-        return new Date(b.updated_at ?? b.created_at ?? 0) - new Date(a.updated_at ?? a.created_at ?? 0);
-      });
-  }, [studySets, query, visibility, subject, assignment, sortBy]);
-
-  const totalPages = Math.ceil(filteredStudySets.length / ITEMS_PER_PAGE);
-  const activePage = Math.min(Math.max(1, currentPage), totalPages || 1);
-
-  const paginatedStudySets = useMemo(() => {
-    const startIndex = (activePage - 1) * ITEMS_PER_PAGE;
-    return filteredStudySets.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredStudySets, activePage]);
-
-  function resetFilters() {
-    setQuery("");
-    setVisibility("all");
-    setSubject("all");
-    setAssignment("all");
-    setSortBy("latest");
+  function applyFilters() {
+    setAppliedQuery(pendingQuery);
+    setAppliedVisibility(pendingVisibility);
+    setAppliedAssignment(pendingAssignment);
+    setAppliedSortBy(pendingSortBy);
     setCurrentPage(1);
   }
+
+  function resetFilters() {
+    setPendingQuery("");
+    setPendingVisibility("all");
+    setPendingAssignment("all");
+    setPendingSortBy("latest");
+
+    setAppliedQuery("");
+    setAppliedVisibility("all");
+    setAppliedAssignment("all");
+    setAppliedSortBy("latest");
+
+    setCurrentPage(1);
+  }
+
+  const hasFiltersApplied = appliedQuery || appliedVisibility !== "all" || appliedAssignment !== "all";
 
   return (
     <main className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
@@ -161,17 +124,16 @@ export default function TeacherStudySetsPage() {
         <PageHeader />
 
         <FilterBar
-          assignment={assignment}
-          onAssignmentChange={handleAssignmentChange}
-          onQueryChange={handleQueryChange}
+          assignment={pendingAssignment}
+          onAssignmentChange={setPendingAssignment}
+          onQueryChange={setPendingQuery}
           onReset={resetFilters}
-          onSortChange={handleSortChange}
-          onSubjectChange={handleSubjectChange}
-          onVisibilityChange={handleVisibilityChange}
-          query={query}
-          sortBy={sortBy}
-          subject={subject}
-          visibility={visibility}
+          onApply={applyFilters}
+          onSortChange={setPendingSortBy}
+          onVisibilityChange={setPendingVisibility}
+          query={pendingQuery}
+          sortBy={pendingSortBy}
+          visibility={pendingVisibility}
         />
 
         {loading ? (
@@ -190,15 +152,26 @@ export default function TeacherStudySetsPage() {
             title="Unable to load study sets"
             description="You have not created any study sets. Create one from a question bank when you are ready to assign materials."
           />
-        ) : filteredStudySets.length ? (
+        ) : studySets.length ? (
           <>
-            <StudySetsTable studySets={paginatedStudySets} />
+            <StudySetsTable studySets={studySets} />
             <AppPagination
               currentPage={activePage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
             />
           </>
+        ) : hasFiltersApplied ? (
+          <StatePanel
+            action={
+              <Button onClick={resetFilters} type="button">
+                Clear Filters
+              </Button>
+            }
+            icon={<Search className="size-5" />}
+            title="No study sets match your search"
+            description="Try modifying your search queries or resetting all filters."
+          />
         ) : (
           <StatePanel
             action={
@@ -217,6 +190,7 @@ export default function TeacherStudySetsPage() {
       </section>
     </main>
   );
+
 }
 
 function PageHeader() {
@@ -246,26 +220,47 @@ function FilterBar({
   onAssignmentChange,
   onQueryChange,
   onReset,
+  onApply,
   onSortChange,
-  onSubjectChange,
   onVisibilityChange,
   query,
   sortBy,
-  subject,
   visibility,
 }) {
   return (
     <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
       <div className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-[minmax(240px,1fr)_repeat(2,minmax(170px,220px))_auto]">
+        {/* Row 1: Search and Action Buttons */}
+        <div className="grid gap-4 md:grid-cols-[1fr_auto_auto]">
           <Field label="Search Study Sets">
-            <Input
-              onChange={(event) => onQueryChange(event.target.value)}
-              placeholder="Title, subject, topic, owner"
-              value={query}
-            />
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="pl-8"
+                onChange={(event) => onQueryChange(event.target.value)}
+                placeholder="Title, subject, topic, owner"
+                value={query}
+              />
+            </div>
           </Field>
 
+          <div className="flex items-end">
+            <Button onClick={onApply} type="button">
+              <Search className="size-4" />
+              Apply filter
+            </Button>
+          </div>
+
+          <div className="flex items-end">
+            <Button onClick={onReset} type="button" variant="ghost">
+              <SlidersHorizontal className="size-4" />
+              Reset Filters
+            </Button>
+          </div>
+        </div>
+
+        {/* Row 2: Visibility, Assignment, and Sorting */}
+        <div className="grid gap-4 md:grid-cols-3">
           <SelectField
             label="Visibility"
             onChange={onVisibilityChange}
@@ -273,16 +268,6 @@ function FilterBar({
             value={visibility}
           />
 
-          <SelectField
-            label="Subject Filter"
-            onChange={onSubjectChange}
-            options={subjectOptions}
-            value={subject}
-          />
-
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-[220px_220px_1fr_auto]">
           <SelectField
             label="Assignment Filter"
             onChange={onAssignmentChange}
@@ -300,15 +285,6 @@ function FilterBar({
             ]}
             value={sortBy}
           />
-
-          <div />
-
-          <div className="flex items-end justify-end">
-            <Button onClick={onReset} type="button" variant="ghost">
-              <SlidersHorizontal className="size-4" />
-              Reset Filters
-            </Button>
-          </div>
         </div>
       </div>
     </div>
