@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowLeft, Loader2, Plus, Save } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, Loader2, Plus, Save } from "lucide-react";
 
+import ExcelImporter from "@/components/question-creator/ExcelImporter";
 import QuestionCardEditor from "@/components/question-creator/QuestionCardEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,7 @@ export function QuestionBankEditorForm({
   onCancel,
   onDeleteOption,
   onDeleteQuestion,
+  onImportExcel,
   onMetadataChange,
   onOptionChange,
   onQuestionFieldChange,
@@ -114,10 +116,18 @@ export function QuestionBankEditorForm({
                 <h2 className="text-xl font-bold text-foreground">Questions ({questions.length})</h2>
                 <p className="text-sm text-muted-foreground">{copy.questionDescription}</p>
               </div>
-              <Button onClick={onAddQuestion} type="button" variant="outline" className="gap-2">
-                <Plus className="size-4" />
-                Add Question Card
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                {onImportExcel && (
+                  <Button onClick={onImportExcel} type="button" variant="outline" className="gap-2">
+                    <FileSpreadsheet className="size-4" />
+                    Import from Excel
+                  </Button>
+                )}
+                <Button onClick={onAddQuestion} type="button" variant="outline" className="gap-2">
+                  <Plus className="size-4" />
+                  Add Question Card
+                </Button>
+              </div>
             </div>
 
             {questions.length === 0 ? (
@@ -161,5 +171,18 @@ export function QuestionBankEditorForm({
         </form>
       </section>
     </main>
+  );
+}
+
+export function QuestionBankExcelImportModal({ onCancel, onQuestionsImported }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+      <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-border bg-card shadow-2xl">
+        <ExcelImporter
+          onCancel={onCancel}
+          onQuestionsImported={onQuestionsImported}
+        />
+      </div>
+    </div>
   );
 }

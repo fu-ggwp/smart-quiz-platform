@@ -39,6 +39,24 @@ export function useQuestionBankEditorState({
     clearError("questions");
   }
 
+  function appendImportedQuestions(importedQuestions = []) {
+    const drafts = importedQuestions.map((question) => ({
+      question_text: question.question_text || "",
+      question_type: "multiple_choice",
+      score: 1,
+      explanation: question.explanation || "",
+      subject: "",
+      topic: question.topic || "",
+      chapter: question.chapter || "",
+      options: normalizeMultipleChoiceOptions(question.options || question.answer_options || []),
+    }));
+
+    if (drafts.length === 0) return;
+
+    setQuestions((current) => [...current, ...drafts]);
+    clearError("questions");
+  }
+
   function deleteQuestion(index) {
     setQuestions((current) => current.filter((_, currentIndex) => currentIndex !== index));
     setErrors((current) => shiftQuestionErrorsAfterDelete(current, index));
@@ -107,6 +125,7 @@ export function useQuestionBankEditorState({
   return {
     addOption,
     addQuestion,
+    appendImportedQuestions,
     deleteOption,
     deleteQuestion,
     errors,

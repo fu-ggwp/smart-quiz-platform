@@ -7,7 +7,7 @@ import { AlertCircle, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { questionBanksService } from "@/services/question-banks.service";
 
-import { QuestionBankEditorForm } from "../../_components/question-bank-editor-form";
+import { QuestionBankEditorForm, QuestionBankExcelImportModal } from "../../_components/question-bank-editor-form";
 import { QuestionBanksStatePanel } from "../../_components/question-banks-state-panel";
 import {
   buildQuestionBankPayload,
@@ -34,6 +34,7 @@ export default function EditQuestionBankPage() {
   const [loadError, setLoadError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [archiving, setArchiving] = useState(false);
+  const [showExcelImporter, setShowExcelImporter] = useState(false);
 
   const loadQuestionBank = useCallback(async () => {
     if (!questionBankId) return;
@@ -105,6 +106,11 @@ export default function EditQuestionBankPage() {
     }
   }
 
+  function handleExcelQuestionsImported(importedQuestions) {
+    editor.appendImportedQuestions(importedQuestions);
+    setShowExcelImporter(false);
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
@@ -131,27 +137,37 @@ export default function EditQuestionBankPage() {
   }
 
   return (
-    <QuestionBankEditorForm
-      actionSlot={(
-        <Button disabled={archiving || submitting} onClick={handleDelete} type="button" variant="destructive">
-          {archiving ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-          {archiving ? "Deleting..." : "Delete"}
-        </Button>
+    <>
+      <QuestionBankEditorForm
+        actionSlot={(
+          <Button disabled={archiving || submitting} onClick={handleDelete} type="button" variant="destructive">
+            {archiving ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+            {archiving ? "Deleting..." : "Delete"}
+          </Button>
+        )}
+        errors={editor.errors}
+        form={editor.form}
+        mode="edit"
+        onAddOption={editor.addOption}
+        onAddQuestion={editor.addQuestion}
+        onCancel={() => router.push(detailHref)}
+        onDeleteOption={editor.deleteOption}
+        onDeleteQuestion={editor.deleteQuestion}
+        onImportExcel={() => setShowExcelImporter(true)}
+        onMetadataChange={editor.handleMetadataChange}
+        onOptionChange={editor.updateOption}
+        onQuestionFieldChange={editor.updateQuestionField}
+        onSubmit={handleSubmit}
+        questions={editor.questions}
+        submitting={submitting || archiving}
+      />
+
+      {showExcelImporter && (
+        <QuestionBankExcelImportModal
+          onCancel={() => setShowExcelImporter(false)}
+          onQuestionsImported={handleExcelQuestionsImported}
+        />
       )}
-      errors={editor.errors}
-      form={editor.form}
-      mode="edit"
-      onAddOption={editor.addOption}
-      onAddQuestion={editor.addQuestion}
-      onCancel={() => router.push(detailHref)}
-      onDeleteOption={editor.deleteOption}
-      onDeleteQuestion={editor.deleteQuestion}
-      onMetadataChange={editor.handleMetadataChange}
-      onOptionChange={editor.updateOption}
-      onQuestionFieldChange={editor.updateQuestionField}
-      onSubmit={handleSubmit}
-      questions={editor.questions}
-      submitting={submitting || archiving}
-    />
+    </>
   );
 }

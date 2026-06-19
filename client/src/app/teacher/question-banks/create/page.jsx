@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { questionBanksService } from "@/services/question-banks.service";
 
-import { QuestionBankEditorForm } from "../_components/question-bank-editor-form";
+import { QuestionBankEditorForm, QuestionBankExcelImportModal } from "../_components/question-bank-editor-form";
 import {
   buildQuestionBankPayload,
   emptyQuestion,
@@ -18,6 +18,7 @@ export default function CreateQuestionBankPage() {
   const router = useRouter();
   const editor = useQuestionBankEditorState({ initialQuestions: [emptyQuestion()] });
   const [submitting, setSubmitting] = useState(false);
+  const [showExcelImporter, setShowExcelImporter] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -46,22 +47,37 @@ export default function CreateQuestionBankPage() {
     }
   }
 
+  function handleExcelQuestionsImported(importedQuestions) {
+    editor.appendImportedQuestions(importedQuestions);
+    setShowExcelImporter(false);
+  }
+
   return (
-    <QuestionBankEditorForm
-      errors={editor.errors}
-      form={editor.form}
-      mode="create"
-      onAddOption={editor.addOption}
-      onAddQuestion={editor.addQuestion}
-      onCancel={() => router.push("/teacher/question-banks")}
-      onDeleteOption={editor.deleteOption}
-      onDeleteQuestion={editor.deleteQuestion}
-      onMetadataChange={editor.handleMetadataChange}
-      onOptionChange={editor.updateOption}
-      onQuestionFieldChange={editor.updateQuestionField}
-      onSubmit={handleSubmit}
-      questions={editor.questions}
-      submitting={submitting}
-    />
+    <>
+      <QuestionBankEditorForm
+        errors={editor.errors}
+        form={editor.form}
+        mode="create"
+        onAddOption={editor.addOption}
+        onAddQuestion={editor.addQuestion}
+        onCancel={() => router.push("/teacher/question-banks")}
+        onDeleteOption={editor.deleteOption}
+        onDeleteQuestion={editor.deleteQuestion}
+        onImportExcel={() => setShowExcelImporter(true)}
+        onMetadataChange={editor.handleMetadataChange}
+        onOptionChange={editor.updateOption}
+        onQuestionFieldChange={editor.updateQuestionField}
+        onSubmit={handleSubmit}
+        questions={editor.questions}
+        submitting={submitting}
+      />
+
+      {showExcelImporter && (
+        <QuestionBankExcelImportModal
+          onCancel={() => setShowExcelImporter(false)}
+          onQuestionsImported={handleExcelQuestionsImported}
+        />
+      )}
+    </>
   );
 }
