@@ -40,6 +40,7 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
       "Topic",
       "Chapter"
     ];
+
     const sampleData = [
       [
         "What is the capital of France?",
@@ -254,7 +255,7 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
             Upload an Excel file to bulk-import multiple choice questions directly.
           </p>
         </div>
-        <Button onClick={onCancel} variant="ghost" size="sm">
+        <Button onClick={onCancel} variant="ghost" size="sm" type="button">
           Cancel
         </Button>
       </div>
@@ -344,13 +345,14 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
       )}
 
       <div className="flex justify-end gap-2 border-t border-border pt-4">
-        <Button onClick={onCancel} variant="outline" size="sm">
+        <Button onClick={onCancel} variant="outline" size="sm" type="button">
           Cancel
         </Button>
         <Button
           onClick={handleImportClick}
           disabled={parsedQuestions.length === 0}
           size="sm"
+          type="button"
         >
           Import {parsedQuestions.length > 0 ? `(${parsedQuestions.length})` : ""} Questions
         </Button>

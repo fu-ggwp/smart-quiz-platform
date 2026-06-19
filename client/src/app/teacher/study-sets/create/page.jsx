@@ -2,12 +2,13 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Save, ArrowLeft, Database, FileSpreadsheet } from "lucide-react";
+import { Plus, Save, ArrowLeft, Database, FileSpreadsheet } from "lucide-react";
 import axiosClient from "@/services/axiosClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import QuestionCardEditor from "@/components/question-creator/QuestionCardEditor";
+import ExcelImporter from "@/components/question-creator/ExcelImporter";
 import QuestionBankSelector from "./QuestionBankSelector";
-import ExcelImporter from "./ExcelImporter";
 
 export default function CreateStudySetPage() {
   const router = useRouter();
@@ -19,7 +20,6 @@ export default function CreateStudySetPage() {
   const [topic, setTopic] = useState("");
   const [visibility, setVisibility] = useState("private");
   const [questionBankId, setQuestionBankId] = useState(null);
-  const [showExcelImporter, setShowExcelImporter] = useState(false);
 
   // --- 2. STATE FOR DRAFT QUESTIONS ---
   const [questions, setQuestions] = useState([
@@ -37,6 +37,7 @@ export default function CreateStudySetPage() {
 
   // --- 3. UI STATE FOR MODALS/PANELS ---
   const [showQBSelector, setShowQBSelector] = useState(false);
+  const [showExcelImporter, setShowExcelImporter] = useState(false);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
@@ -99,7 +100,7 @@ export default function CreateStudySetPage() {
     });
   };
 
-  // Update question text, explanation, metadata, etc.
+  // Update question fields
   const handleQuestionFieldChange = (qIndex, field, value) => {
     setQuestions((prev) => {
       const updated = [...prev];
@@ -176,7 +177,7 @@ export default function CreateStudySetPage() {
     });
   };
 
-  // --- 5. QUESTION BANK IMPORT CALLBACK ---
+  // --- 5. QUESTION BANK IMPORT CALLBACKS ---
   const handleQBQuestionsImported = (importedQs, selectedBankId) => {
     // Save source question bank mapping
     setQuestionBankId(selectedBankId);
@@ -219,6 +220,7 @@ export default function CreateStudySetPage() {
     setQuestions((prev) => [...prev, ...formattedQs]);
     setShowExcelImporter(false);
   };
+
   // --- 6. SAVE STUDY SET TO DATABASE ---
   const handleSave = async (e) => {
     e.preventDefault();
@@ -402,128 +404,20 @@ export default function CreateStudySetPage() {
               </div>
             )}
 
-            {/* Questions drafting list */}
+            {/* Questions list rendering via shared QuestionCardEditor component */}
             <div className="space-y-6">
               {questions.map((q, qIndex) => (
-                <div key={qIndex} className="relative rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
-
-                  {/* Header bar of question card */}
-                  <div className="flex items-center justify-between border-b border-border pb-3">
-                    <span className="text-sm font-bold text-muted-foreground">
-                      Question #{qIndex + 1}
-                    </span>
-                    <Button
-                      onClick={() => deleteQuestion(qIndex)}
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-
-                  {/* Question text */}
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-foreground">Question
-                      <span className="text-rose-500"> *</span></label>
-                    <textarea
-                      className="min-h-[60px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      placeholder="Enter the question text"
-                      value={q.question_text}
-                      onChange={(e) => handleQuestionFieldChange(qIndex, "question_text", e.target.value)}
-                    />
-                    {errors[`q_${qIndex}_text`] && (
-                      <p className="text-xs font-semibold text-rose-500 mt-0.5">{errors[`q_${qIndex}_text`]}</p>
-                    )}
-                  </div>
-
-                  {/* Question metadata */}
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-foreground">Topic</label>
-                      <Input
-                        placeholder="e.g. Gravity"
-                        value={q.topic}
-                        className="h-9 text-xs"
-                        onChange={(e) => handleQuestionFieldChange(qIndex, "topic", e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-foreground">Chapter</label>
-                      <Input
-                        placeholder="e.g. Chapter 2"
-                        value={q.chapter}
-                        className="h-9 text-xs"
-                        onChange={(e) => handleQuestionFieldChange(qIndex, "chapter", e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Options Editor */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-semibold text-foreground">Answer Options *</label>
-                      <Button
-                        onClick={() => addOptionToQuestion(qIndex)}
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 gap-1.5 text-xs text-primary"
-                      >
-                        <Plus size={14} />
-                        Add Option
-                      </Button>
-                    </div>
-
-                    <div className="space-y-2">
-                      {q.options.map((opt, optIndex) => (
-                        <div key={optIndex} className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            className="rounded border-input text-primary focus:ring-primary size-4 cursor-pointer"
-                            checked={opt.is_correct}
-                            onChange={(e) => handleOptionChange(qIndex, optIndex, "is_correct", e.target.checked)}
-                            title="Mark as correct answer"
-                          />
-
-                          <Input
-                            placeholder={`Option ${optIndex + 1}`}
-                            value={opt.option_text}
-                            onChange={(e) => handleOptionChange(qIndex, optIndex, "option_text", e.target.value)}
-                          />
-
-                          {q.options.length > 2 && (
-                            <Button
-                              onClick={() => deleteOptionFromQuestion(qIndex, optIndex)}
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-9 w-9 text-muted-foreground hover:text-rose-600"
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    {errors[`q_${qIndex}_options`] && (
-                      <p className="text-xs font-semibold text-rose-500 mt-1">{errors[`q_${qIndex}_options`]}</p>
-                    )}
-                  </div>
-
-                  {/* Explanation */}
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-foreground">Answer Explanation</label>
-                    <textarea
-                      className="min-h-[40px] w-full rounded-xl border border-input bg-background px-3 py-1.5 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      placeholder="Explain why the correct answers are right (optional)"
-                      value={q.explanation}
-                      onChange={(e) => handleQuestionFieldChange(qIndex, "explanation", e.target.value)}
-                    />
-                  </div>
-                </div>
+                <QuestionCardEditor
+                  key={qIndex}
+                  question={q}
+                  qIndex={qIndex}
+                  errors={errors}
+                  onFieldChange={(field, value) => handleQuestionFieldChange(qIndex, field, value)}
+                  onDelete={() => deleteQuestion(qIndex)}
+                  onAddOption={() => addOptionToQuestion(qIndex)}
+                  onDeleteOption={(optIndex) => deleteOptionFromQuestion(qIndex, optIndex)}
+                  onOptionChange={(optIndex, field, value) => handleOptionChange(qIndex, optIndex, field, value)}
+                />
               ))}
             </div>
 
