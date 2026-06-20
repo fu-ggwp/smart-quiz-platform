@@ -9,6 +9,8 @@ const classesService = {
   remove: (id) => axiosClient.delete(`/api/classes/${id}`).then((r) => r.data),
   listMembers: (id) => axiosClient.get(`/api/classes/${id}/members`).then((r) => r.data.data),
   listJoinRequests: (id) => axiosClient.get(`/api/classes/${id}/join-requests`).then((r) => r.data.data),
+  removeMember: (classId, memberId) =>
+    axiosClient.delete(`/api/classes/${classId}/members/${memberId}`).then((r) => r.data),
 
   // Learner: list joined classes
   listJoined: () => axiosClient.get("/api/classes/joined").then((r) => r.data.data),

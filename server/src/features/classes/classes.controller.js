@@ -7,6 +7,7 @@ import {
   resolveJoinRequest as resolveJoinRequestService,
   joinClass as joinClassService,
   listJoinedClasses as listJoinedClassesService,
+  removeMember as removeMemberService,
 } from "./classes.service.js";
 import { JoinRequestStatus } from "../../models/join-request.model.js";
 
@@ -108,6 +109,19 @@ export async function getJoinRequests(req, res) {
   try {
     const requests = await listJoinRequestsService(req.params.id, req.user.id);
     res.json({ ok: true, data: requests });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+}
+
+/**
+ * DELETE /api/classes/:id/members/:memberId
+ * Teacher removes a learner from their class.
+ */
+export async function removeMember(req, res) {
+  try {
+    const updated = await removeMemberService(req.params.id, req.params.memberId, req.user.id);
+    res.json({ ok: true, data: updated });
   } catch (err) {
     res.status(err.status || 500).json({ ok: false, error: err.message });
   }

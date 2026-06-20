@@ -3,15 +3,34 @@ import { CLASS_TABLE } from "../../models/class.model.js";
 import { CLASS_MEMBER_TABLE, JOIN_REQUEST_TABLE } from "../../models/join-request.model.js";
 
 /**
- * Get all classes created by a teacher, with member count.
+ * Get all classes created by a teacher.
+ * NOTE: member_count is NOT computed here — it must only count "active"
+ * rows, so it's fetched separately via getActiveMemberCounts() and merged
+ * in the service layer.
  */
 export async function getClassesByTeacher(teacherId) {
   const { data, error } = await supabaseAdmin
     .from(CLASS_TABLE)
-    .select(`*, member_count:${CLASS_MEMBER_TABLE}(count)`)
+    .select("*")
     .eq("teacher_id", teacherId)
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
+
+  return { data, error };
+}
+
+/**
+ * Count active members per class, for a given list of class IDs.
+ * Returns one row per active class_members record; caller tallies counts.
+ */
+export async function getActiveMemberCounts(classIds) {
+  if (!classIds || classIds.length === 0) return { data: [], error: null };
+
+  const { data, error } = await supabaseAdmin
+    .from(CLASS_MEMBER_TABLE)
+    .select("class_id")
+    .in("class_id", classIds)
+    .eq("status", "active");
 
   return { data, error };
 }
@@ -175,7 +194,8 @@ export async function findExistingJoinRequest(classId, learnerId) {
 }
 
 /**
- * Get all classes a learner has actively joined, with teacher info and member count.
+ * Get all classes a learner has actively joined, with teacher info.
+ * member_count is merged in separately in the service layer (active-only).
  */
 export async function getJoinedClasses(learnerId) {
   const { data, error } = await supabaseAdmin
@@ -184,8 +204,7 @@ export async function getJoinedClasses(learnerId) {
       joined_at,
       class:classes!class_id(
         *,
-        teacher:users!teacher_id(username, full_name),
-        member_count:class_members(count)
+        teacher:users!teacher_id(username, full_name)
       )
     `)
     .eq("learner_id", learnerId)
@@ -202,6 +221,70 @@ export async function insertJoinRequest(payload) {
   const { data, error } = await supabaseAdmin
     .from(JOIN_REQUEST_TABLE)
     .insert(payload)
+    .select()
+    .single();
+
+  return { data, error };
+}
+
+/**
+ * Get a single class_members row by its ID.
+ */
+export async function getClassMemberById(classMemberId) {
+  const { data, error } = await supabaseAdmin
+    .from(CLASS_MEMBER_TABLE)
+    .select("*")
+    .eq("class_member_id", classMemberId)
+    .single();
+
+  return { data, error };
+}
+
+/**
+ * Soft-remove a member: set status to "removed" and stamp removed_at.
+ */
+export async function removeClassMember(classMemberId) {
+  const { data, error } = await supabaseAdmin
+    .from(CLASS_MEMBER_TABLE)
+    .update({ status: "removed", removed_at: new Date().toISOString() })
+    .eq("class_member_id", classMemberId)
+    .select()
+    .single();
+
+  return { data, error };
+}
+
+/**
+ * Find the most recent class_members row for a (class, learner) pair,
+ * regardless of status. Used to detect a previously-removed membership so
+ * rejoining reactivates that row instead of inserting a duplicate.
+ */
+export async function findMemberByClassAndLearner(classId, learnerId) {
+  const { data, error } = await supabaseAdmin
+    .from(CLASS_MEMBER_TABLE)
+    .select("*")
+    .eq("class_id", classId)
+    .eq("learner_id", learnerId)
+    .order("joined_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return { data, error };
+}
+
+/**
+ * Reactivate a previously-removed membership row: status -> "active",
+ * removed_at -> null, joined_at refreshed to now.
+ */
+export async function reactivateClassMember(classMemberId) {
+  const { data, error } = await supabaseAdmin
+    .from(CLASS_MEMBER_TABLE)
+    .update({
+      status: "active",
+      removed_at: null,
+      joined_at: new Date().toISOString(),
+    })
+    .eq("class_member_id", classMemberId)
     .select()
     .single();
 

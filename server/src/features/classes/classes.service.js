@@ -14,6 +14,11 @@ import {
   findExistingJoinRequest,
   insertJoinRequest,
   getJoinedClasses,
+  getClassMemberById,
+  removeClassMember,
+  getActiveMemberCounts,
+  findMemberByClassAndLearner,
+  reactivateClassMember,
 } from "./classes.dao.js";
 import { ClassJoinPolicy } from "../../models/class.model.js";
 import { JoinRequestStatus, ClassMemberStatus } from "../../models/join-request.model.js";
@@ -36,15 +41,32 @@ function generateInvitationToken() {
 }
 
 /**
+ * Tally active class_members rows per class_id.
+ */
+function tallyByClassId(rows) {
+  const counts = {};
+  for (const row of rows) {
+    counts[row.class_id] = (counts[row.class_id] ?? 0) + 1;
+  }
+  return counts;
+}
+
+/**
  * Return all classes owned by the given teacher.
+ * member_count only counts learners with status = "active".
  */
 export async function listTeacherClasses(teacherId) {
   const { data, error } = await getClassesByTeacher(teacherId);
   if (error) throw new Error(error.message);
 
+  const classIds = data.map((cls) => cls.class_id);
+  const { data: activeRows, error: countError } = await getActiveMemberCounts(classIds);
+  if (countError) throw new Error(countError.message);
+  const counts = tallyByClassId(activeRows);
+
   return data.map((cls) => ({
     ...cls,
-    member_count: cls.member_count?.[0]?.count ?? 0,
+    member_count: counts[cls.class_id] ?? 0,
   }));
 }
 
@@ -163,13 +185,7 @@ export async function resolveJoinRequest(requestId, status, reviewerId) {
   if (updateError) throw new Error(updateError.message);
 
   if (status === JoinRequestStatus.APPROVED) {
-    const { error: memberError } = await insertClassMember({
-      class_id: request.class_id,
-      learner_id: request.learner_id,
-      status: ClassMemberStatus.ACTIVE,
-      joined_at: new Date().toISOString(),
-    });
-    if (memberError) throw new Error(memberError.message);
+    await addOrReactivateMember(request.class_id, request.learner_id);
   }
 
   return updated;
@@ -177,16 +193,76 @@ export async function resolveJoinRequest(requestId, status, reviewerId) {
 
 /**
  * Return all classes a learner has actively joined.
+ * member_count only counts learners with status = "active".
  */
 export async function listJoinedClasses(learnerId) {
   const { data, error } = await getJoinedClasses(learnerId);
   if (error) throw new Error(error.message);
 
+  const classIds = data.map((row) => row.class?.class_id).filter(Boolean);
+  const { data: activeRows, error: countError } = await getActiveMemberCounts(classIds);
+  if (countError) throw new Error(countError.message);
+  const counts = tallyByClassId(activeRows);
+
   return data.map((row) => ({
     ...row.class,
     joined_at: row.joined_at,
-    member_count: row.class?.member_count?.[0]?.count ?? 0,
+    member_count: counts[row.class?.class_id] ?? 0,
   }));
+}
+
+/**
+ * Add a learner to a class, reactivating a previously-removed membership
+ * row if one exists instead of inserting a duplicate row.
+ */
+async function addOrReactivateMember(classId, learnerId) {
+  const { data: existing, error: findError } = await findMemberByClassAndLearner(classId, learnerId);
+  if (findError) throw new Error(findError.message);
+
+  if (existing) {
+    const { data: reactivated, error: reactivateError } = await reactivateClassMember(existing.class_member_id);
+    if (reactivateError) throw new Error(reactivateError.message);
+    return reactivated;
+  }
+
+  const { data: inserted, error: insertError } = await insertClassMember({
+    class_id: classId,
+    learner_id: learnerId,
+    status: ClassMemberStatus.ACTIVE,
+    joined_at: new Date().toISOString(),
+  });
+  if (insertError) throw new Error(insertError.message);
+  return inserted;
+}
+
+/**
+ * Remove a member from a class (ownership-gated).
+ * Soft-deletes the class_members row (status -> "removed").
+ */
+export async function removeMember(classId, memberId, teacherId) {
+  // Ownership check — throws 404/403 if not the owning teacher.
+  await getClassDetail(classId, teacherId);
+
+  const { data: member, error } = await getClassMemberById(memberId);
+  if (error || !member) {
+    const err = new Error("Member not found.");
+    err.status = 404;
+    throw err;
+  }
+  if (member.class_id !== classId) {
+    const err = new Error("Member not found in this class.");
+    err.status = 404;
+    throw err;
+  }
+  if (member.status === ClassMemberStatus.REMOVED) {
+    const err = new Error("Member has already been removed.");
+    err.status = 409;
+    throw err;
+  }
+
+  const { data: updated, error: updateError } = await removeClassMember(memberId);
+  if (updateError) throw new Error(updateError.message);
+  return updated;
 }
 
 /**
@@ -233,16 +309,10 @@ export async function joinClass(learnerId, { classCode, invitationToken }) {
     throw err;
   }
 
-  // 4. Auto approve → straight into class_members
+  // 4. Auto approve → straight into class_members (reactivate if previously removed)
   if (cls.join_policy === ClassJoinPolicy.AUTO_APPROVE) {
-    const { data, error } = await insertClassMember({
-      class_id: cls.class_id,
-      learner_id: learnerId,
-      status: ClassMemberStatus.ACTIVE,
-      joined_at: new Date().toISOString(),
-    });
-    if (error) throw new Error(error.message);
-    return { joined: true, class: cls, member: data };
+    const member = await addOrReactivateMember(cls.class_id, learnerId);
+    return { joined: true, class: cls, member };
   }
 
   // 5. Teacher approval → create join request

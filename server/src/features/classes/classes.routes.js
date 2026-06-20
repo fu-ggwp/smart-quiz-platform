@@ -8,6 +8,7 @@ import {
   resolveJoinRequest,
   joinClass,
   getJoinedClasses,
+  removeMember,
 } from "./classes.controller.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 
@@ -29,6 +30,7 @@ classesRouter.patch("/join-requests/:requestId", requireAuth, resolveJoinRequest
 // Class detail routes
 classesRouter.get("/:id", requireAuth, getClassDetail);
 classesRouter.get("/:id/members", requireAuth, getClassMembers);
+classesRouter.delete("/:id/members/:memberId", requireAuth, removeMember);
 classesRouter.get("/:id/join-requests", requireAuth, getJoinRequests);
 
 export default classesRouter;

@@ -11,6 +11,9 @@ export default function ClassMembersPage() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [removing, setRemoving] = useState(null); // class_member_id currently being removed
+  const [confirmTarget, setConfirmTarget] = useState(null); // member pending removal confirmation
+  const [removeError, setRemoveError] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -26,6 +29,28 @@ export default function ClassMembersPage() {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  function handleRemove(member) {
+    setRemoveError("");
+    setConfirmTarget(member);
+  }
+
+  async function confirmRemove() {
+    const member = confirmTarget;
+    if (!member) return;
+
+    setRemoving(member.class_member_id);
+    setRemoveError("");
+    try {
+      await classesService.removeMember(id, member.class_member_id);
+      setMembers((prev) => prev.filter((m) => m.class_member_id !== member.class_member_id));
+      setConfirmTarget(null);
+    } catch (err) {
+      setRemoveError(err?.response?.data?.error || err.message || "Failed to remove member.");
+    } finally {
+      setRemoving(null);
+    }
+  }
 
   return (
     <main className="min-h-screen px-6 py-10">
@@ -52,10 +77,11 @@ export default function ClassMembersPage() {
         {!loading && !error && members.length > 0 && (
           <div className="rounded-xl border border-neutral-200">
             {/* Table header */}
-            <div className="grid grid-cols-[1fr_1fr_auto] gap-4 border-b border-neutral-100 px-5 py-3">
+            <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-4 border-b border-neutral-100 px-5 py-3">
               <span className="text-xs font-medium text-neutral-400">Name</span>
               <span className="text-xs font-medium text-neutral-400">Email</span>
               <span className="text-xs font-medium text-neutral-400">Joined</span>
+              <span className="text-xs font-medium text-neutral-400"></span>
             </div>
 
             {/* Rows */}
@@ -63,7 +89,7 @@ export default function ClassMembersPage() {
               {members.map((m) => (
                 <li
                   key={m.class_member_id}
-                  className="grid grid-cols-[1fr_1fr_auto] items-center gap-4 px-5 py-3"
+                  className="grid grid-cols-[1fr_1fr_auto_auto] items-center gap-4 px-5 py-3"
                 >
                   {/* Avatar + name */}
                   <div className="flex items-center gap-3">
@@ -84,6 +110,15 @@ export default function ClassMembersPage() {
                   <span className="text-xs text-neutral-400 whitespace-nowrap">
                     {m.joined_at ? new Date(m.joined_at).toLocaleDateString() : "—"}
                   </span>
+
+                  {/* Remove */}
+                  <button
+                    onClick={() => handleRemove(m)}
+                    disabled={removing === m.class_member_id}
+                    className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  >
+                    {removing === m.class_member_id ? "Removing..." : "Remove"}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -96,6 +131,45 @@ export default function ClassMembersPage() {
         )}
 
       </div>
+
+      {/* Remove confirmation modal */}
+      {confirmTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-lg">
+            <h3 className="text-base font-semibold text-neutral-800">
+              Remove member
+            </h3>
+            <p className="mt-2 text-sm text-neutral-500">
+              Remove{" "}
+              <span className="font-medium text-neutral-800">
+                {confirmTarget.user?.full_name || confirmTarget.user?.username || "this learner"}
+              </span>{" "}
+              from this class? They will need to join again to regain access.
+            </p>
+
+            {removeError && (
+              <p className="mt-3 text-sm text-red-500">{removeError}</p>
+            )}
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => { setConfirmTarget(null); setRemoveError(""); }}
+                disabled={removing === confirmTarget.class_member_id}
+                className="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRemove}
+                disabled={removing === confirmTarget.class_member_id}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {removing === confirmTarget.class_member_id ? "Removing..." : "Remove"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
