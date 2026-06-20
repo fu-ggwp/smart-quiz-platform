@@ -19,7 +19,7 @@ export const listAvailable = async (req, res) => {
 
 export const listPublic = async (req, res) => {
   try {
-    return ok(res, await service.listAvailable());
+    return ok(res, await service.listPublic(req.query));
   } catch (err) {
     return fail(res, err, err.status || 500);
   }

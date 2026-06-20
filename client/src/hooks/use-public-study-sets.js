@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 
 import { studySetsService } from "@/services/study-sets.service";
 
+function getItems(payload) {
+  if (Array.isArray(payload)) return payload;
+  return payload?.items ?? [];
+}
+
 export function usePublicStudySets() {
   const [studySets, setStudySets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +25,7 @@ export function usePublicStudySets() {
         const { data } = await studySetsService.listPublic();
 
         if (active) {
-          setStudySets(data ?? []);
+          setStudySets(getItems(data));
           setError(null);
         }
       } catch (err) {

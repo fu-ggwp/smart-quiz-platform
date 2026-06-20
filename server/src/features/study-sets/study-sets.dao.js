@@ -81,6 +81,37 @@ export async function findByTeacher(teacherId, filters = {}) {
 }
 
 // Tìm kiếm học phần public hoặc được assign cho lớp học cụ thể
+function sanitizeSearchKeyword(value) {
+  return String(value || "")
+    .trim()
+    .replace(/[%,()]/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+export async function findPublicStudySets(filters = {}) {
+  const { page, limit, from, to } = getPagination(filters, { defaultLimit: 10 });
+  const keyword = sanitizeSearchKeyword(filters.keyword);
+
+  let query = supabase
+    .from(STUDY_SET_TABLE)
+    .select("study_set_id, title, description, subject, topic, tags, question_count, created_at, updated_at", { count: "exact" })
+    .eq("visibility", "public")
+    .is("deleted_at", null)
+    .eq("is_admin_hidden", false);
+
+  if (keyword) {
+    query = query.or(
+      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,subject.ilike.%${keyword}%,topic.ilike.%${keyword}%`,
+    );
+  }
+
+  const { data, error, count } = await query
+    .order("updated_at", { ascending: false })
+    .range(from, to);
+
+  return { data, error, count, page, limit };
+}
+
 export async function findPublic({ classId } = {}) {
   if (!classId) {
     return supabase.from(STUDY_SET_TABLE).select("*").eq("visibility", "public");
