@@ -7,6 +7,7 @@ import {
   getQuestionBank,
   listQuestionBankQuestions,
   listQuestionBanks,
+  generateQuestionsFromMaterial,
   updateQuestion as updateQuestionRecord,
   updateQuestionBank,
 } from "./question-banks.service.js";
@@ -89,6 +90,39 @@ function validateCreatePayload(body = {}) {
     status: status || "Private",
     updated_at: new Date().toISOString(),
     ...(questions !== undefined ? { questions } : {}),
+  };
+}
+
+const supportedMaterialTypes = new Set([
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]);
+
+function validateGenerateMaterialPayload(body = {}, file) {
+  const errors = {};
+  const questionCount = Number(body.questionCount);
+
+  if (!file) {
+    errors.material = "Please upload a PDF or DOCX learning material file.";
+  } else if (!supportedMaterialTypes.has(file.mimetype)) {
+    errors.material = "Only PDF or DOCX files are supported.";
+  }
+
+  if (!Number.isInteger(questionCount) || questionCount < 1 || questionCount > 30) {
+    errors.questionCount = "Question count must be a number from 1 to 30.";
+  }
+
+  if (Object.keys(errors).length > 0) {
+    throw requestError(
+      errors.material || errors.questionCount || "The information is invalid. Please check and try again.",
+      errors,
+    );
+  }
+
+  return {
+    file,
+    questionCount,
+    focus: normalizeNullableText(body.focus) || "",
   };
 }
 
@@ -271,6 +305,16 @@ export async function create(req, res) {
     const payload = validateCreatePayload(req.body);
     const data = await createQuestionBank(getUserId(req), payload);
     return res.status(201).json({ message: savedMessage, data });
+  } catch (error) {
+    return sendError(res, error);
+  }
+}
+
+export async function generateFromMaterial(req, res) {
+  try {
+    const payload = validateGenerateMaterialPayload(req.body, req.file);
+    const data = await generateQuestionsFromMaterial(getUserId(req), payload);
+    return res.status(200).json({ data });
   } catch (error) {
     return sendError(res, error);
   }

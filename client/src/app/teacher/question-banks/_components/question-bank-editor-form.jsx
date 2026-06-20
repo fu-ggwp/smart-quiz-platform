@@ -1,8 +1,9 @@
 "use client";
 
-import { ArrowLeft, FileSpreadsheet, Loader2, Plus, Save } from "lucide-react";
+import { ArrowLeft, FileSpreadsheet, Loader2, Plus, Save, Sparkles } from "lucide-react";
 
 import ExcelImporter from "@/components/question-creator/ExcelImporter";
+import MaterialQuestionGenerator from "@/components/question-creator/MaterialQuestionGenerator";
 import QuestionCardEditor from "@/components/question-creator/QuestionCardEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ export function QuestionBankEditorForm({
   onCancel,
   onDeleteOption,
   onDeleteQuestion,
+  onGenerateMaterial,
   onImportExcel,
   onMetadataChange,
   onOptionChange,
@@ -123,10 +125,12 @@ export function QuestionBankEditorForm({
                     Import from Excel
                   </Button>
                 )}
-                <Button onClick={onAddQuestion} type="button" variant="outline" className="gap-2">
-                  <Plus className="size-4" />
-                  Add Question Card
-                </Button>
+                {onGenerateMaterial && (
+                  <Button onClick={onGenerateMaterial} type="button" variant="outline" className="gap-2">
+                    <Sparkles className="size-4" />
+                    Generate from Material
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -180,6 +184,20 @@ export function QuestionBankExcelImportModal({ onCancel, onQuestionsImported }) 
         <ExcelImporter
           onCancel={onCancel}
           onQuestionsImported={onQuestionsImported}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function QuestionBankMaterialGenerateModal({ generateQuestions, onCancel, onQuestionsGenerated }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+      <div className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-border bg-card shadow-2xl">
+        <MaterialQuestionGenerator
+          generateQuestions={generateQuestions}
+          onCancel={onCancel}
+          onQuestionsGenerated={onQuestionsGenerated}
         />
       </div>
     </div>

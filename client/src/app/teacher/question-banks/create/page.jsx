@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 
 import { questionBanksService } from "@/services/question-banks.service";
 
-import { QuestionBankEditorForm, QuestionBankExcelImportModal } from "../_components/question-bank-editor-form";
+import {
+  QuestionBankEditorForm,
+  QuestionBankExcelImportModal,
+  QuestionBankMaterialGenerateModal,
+} from "../_components/question-bank-editor-form";
 import {
   buildQuestionBankPayload,
   emptyQuestion,
@@ -19,6 +23,7 @@ export default function CreateQuestionBankPage() {
   const editor = useQuestionBankEditorState({ initialQuestions: [emptyQuestion()] });
   const [submitting, setSubmitting] = useState(false);
   const [showExcelImporter, setShowExcelImporter] = useState(false);
+  const [showMaterialGenerator, setShowMaterialGenerator] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -52,6 +57,11 @@ export default function CreateQuestionBankPage() {
     setShowExcelImporter(false);
   }
 
+  function handleMaterialQuestionsGenerated(generatedQuestions) {
+    editor.appendImportedQuestions(generatedQuestions);
+    setShowMaterialGenerator(false);
+  }
+
   return (
     <>
       <QuestionBankEditorForm
@@ -63,6 +73,7 @@ export default function CreateQuestionBankPage() {
         onCancel={() => router.push("/teacher/question-banks")}
         onDeleteOption={editor.deleteOption}
         onDeleteQuestion={editor.deleteQuestion}
+        onGenerateMaterial={() => setShowMaterialGenerator(true)}
         onImportExcel={() => setShowExcelImporter(true)}
         onMetadataChange={editor.handleMetadataChange}
         onOptionChange={editor.updateOption}
@@ -76,6 +87,14 @@ export default function CreateQuestionBankPage() {
         <QuestionBankExcelImportModal
           onCancel={() => setShowExcelImporter(false)}
           onQuestionsImported={handleExcelQuestionsImported}
+        />
+      )}
+
+      {showMaterialGenerator && (
+        <QuestionBankMaterialGenerateModal
+          generateQuestions={questionBanksService.generateFromMaterial}
+          onCancel={() => setShowMaterialGenerator(false)}
+          onQuestionsGenerated={handleMaterialQuestionsGenerated}
         />
       )}
     </>

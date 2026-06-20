@@ -1,7 +1,9 @@
 import { Router } from "express";
+import multer from "multer";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 import {
   create,
+  generateFromMaterial,
   getById,
   getQuestionById,
   listAssigned,
@@ -14,9 +16,34 @@ import {
 } from "./question-banks.controller.js";
 
 const questionBanksRouter = Router();
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 },
+});
+
+function uploadMaterial(req, res, next) {
+  upload.single("material")(req, res, (error) => {
+    if (!error) {
+      next();
+      return;
+    }
+
+    const message = error.code === "LIMIT_FILE_SIZE"
+      ? "Material file must be 15MB or smaller."
+      : "Material file could not be uploaded.";
+
+    res.status(400).json({ message });
+  });
+}
 
 questionBanksRouter.get("/", requireAuth, list);
 questionBanksRouter.post("/", requireAuth, create);
+questionBanksRouter.post(
+  "/generate-from-material",
+  requireAuth,
+  uploadMaterial,
+  generateFromMaterial,
+);
 questionBanksRouter.get("/assigned", requireAuth, listAssigned);
 questionBanksRouter.get("/assigned/:id/questions", requireAuth, listAssignedQuestions);
 questionBanksRouter.get("/questions/:questionId", requireAuth, getQuestionById);

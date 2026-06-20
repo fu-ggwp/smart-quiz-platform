@@ -7,7 +7,11 @@ import { AlertCircle, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { questionBanksService } from "@/services/question-banks.service";
 
-import { QuestionBankEditorForm, QuestionBankExcelImportModal } from "../../_components/question-bank-editor-form";
+import {
+  QuestionBankEditorForm,
+  QuestionBankExcelImportModal,
+  QuestionBankMaterialGenerateModal,
+} from "../../_components/question-bank-editor-form";
 import { QuestionBanksStatePanel } from "../../_components/question-banks-state-panel";
 import {
   buildQuestionBankPayload,
@@ -35,6 +39,7 @@ export default function EditQuestionBankPage() {
   const [submitting, setSubmitting] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [showExcelImporter, setShowExcelImporter] = useState(false);
+  const [showMaterialGenerator, setShowMaterialGenerator] = useState(false);
 
   const loadQuestionBank = useCallback(async () => {
     if (!questionBankId) return;
@@ -111,6 +116,11 @@ export default function EditQuestionBankPage() {
     setShowExcelImporter(false);
   }
 
+  function handleMaterialQuestionsGenerated(generatedQuestions) {
+    editor.appendImportedQuestions(generatedQuestions);
+    setShowMaterialGenerator(false);
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
@@ -153,6 +163,7 @@ export default function EditQuestionBankPage() {
         onCancel={() => router.push(detailHref)}
         onDeleteOption={editor.deleteOption}
         onDeleteQuestion={editor.deleteQuestion}
+        onGenerateMaterial={() => setShowMaterialGenerator(true)}
         onImportExcel={() => setShowExcelImporter(true)}
         onMetadataChange={editor.handleMetadataChange}
         onOptionChange={editor.updateOption}
@@ -166,6 +177,14 @@ export default function EditQuestionBankPage() {
         <QuestionBankExcelImportModal
           onCancel={() => setShowExcelImporter(false)}
           onQuestionsImported={handleExcelQuestionsImported}
+        />
+      )}
+
+      {showMaterialGenerator && (
+        <QuestionBankMaterialGenerateModal
+          generateQuestions={questionBanksService.generateFromMaterial}
+          onCancel={() => setShowMaterialGenerator(false)}
+          onQuestionsGenerated={handleMaterialQuestionsGenerated}
         />
       )}
     </>

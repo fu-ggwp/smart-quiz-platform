@@ -1,3 +1,5 @@
+import { GoogleGenAI } from "@google/genai";
+import { env } from "../../config/env.js";
 import supabase, { supabaseAdmin } from "../../config/supabase.js";
 import { createUserModel } from "../../models/user.model.js";
 import * as questionBanksDao from "./question-banks.dao.js";
@@ -6,6 +8,42 @@ const db = supabaseAdmin || supabase;
 const userModel = createUserModel(db);
 
 const allowedStatus = new Set(["Private", "Assigned"]);
+const premiumRequiredMessage = "This feature is available for Premium accounts only. Please upgrade to continue.";
+const aiUnavailableMessage = "AI processing is currently unavailable. Please try again later.";
+
+const generatedQuestionsSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    questions: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          question_text: { type: "string" },
+          explanation: { type: "string" },
+          topic: { type: "string" },
+          chapter: { type: "string" },
+          options: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                option_text: { type: "string" },
+                is_correct: { type: "boolean" },
+              },
+              required: ["option_text", "is_correct"],
+            },
+          },
+        },
+        required: ["question_text", "explanation", "topic", "chapter", "options"],
+      },
+    },
+  },
+  required: ["questions"],
+};
 
 function serviceError(message, statusCode = 400, fields) {
   const error = new Error(message);
@@ -44,6 +82,12 @@ async function requireActiveTeacher(userId) {
   }
 
   return profile;
+}
+
+function requirePremiumTeacher(profile) {
+  if (!profile?.is_premium) {
+    throw serviceError(premiumRequiredMessage, 403);
+  }
 }
 
 function normalizeText(value) {
@@ -186,6 +230,104 @@ function handleLoadError(error) {
       "Failed to load data. Please check your connection and try again.",
       500,
     );
+  }
+}
+
+function parseGeminiJson(text = "") {
+  const trimmed = String(text || "").trim();
+  const withoutFence = trimmed
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```$/i, "")
+    .trim();
+
+  return JSON.parse(withoutFence);
+}
+
+function normalizeGeneratedOption(option = {}) {
+  return {
+    option_text: normalizeText(option.option_text) || "",
+    is_correct: Boolean(option.is_correct),
+  };
+}
+
+function normalizeGeneratedQuestion(question = {}) {
+  const options = Array.isArray(question.options)
+    ? question.options.map(normalizeGeneratedOption).filter((option) => option.option_text)
+    : [];
+
+  return {
+    question_text: normalizeText(question.question_text) || "",
+    explanation: normalizeText(question.explanation) || "",
+    subject: "",
+    topic: normalizeText(question.topic) || "",
+    chapter: normalizeText(question.chapter) || "",
+    options,
+  };
+}
+
+function normalizeGeneratedQuestions(responseBody, requestedCount) {
+  const questions = Array.isArray(responseBody?.questions) ? responseBody.questions : [];
+
+  return questions
+    .map(normalizeGeneratedQuestion)
+    .filter((question) => (
+      question.question_text &&
+      question.options.length >= 2 &&
+      question.options.some((option) => option.is_correct)
+    ))
+    .slice(0, requestedCount);
+}
+
+function buildGenerationPrompt({ questionCount, focus }) {
+  return [
+    "Generate multiple-choice questions from the attached learning material.",
+    `Create exactly ${questionCount} questions when the material supports it.`,
+    focus ? `Focus on this teacher request: ${focus}` : "Use the most important concepts from the material.",
+    "Each question must have at least two answer options and at least one correct answer.",
+    "Return JSON only. Do not include markdown or explanations outside JSON.",
+  ].join("\n");
+}
+
+export async function generateQuestionsFromMaterial(userId, { file, questionCount, focus }) {
+  const profile = await requireActiveTeacher(userId);
+  requirePremiumTeacher(profile);
+
+  if (!env.geminiApiKey) {
+    throw serviceError(aiUnavailableMessage, 503);
+  }
+
+  try {
+    const ai = new GoogleGenAI({ apiKey: env.geminiApiKey });
+    const response = await ai.models.generateContent({
+      model: env.geminiModel,
+      contents: [
+        {
+          inlineData: {
+            mimeType: file.mimetype,
+            data: file.buffer.toString("base64"),
+          },
+        },
+        { text: buildGenerationPrompt({ questionCount, focus }) },
+      ],
+      config: {
+        responseMimeType: "application/json",
+        responseJsonSchema: generatedQuestionsSchema,
+        temperature: 0.3,
+      },
+    });
+
+    const parsed = parseGeminiJson(response.text);
+    const questions = normalizeGeneratedQuestions(parsed, questionCount);
+
+    if (!questions.length) {
+      throw serviceError(aiUnavailableMessage, 502);
+    }
+
+    return { questions };
+  } catch (error) {
+    if (error.statusCode || error.status) throw error;
+    throw serviceError(aiUnavailableMessage, 502);
   }
 }
 

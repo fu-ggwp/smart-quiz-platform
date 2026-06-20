@@ -18,4 +18,5 @@ export const env = {
   paymentProvider: process.env.PAYMENT_PROVIDER || "stripe",
   paymentRedirectBaseUrl: process.env.PAYMENT_REDIRECT_BASE_URL || "",
   geminiApiKey: process.env.GEMINI_API_KEY,
+  geminiModel: process.env.GEMINI_MODEL || "gemini-2.5-flash",
 };

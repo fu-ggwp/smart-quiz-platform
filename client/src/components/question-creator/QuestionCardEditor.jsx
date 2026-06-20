@@ -9,6 +9,7 @@ export default function QuestionCardEditor({
   question,
   qIndex,
   errors = {},
+  readOnly = false,
   onFieldChange,
   onDelete,
   onAddOption,
@@ -32,15 +33,17 @@ export default function QuestionCardEditor({
             </span>
           )}
         </div>
-        <Button
-          onClick={onDelete}
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-        >
-          <Trash2 className="size-4" />
-        </Button>
+        {!readOnly && (
+          <Button
+            onClick={onDelete}
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        )}
       </div>
 
       {/* Question text */}
@@ -51,6 +54,7 @@ export default function QuestionCardEditor({
           className="min-h-[60px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
           placeholder="Enter the question text"
           value={question.question_text}
+          disabled={readOnly}
           onChange={(e) => onFieldChange("question_text", e.target.value)}
         />
         {errors[`q_${qIndex}_text`] && (
@@ -66,6 +70,7 @@ export default function QuestionCardEditor({
             placeholder="e.g. Gravity"
             value={question.topic || ""}
             className="h-9 text-xs"
+            disabled={readOnly}
             onChange={(e) => onFieldChange("topic", e.target.value)}
           />
         </div>
@@ -76,6 +81,7 @@ export default function QuestionCardEditor({
             placeholder="e.g. Chapter 2"
             value={question.chapter || ""}
             className="h-9 text-xs"
+            disabled={readOnly}
             onChange={(e) => onFieldChange("chapter", e.target.value)}
           />
         </div>
@@ -85,16 +91,18 @@ export default function QuestionCardEditor({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-sm font-semibold text-foreground">Answer Options *</label>
-          <Button
-            onClick={onAddOption}
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1.5 text-xs text-primary"
-          >
-            <Plus size={14} />
-            Add Option
-          </Button>
+          {!readOnly && (
+            <Button
+              onClick={onAddOption}
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1.5 text-xs text-primary"
+            >
+              <Plus size={14} />
+              Add Option
+            </Button>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -104,6 +112,7 @@ export default function QuestionCardEditor({
                 type="checkbox"
                 className="rounded border-input text-primary focus:ring-primary size-4 cursor-pointer"
                 checked={opt.is_correct}
+                disabled={readOnly}
                 onChange={(e) => onOptionChange(optIndex, "is_correct", e.target.checked)}
                 title="Mark as correct answer"
               />
@@ -111,10 +120,11 @@ export default function QuestionCardEditor({
               <Input
                 placeholder={`Option ${optIndex + 1}`}
                 value={opt.option_text}
+                disabled={readOnly}
                 onChange={(e) => onOptionChange(optIndex, "option_text", e.target.value)}
               />
 
-              {options.length > 2 && (
+              {!readOnly && options.length > 2 && (
                 <Button
                   onClick={() => onDeleteOption(optIndex)}
                   type="button"
@@ -140,6 +150,7 @@ export default function QuestionCardEditor({
           className="min-h-[40px] w-full rounded-xl border border-input bg-background px-3 py-1.5 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
           placeholder="Explain why the correct answers are right (optional)"
           value={question.explanation || ""}
+          disabled={readOnly}
           onChange={(e) => onFieldChange("explanation", e.target.value)}
         />
       </div>
