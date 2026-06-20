@@ -5,78 +5,98 @@ import { useRouter } from "next/navigation";
 
 import { questionBanksService } from "@/services/question-banks.service";
 
-import { QuestionBankForm } from "../_components/question-bank-form";
-
-const initialForm = {
-  title: "",
-  description: "",
-  topic: "",
-  status: "Private",
-};
-
-function buildPayload(form) {
-  return {
-    title: form.title.trim(),
-    description: form.description.trim() || null,
-    topic: form.topic.trim() || null,
-    status: form.status,
-  };
-}
+import {
+  QuestionBankEditorForm,
+  QuestionBankExcelImportModal,
+  QuestionBankMaterialGenerateModal,
+} from "../_components/question-bank-editor-form";
+import {
+  buildQuestionBankPayload,
+  emptyQuestion,
+  mapQuestionBankServerErrors,
+  validateQuestionBankEditor,
+} from "../_lib/question-bank-editor";
+import { useQuestionBankEditorState } from "../_lib/use-question-bank-editor-state";
 
 export default function CreateQuestionBankPage() {
   const router = useRouter();
-  const [form, setForm] = useState(initialForm);
+  const editor = useQuestionBankEditorState({ initialQuestions: [emptyQuestion()] });
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState({});
-
-  function handleChange(event) {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
-    setFieldErrors((current) => ({ ...current, [name]: undefined }));
-  }
+  const [showExcelImporter, setShowExcelImporter] = useState(false);
+  const [showMaterialGenerator, setShowMaterialGenerator] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError("");
-    setFieldErrors({});
 
-    if (!form.title.trim()) {
-      setError("Please complete all required information.");
-      setFieldErrors({ title: "Please complete all required information." });
-      return;
-    }
+    const nextErrors = validateQuestionBankEditor(editor.form, editor.questions);
+    editor.setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
     setSubmitting(true);
     try {
-      const response = await questionBanksService.create(buildPayload(form));
+      const response = await questionBanksService.create(
+        buildQuestionBankPayload(editor.form, editor.questions),
+      );
       const questionBankId = response?.data?.question_bank_id;
-
-      if (questionBankId) {
-        router.push(`/teacher/question-banks/${questionBankId}`);
-        return;
-      }
-
-      router.push("/teacher/question-banks");
+      router.push(questionBankId ? `/teacher/question-banks/${questionBankId}` : "/teacher/question-banks");
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Question bank could not be created.");
-      setFieldErrors(err.response?.data?.fields || {});
+      const fieldErrors = mapQuestionBankServerErrors(err.response?.data?.fields || {});
+      editor.setErrors({
+        ...fieldErrors,
+        submit: Object.keys(fieldErrors).length
+          ? "Please review the highlighted fields."
+          : err.response?.data?.message || err.message || "Question bank could not be created.",
+      });
     } finally {
       setSubmitting(false);
     }
   }
 
+  function handleExcelQuestionsImported(importedQuestions) {
+    editor.appendImportedQuestions(importedQuestions);
+    setShowExcelImporter(false);
+  }
+
+  function handleMaterialQuestionsGenerated(generatedQuestions) {
+    editor.appendImportedQuestions(generatedQuestions);
+    setShowMaterialGenerator(false);
+  }
+
   return (
-    <QuestionBankForm
-      description="Create a reusable repository for questions before importing or generating items."
-      error={error}
-      fieldErrors={fieldErrors}
-      form={form}
-      onChange={handleChange}
-      onSubmit={handleSubmit}
-      submitLabel="Create Question Bank"
-      submitting={submitting}
-      title="Create Question Bank"
-    />
+    <>
+      <QuestionBankEditorForm
+        errors={editor.errors}
+        form={editor.form}
+        mode="create"
+        onAddOption={editor.addOption}
+        onAddQuestion={editor.addQuestion}
+        onCancel={() => router.push("/teacher/question-banks")}
+        onDeleteOption={editor.deleteOption}
+        onDeleteQuestion={editor.deleteQuestion}
+        onGenerateMaterial={() => setShowMaterialGenerator(true)}
+        onImportExcel={() => setShowExcelImporter(true)}
+        onMetadataChange={editor.handleMetadataChange}
+        onOptionChange={editor.updateOption}
+        onQuestionFieldChange={editor.updateQuestionField}
+        onSubmit={handleSubmit}
+        questions={editor.questions}
+        submitting={submitting}
+      />
+
+      {showExcelImporter && (
+        <QuestionBankExcelImportModal
+          onCancel={() => setShowExcelImporter(false)}
+          onQuestionsImported={handleExcelQuestionsImported}
+        />
+      )}
+
+      {showMaterialGenerator && (
+        <QuestionBankMaterialGenerateModal
+          generateQuestions={questionBanksService.generateFromMaterial}
+          onCancel={() => setShowMaterialGenerator(false)}
+          onQuestionsGenerated={handleMaterialQuestionsGenerated}
+        />
+      )}
+    </>
   );
 }

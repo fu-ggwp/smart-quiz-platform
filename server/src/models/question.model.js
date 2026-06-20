@@ -1,14 +1,9 @@
 // Mirrors the `questions` table. A question can belong to a question bank
 // AND/OR a study set (both FKs nullable), and can be cloned from another
 // question via the self-referencing `source_question_id`.
-// (The earlier scaffold used `content`/`type`; real columns are
-// `question_text`/`question_type`.)
+// (The earlier scaffold used `content`/`type`; the real prompt column is
+// `question_text`.)
 export const QUESTION_TABLE = "questions";
-
-export const QuestionType = Object.freeze({
-  MULTIPLE_CHOICE: "multiple_choice",
-  TRUE_FALSE: "true_false",
-});
 
 /**
  * @typedef {Object} Question
@@ -18,8 +13,6 @@ export const QuestionType = Object.freeze({
  * @property {string} [source_question_id]  - FK -> questions.question_id (self, nullable)
  * @property {string} owner_id              - FK -> users.user_id
  * @property {string} question_text
- * @property {"multiple_choice"|"true_false"} question_type
- * @property {number} score
  * @property {string} [explanation]
  * @property {string} [topic]
  * @property {string} [chapter]

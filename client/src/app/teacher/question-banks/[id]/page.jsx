@@ -16,15 +16,6 @@ function normalizeParamId(value) {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function formatQuestionType(value) {
-  return String(value || "multiple_choice").replaceAll("_", " ");
-}
-
-function formatScore(value) {
-  const score = Number(value ?? 1);
-  return Number.isInteger(score) ? score : score.toFixed(1);
-}
-
 function sortOptions(options = []) {
   return [...options].sort((left, right) => left.display_order - right.display_order);
 }
@@ -153,7 +144,7 @@ export default function QuestionBankDetailPage() {
           <Button asChild size="sm">
             <Link href={`/teacher/question-banks/${questionBank.question_bank_id}/edit`}>
               <Edit3 className="size-4" />
-              Edit Metadata
+              Edit Question Bank
             </Link>
           </Button>
         </header>
@@ -180,7 +171,7 @@ export default function QuestionBankDetailPage() {
           <QuestionBanksStatePanel
             icon={<BookOpen className="size-5" />}
             title="No questions yet"
-            description="This question bank does not contain active questions. Add and import flows will be handled in a later step."
+            description="Open edit mode to add reusable questions to this bank."
           />
         ) : (
           <div className="space-y-4">
@@ -222,13 +213,6 @@ function QuestionCard({ index, isRevealed, onToggleReveal, question }) {
           </span>
 
           <p className="break-words text-base font-semibold leading-7 text-foreground">{question.question_text}</p>
-
-          <div className="flex flex-wrap gap-2">
-            <QuestionMetaBadge>{formatQuestionType(question.question_type)}</QuestionMetaBadge>
-            <QuestionMetaBadge>
-              {formatScore(question.score)} point{Number(question.score ?? 1) === 1 ? "" : "s"}
-            </QuestionMetaBadge>
-          </div>
         </div>
 
         <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
@@ -250,12 +234,6 @@ function QuestionCard({ index, isRevealed, onToggleReveal, question }) {
               variant="ghost"
             >
               {isRevealed ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-            </Button>
-            <Button asChild size="sm" title="Edit question" variant="outline">
-              <Link href={`/teacher/question-banks/${question.question_bank_id}/questions/${question.question_id}/edit`}>
-                <Edit3 className="size-4" />
-                Edit Question
-              </Link>
             </Button>
           </div>
         </div>
@@ -281,10 +259,6 @@ function QuestionCard({ index, isRevealed, onToggleReveal, question }) {
       </div>
     </article>
   );
-}
-
-function QuestionMetaBadge({ children }) {
-  return <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-bold capitalize text-muted-foreground">{children}</span>;
 }
 
 function AnswerOption({ isRevealed, option, optionIndex }) {

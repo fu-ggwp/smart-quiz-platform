@@ -105,7 +105,6 @@ export async function create(
       study_set_id: studySet.study_set_id,
       owner_id: teacherId,
       question_text: q.question_text,
-      score: q.score ?? 1,
       explanation: q.explanation || null,
       subject: q.subject || studySet.subject || null,
       topic: q.topic || studySet.topic || null,

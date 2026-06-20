@@ -181,9 +181,7 @@ function validQuestion(question) {
   const options = question.answer_options ?? [];
   const correctCount = options.filter((option) => option.is_correct).length;
 
-  if (question.question_type === "multiple_choice") return options.length >= 2 && correctCount >= 1;
-  if (question.question_type === "true_false") return options.length === 2 && correctCount === 1;
-  return false;
+  return options.length >= 2 && correctCount >= 1;
 }
 
 function shuffle(items) {
@@ -202,8 +200,8 @@ function toExamQuestionRows(examSessionId, questions, randomizeAnswers) {
       exam_session_id: examSessionId,
       source_question_id: question.question_id,
       question_text: question.question_text,
-      question_type: question.question_type,
-      score: question.score,
+      question_type: "multiple_choice",
+      score: 1,
       explanation: question.explanation || null,
       subject: question.subject || null,
       topic: question.topic || null,

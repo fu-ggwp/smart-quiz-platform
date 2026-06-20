@@ -7,42 +7,39 @@ import { AlertCircle, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { questionBanksService } from "@/services/question-banks.service";
 
-import { QuestionBankForm } from "../../_components/question-bank-form";
+import {
+  QuestionBankEditorForm,
+  QuestionBankExcelImportModal,
+  QuestionBankMaterialGenerateModal,
+} from "../../_components/question-bank-editor-form";
 import { QuestionBanksStatePanel } from "../../_components/question-banks-state-panel";
+import {
+  buildQuestionBankPayload,
+  mapQuestionBankServerErrors,
+  toQuestionBankForm,
+  toQuestionDraft,
+  validateQuestionBankEditor,
+} from "../../_lib/question-bank-editor";
+import { useQuestionBankEditorState } from "../../_lib/use-question-bank-editor-state";
 
-function toFormValues(questionBank) {
-  return {
-    title: questionBank?.title || "",
-    description: questionBank?.description || "",
-    topic: questionBank?.topic || "",
-    status: questionBank?.status === "Assigned" ? "Assigned" : "Private",
-  };
-}
-
-function buildPayload(form) {
-  return {
-    title: form.title.trim(),
-    description: form.description.trim() || null,
-    topic: form.topic.trim() || null,
-    status: form.status,
-  };
+function normalizeParamId(value) {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 export default function EditQuestionBankPage() {
   const router = useRouter();
   const params = useParams();
-  const questionBankId = useMemo(() => {
-    const id = params?.id;
-    return Array.isArray(id) ? id[0] : id;
-  }, [params]);
+  const questionBankId = useMemo(() => normalizeParamId(params?.id), [params]);
+  const detailHref = `/teacher/question-banks/${questionBankId}`;
+  const editor = useQuestionBankEditorState();
+  const { setErrors, setForm, setQuestions } = editor;
 
-  const [form, setForm] = useState(toFormValues(null));
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [archiving, setArchiving] = useState(false);
-  const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState({});
+  const [showExcelImporter, setShowExcelImporter] = useState(false);
+  const [showMaterialGenerator, setShowMaterialGenerator] = useState(false);
 
   const loadQuestionBank = useCallback(async () => {
     if (!questionBankId) return;
@@ -51,47 +48,47 @@ export default function EditQuestionBankPage() {
     setLoadError("");
 
     try {
-      const response = await questionBanksService.getOne(questionBankId);
-      setForm(toFormValues(response?.data));
+      const [bankResponse, questionRows] = await Promise.all([
+        questionBanksService.getOne(questionBankId),
+        questionBanksService.listQuestions(questionBankId),
+      ]);
+
+      setForm(toQuestionBankForm(bankResponse?.data));
+      setQuestions((questionRows || []).map(toQuestionDraft));
+      setErrors({});
     } catch (err) {
       setLoadError(err.response?.data?.message || err.message || "Failed to load question bank.");
     } finally {
       setLoading(false);
     }
-  }, [questionBankId]);
+  }, [questionBankId, setErrors, setForm, setQuestions]);
 
   useEffect(() => {
-    async function loadCurrentQuestionBank() {
-      await loadQuestionBank();
-    }
-
-    loadCurrentQuestionBank();
+    void Promise.resolve().then(loadQuestionBank);
   }, [loadQuestionBank]);
-
-  function handleChange(event) {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
-    setFieldErrors((current) => ({ ...current, [name]: undefined }));
-  }
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError("");
-    setFieldErrors({});
 
-    if (!form.title.trim()) {
-      setError("Please complete all required information.");
-      setFieldErrors({ title: "Please complete all required information." });
-      return;
-    }
+    const nextErrors = validateQuestionBankEditor(editor.form, editor.questions);
+    editor.setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
 
     setSubmitting(true);
     try {
-      await questionBanksService.update(questionBankId, buildPayload(form));
-      router.push(`/teacher/question-banks/${questionBankId}`);
+      await questionBanksService.update(
+        questionBankId,
+        buildQuestionBankPayload(editor.form, editor.questions),
+      );
+      router.push(detailHref);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Question bank could not be updated.");
-      setFieldErrors(err.response?.data?.fields || {});
+      const fieldErrors = mapQuestionBankServerErrors(err.response?.data?.fields || {});
+      editor.setErrors({
+        ...fieldErrors,
+        submit: Object.keys(fieldErrors).length
+          ? "Please review the highlighted fields."
+          : err.response?.data?.message || err.message || "Question bank could not be updated.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -101,24 +98,34 @@ export default function EditQuestionBankPage() {
     const confirmed = window.confirm("Delete this question bank?");
     if (!confirmed) return;
 
-    setError("");
+    editor.setErrors({});
     setArchiving(true);
 
     try {
       await questionBanksService.remove(questionBankId);
       router.push("/teacher/question-banks");
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Question bank delete failed.");
+      editor.setErrors({ submit: err.response?.data?.message || err.message || "Question bank delete failed." });
     } finally {
       setArchiving(false);
     }
   }
 
+  function handleExcelQuestionsImported(importedQuestions) {
+    editor.appendImportedQuestions(importedQuestions);
+    setShowExcelImporter(false);
+  }
+
+  function handleMaterialQuestionsGenerated(generatedQuestions) {
+    editor.appendImportedQuestions(generatedQuestions);
+    setShowMaterialGenerator(false);
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
-        <section className="mx-auto max-w-3xl">
-          <QuestionBanksStatePanel title="Loading question bank" description="Fetching saved information." />
+        <section className="mx-auto max-w-4xl">
+          <QuestionBanksStatePanel title="Loading question bank" description="Fetching metadata and questions." />
         </section>
       </main>
     );
@@ -127,13 +134,9 @@ export default function EditQuestionBankPage() {
   if (loadError) {
     return (
       <main className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
-        <section className="mx-auto max-w-3xl">
+        <section className="mx-auto max-w-4xl">
           <QuestionBanksStatePanel
-            action={
-              <Button onClick={loadQuestionBank} type="button">
-                Try Again
-              </Button>
-            }
+            action={<Button onClick={loadQuestionBank} type="button">Try Again</Button>}
             icon={<AlertCircle className="size-5" />}
             title="Unable to load question bank"
             description={loadError}
@@ -144,23 +147,46 @@ export default function EditQuestionBankPage() {
   }
 
   return (
-    <QuestionBankForm
-      actionSlot={
-        <Button disabled={archiving || submitting} onClick={handleDelete} type="button" variant="destructive">
-          {archiving ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-          {archiving ? "Deleting..." : "Delete"}
-        </Button>
-      }
-      backHref={`/teacher/question-banks/${questionBankId}`}
-      description="Update metadata teachers use to find, assign, and reuse this question bank."
-      error={error}
-      fieldErrors={fieldErrors}
-      form={form}
-      onChange={handleChange}
-      onSubmit={handleSubmit}
-      submitLabel="Save Changes"
-      submitting={submitting}
-      title="Edit Question Bank"
-    />
+    <>
+      <QuestionBankEditorForm
+        actionSlot={(
+          <Button disabled={archiving || submitting} onClick={handleDelete} type="button" variant="destructive">
+            {archiving ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+            {archiving ? "Deleting..." : "Delete"}
+          </Button>
+        )}
+        errors={editor.errors}
+        form={editor.form}
+        mode="edit"
+        onAddOption={editor.addOption}
+        onAddQuestion={editor.addQuestion}
+        onCancel={() => router.push(detailHref)}
+        onDeleteOption={editor.deleteOption}
+        onDeleteQuestion={editor.deleteQuestion}
+        onGenerateMaterial={() => setShowMaterialGenerator(true)}
+        onImportExcel={() => setShowExcelImporter(true)}
+        onMetadataChange={editor.handleMetadataChange}
+        onOptionChange={editor.updateOption}
+        onQuestionFieldChange={editor.updateQuestionField}
+        onSubmit={handleSubmit}
+        questions={editor.questions}
+        submitting={submitting || archiving}
+      />
+
+      {showExcelImporter && (
+        <QuestionBankExcelImportModal
+          onCancel={() => setShowExcelImporter(false)}
+          onQuestionsImported={handleExcelQuestionsImported}
+        />
+      )}
+
+      {showMaterialGenerator && (
+        <QuestionBankMaterialGenerateModal
+          generateQuestions={questionBanksService.generateFromMaterial}
+          onCancel={() => setShowMaterialGenerator(false)}
+          onQuestionsGenerated={handleMaterialQuestionsGenerated}
+        />
+      )}
+    </>
   );
 }

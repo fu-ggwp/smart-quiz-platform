@@ -1,9 +1,6 @@
-export default function AddQuestionPage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <section className="w-full max-w-xl">
-        <h1 className="text-2xl font-semibold">Add Question</h1>
-      </section>
-    </main>
-  );
+import { redirect } from "next/navigation";
+
+export default async function AddQuestionPage({ params }) {
+  const { id } = await params;
+  redirect(`/teacher/question-banks/${id}/edit`);
 }
