@@ -147,7 +147,7 @@ export default function ClassSelectorModal({
           {loading ? (
             <p className="text-xs text-muted-foreground text-center py-6">Loading classes...</p>
           ) : classes.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-6">You don't own any classes yet.</p>
+            <p className="text-xs text-muted-foreground text-center py-6">You don&apos;t own any classes yet.</p>
           ) : filteredClasses.length === 0 ? (
             <p className="text-xs text-muted-foreground text-center py-6">No classes match your search.</p>
           ) : (

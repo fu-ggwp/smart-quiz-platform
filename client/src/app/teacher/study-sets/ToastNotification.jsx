@@ -7,11 +7,20 @@ export default function ToastNotification({ message, type = "success", duration 
   const [slideIn, setSlideIn] = useState(false);
   const [progress, setProgress] = useState(100);
 
+  const handleDismiss = React.useCallback(() => {
+    setSlideIn(false);
+    setTimeout(() => {
+      if (onClose) onClose();
+    }, 400);
+  }, [onClose]);
+
   useEffect(() => {
     if (!message) return;
 
-    setSlideIn(true);
-    setProgress(100);
+    const animTimer = setTimeout(() => {
+      setSlideIn(true);
+      setProgress(100);
+    }, 0);
 
     // Auto close timer
     const closeTimer = setTimeout(() => {
@@ -33,17 +42,11 @@ export default function ToastNotification({ message, type = "success", duration 
     }, intervalTime);
 
     return () => {
+      clearTimeout(animTimer);
       clearTimeout(closeTimer);
       clearInterval(progressInterval);
     };
-  }, [message, duration]);
-
-  const handleDismiss = () => {
-    setSlideIn(false);
-    setTimeout(() => {
-      if (onClose) onClose();
-    }, 400);
-  };
+  }, [message, duration, handleDismiss]);
 
   if (!message) return null;
 

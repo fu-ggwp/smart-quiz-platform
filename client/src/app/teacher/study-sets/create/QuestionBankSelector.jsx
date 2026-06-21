@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight, Folder, BookOpen, AlertTriangle } from "lucide-react";
 import { questionBanksService } from "@/services/question-banks.service";
 import { Button } from "@/components/ui/button";
+import ConfirmModal from "@/components/common/ConfirmModal";
 
 export default function QuestionBankSelector({ 
   onQuestionsSelected, 
@@ -384,40 +385,19 @@ export default function QuestionBankSelector({
       </div>
 
       {/* Switch Bank Confirmation Popup Modal */}
-      {showConfirmSwitch && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-card rounded-2xl border border-border shadow-2xl p-6 w-full max-w-md space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3 text-rose-600">
-              <AlertTriangle className="size-6 shrink-0" />
-              <h3 className="text-lg font-bold text-foreground">Switch Question Bank?</h3>
-            </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Switching the question bank will remove all questions imported from the current bank. This action cannot be undone. Do you want to proceed?
-            </p>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowConfirmSwitch(false)}
-                type="button"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => {
-                  onResetBank();
-                  setShowConfirmSwitch(false);
-                }}
-                type="button"
-              >
-                Yes, Switch Bank
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={showConfirmSwitch}
+        title="Switch Question Bank?"
+        message="Switching the question bank will remove all questions imported from the current bank. This action cannot be undone. Do you want to proceed?"
+        confirmLabel="Yes, Switch Bank"
+        cancelLabel="Cancel"
+        onConfirm={() => {
+          onResetBank();
+          setShowConfirmSwitch(false);
+        }}
+        onCancel={() => setShowConfirmSwitch(false)}
+        variant="danger"
+      />
     </div>
   );
 }
