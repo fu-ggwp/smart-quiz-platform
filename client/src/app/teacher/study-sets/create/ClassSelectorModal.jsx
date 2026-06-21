@@ -70,11 +70,6 @@ export default function ClassSelectorModal({
   };
 
   const handleConfirm = () => {
-    if (selectedIds.size === 0) {
-      setValidationError("You must select at least one class.");
-      return;
-    }
-
     const selectedList = classes.filter((c) => selectedIds.has(c.class_id));
     const ids = selectedList.map((c) => c.class_id);
     const names = selectedList.map((c) => c.class_name);

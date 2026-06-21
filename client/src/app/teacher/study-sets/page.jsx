@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
-import { AlertCircle, Eye, Layers3, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { AlertCircle, Eye, Layers3, Plus, Search, SlidersHorizontal, Users } from "lucide-react";
 import { AppPagination } from "@/components/common/app-pagination";
 import ToastNotification from "./ToastNotification";
+import axiosClient from "@/services/axiosClient";
+import ClassSelectorModal from "./create/ClassSelectorModal";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,6 +73,10 @@ export default function TeacherStudySetsPage() {
   const [pendingSortBy, setPendingSortBy] = useState("latest");
   const [toast, setToast] = useState({ message: "", type: "success" });
 
+  const [activeAssignSet, setActiveAssignSet] = useState(null);
+  const [assignLoadingId, setAssignLoadingId] = useState(null);
+  const [selectedClassIds, setSelectedClassIds] = useState([]);
+
   useEffect(() => {
     const savedToast = localStorage.getItem("study_set_toast");
     if (savedToast) {
@@ -100,7 +106,7 @@ export default function TeacherStudySetsPage() {
     limit: 10,
   }), [appliedQuery, appliedVisibility, appliedAssignment, appliedSortBy, currentPage]);
 
-  const { studySets, pagination, loading, error } = useStudySets({
+  const { studySets, pagination, loading, error, reload } = useStudySets({
     mine: true,
     params,
   });
@@ -129,6 +135,48 @@ export default function TeacherStudySetsPage() {
 
     setCurrentPage(1);
   }
+
+  const handleAssignClick = async (studySet) => {
+    const studySetId = getStudySetId(studySet);
+    setAssignLoadingId(studySetId);
+    try {
+      const res = await axiosClient.get(`/api/study-sets/${studySetId}`);
+      const data = res.data?.data || null;
+      if (data) {
+        const assignments = data.study_set_assignments || [];
+        const classIds = assignments.map((a) => a.class_id);
+        setSelectedClassIds(classIds);
+        setActiveAssignSet(studySet);
+      }
+    } catch (err) {
+      console.error("Failed to load assignments:", err);
+      setToast({ message: "Failed to load class assignments. Please try again.", type: "error" });
+    } finally {
+      setAssignLoadingId(null);
+    }
+  };
+
+  const handleAssignConfirm = async (ids) => {
+    if (!activeAssignSet) return;
+    const studySetId = getStudySetId(activeAssignSet);
+    try {
+      await axiosClient.patch(`/api/study-sets/${studySetId}`, {
+        classId: ids,
+      });
+      setToast({
+        message: `Assigned study set "${activeAssignSet.title}" successfully.`,
+        type: "success",
+      });
+      setActiveAssignSet(null);
+      reload();
+    } catch (err) {
+      console.error("Failed to update assignments:", err);
+      setToast({
+        message: err.response?.data?.error || "Failed to update assignments. Please try again.",
+        type: "error",
+      });
+    }
+  };
 
   const hasFiltersApplied = appliedQuery || appliedVisibility !== "all" || appliedAssignment !== "all";
 
@@ -168,7 +216,11 @@ export default function TeacherStudySetsPage() {
           />
         ) : studySets.length ? (
           <>
-            <StudySetsTable studySets={studySets} />
+            <StudySetsTable
+              studySets={studySets}
+              onAssignClick={handleAssignClick}
+              assignLoadingId={assignLoadingId}
+            />
             <AppPagination
               currentPage={activePage}
               totalPages={totalPages}
@@ -207,6 +259,13 @@ export default function TeacherStudySetsPage() {
         type={toast.type}
         onClose={() => setToast({ message: "", type: "success" })}
       />
+      {activeAssignSet && (
+        <ClassSelectorModal
+          initialSelectedIds={selectedClassIds}
+          onConfirm={handleAssignConfirm}
+          onCancel={() => setActiveAssignSet(null)}
+        />
+      )}
     </main>
   );
 
@@ -310,7 +369,7 @@ function FilterBar({
   );
 }
 
-function StudySetsTable({ studySets }) {
+function StudySetsTable({ studySets, onAssignClick, assignLoadingId }) {
   const router = useRouter();
 
   return (
@@ -360,8 +419,12 @@ function StudySetsTable({ studySets }) {
                   <td className="px-4 py-3 text-muted-foreground text-center">{getLearnerCount(studySet)}</td>
                   <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-wrap gap-2">
-                      <Button asChild size="sm">
-                        <Link href={`/teacher/study-sets/${id}/assign`}>Assign</Link>
+                      <Button
+                        size="sm"
+                        onClick={() => onAssignClick(studySet)}
+                        disabled={assignLoadingId === id}
+                      >
+                        {assignLoadingId === id ? "Loading..." : "Assign"}
                       </Button>
                     </div>
                   </td>

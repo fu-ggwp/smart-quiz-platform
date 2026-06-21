@@ -6,6 +6,7 @@ import { ArrowLeft, Edit3, Trash2, Calendar, BookOpen, Layers, Eye, EyeOff, Chec
 import axiosClient from "@/services/axiosClient";
 import { Button } from "@/components/ui/button";
 import ToastNotification from "../ToastNotification";
+import ClassSelectorModal from "../create/ClassSelectorModal";
 
 export default function TeacherStudySetDetailPage() {
   const params = useParams();
@@ -18,6 +19,8 @@ export default function TeacherStudySetDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "success" });
+  const [showClassSelector, setShowClassSelector] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const savedToast = localStorage.getItem("study_set_toast");
@@ -88,6 +91,37 @@ export default function TeacherStudySetDetailPage() {
     });
   };
 
+  const handleAssignConfirm = async (ids) => {
+    setSaving(true);
+    try {
+      await axiosClient.patch(`/api/study-sets/${id}`, {
+        classId: ids,
+      });
+      setToast({
+        message: `Assigned study set "${studySet.title}" successfully.`,
+        type: "success",
+      });
+      setShowClassSelector(false);
+
+      // Re-fetch details to update UI immediately
+      const res = await axiosClient.get(`/api/study-sets/${id}`);
+      setStudySet(res.data?.data || null);
+    } catch (err) {
+      console.error("Failed to update assignments:", err);
+      setToast({
+        message: err.response?.data?.error || "Failed to update assignments. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const assignedClassIds = (studySet?.study_set_assignments || []).map((a) => a.class_id);
+  const assignedClassNames = (studySet?.study_set_assignments || [])
+    .map((a) => a.classes?.class_name)
+    .filter(Boolean);
+
   if (loading) {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center">
@@ -135,13 +169,14 @@ export default function TeacherStudySetDetailPage() {
 
           <div className="flex gap-2 shrink-0">
             <Button
-              onClick={() => router.push(`/teacher/study-sets/${id}/assign`)}
+              onClick={() => setShowClassSelector(true)}
               variant="outline"
               size="sm"
               className="gap-1.5"
+              disabled={saving}
             >
               <UserPlus size={14} />
-              Assign to Class
+              {saving ? "Saving..." : "Assign to Class"}
             </Button>
             <Button
               onClick={() => router.push(`/teacher/study-sets/${id}/edit`)}
@@ -192,10 +227,29 @@ export default function TeacherStudySetDetailPage() {
 
           {studySet.description && (
             <div className="space-y-1.5">
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</h3>
+              <h3 className="text-sm font-bold text-foreground">Description</h3>
               <p className="text-sm text-foreground leading-relaxed">{studySet.description}</p>
             </div>
           )}
+
+          {/* Assigned Classes */}
+          <div className="space-y-1.5 pt-3 border-t border-border/60">
+            <h3 className="text-sm font-bold text-foreground">Assigned Classes</h3>
+            {assignedClassNames.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">Not assigned to any classes.</p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {assignedClassNames.map((name, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary shadow-sm"
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Questions Section Header */}
@@ -330,6 +384,14 @@ export default function TeacherStudySetDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {showClassSelector && (
+        <ClassSelectorModal
+          initialSelectedIds={assignedClassIds}
+          onConfirm={handleAssignConfirm}
+          onCancel={() => setShowClassSelector(false)}
+        />
       )}
     </main>
   );

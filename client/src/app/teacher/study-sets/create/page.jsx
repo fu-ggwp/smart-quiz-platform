@@ -332,7 +332,7 @@ export default function CreateStudySetPage() {
         subject: subject || null,
         topic: topic || null,
         visibility,
-        classId: visibility === "class_only" ? selectedClassIds : null,
+        classId: selectedClassIds,
         questionBankId,
         questions
       });
@@ -449,6 +449,10 @@ export default function CreateStudySetPage() {
                     if (val === "class_only") {
                       if (selectedClassIds.length === 0) {
                         setShowClassSelector(true);
+                        setErrors((prev) => ({
+                          ...prev,
+                          classIds: "Please select at least one class."
+                        }));
                       }
                     } else {
                       setErrors((prev) => {
@@ -467,40 +471,44 @@ export default function CreateStudySetPage() {
                 </select>
               </div>
 
-              {/* Display selected classes if visibility is class_only */}
-              {visibility === "class_only" && (
-                <div className="space-y-1.5 md:col-span-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <label className="text-sm font-semibold text-foreground flex items-center gap-1">
-                    Assigned Classes <span className="text-rose-500"> *</span>
-                  </label>
-                  <div
-                    onClick={() => setShowClassSelector(true)}
-                    className="cursor-pointer transition duration-150"
-                    title="Click to edit class assignments"
-                  >
-                    {selectedClassIds.length === 0 ? (
+              {/* Display selected classes */}
+              <div className="space-y-1.5 md:col-span-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                <label className="text-sm font-semibold text-foreground flex items-center gap-1">
+                  Assigned Classes {visibility === "class_only" && <span className="text-rose-500"> *</span>}
+                </label>
+                <div
+                  onClick={() => setShowClassSelector(true)}
+                  className="cursor-pointer transition duration-150"
+                  title="Click to edit class assignments"
+                >
+                  {selectedClassIds.length === 0 ? (
+                    visibility === "class_only" ? (
                       <p className="text-xs text-rose-600 font-semibold bg-rose-50 p-3 rounded-xl border border-rose-200 hover:bg-rose-100/70 hover:border-rose-300">
                         No classes selected. Click here to select at least one class.
                       </p>
                     ) : (
-                      <div className="flex flex-wrap gap-1.5 bg-primary/5 p-3 rounded-xl border border-primary/20 hover:bg-primary/10 hover:border-primary/30">
-                        <span className="text-xs font-semibold text-primary/80 self-center mr-1">Assigned to:</span>
-                        {selectedClassNames.map((name, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-white shadow-sm"
-                          >
-                            {name}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {errors.classIds && (
-                    <p className="text-xs font-semibold text-rose-500 mt-1">{errors.classIds}</p>
+                      <p className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-xl border border-border hover:bg-muted/60">
+                        No classes selected. Click here to select classes to assign (optional).
+                      </p>
+                    )
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 bg-primary/5 p-3 rounded-xl border border-primary/20 hover:bg-primary/10 hover:border-primary/30">
+                      <span className="text-xs font-semibold text-primary/80 self-center mr-1">Assigned to:</span>
+                      {selectedClassNames.map((name, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-white shadow-sm"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
-              )}
+                {errors.classIds && (
+                  <p className="text-xs font-semibold text-rose-500 mt-1">{errors.classIds}</p>
+                )}
+              </div>
             </div>
           </div>
 
