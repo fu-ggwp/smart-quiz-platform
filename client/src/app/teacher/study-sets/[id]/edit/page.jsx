@@ -11,6 +11,7 @@ import ExcelImporter from "@/components/question-creator/ExcelImporter";
 import QuestionBankSelector from "../../create/QuestionBankSelector";
 import ClassSelectorModal from "../../create/ClassSelectorModal";
 import ToastNotification from "../../ToastNotification";
+import ConfirmModal from "@/components/common/ConfirmModal";
 
 export default function EditStudySetPage() {
   const params = useParams();
@@ -40,6 +41,13 @@ export default function EditStudySetPage() {
   const [showQBSelector, setShowQBSelector] = useState(false);
   const [showExcelImporter, setShowExcelImporter] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "success" });
+  const [confirmData, setConfirmData] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    onCancel: null,
+  });
 
   // --- 4. FETCH DATA ON MOUNT ---
   useEffect(() => {
@@ -300,17 +308,44 @@ export default function EditStudySetPage() {
     setSelectedClassNames(names);
     setShowClassSelector(false);
 
+    if (visibility === "class_only" && ids.length === 0) {
+      setVisibility("private");
+      setToast({
+        message: "Visibility changed to Private because no classes were selected.",
+        type: "warning",
+      });
+    }
+
     setErrors((prev) => {
       const next = { ...prev };
       delete next.classIds;
       delete next.submit;
       return next;
     });
-    setToast({ message: "", type: "success" });
   };
 
   const handleClassSelectionCancelled = () => {
     setShowClassSelector(false);
+  };
+
+  const handleClassSelectorClick = () => {
+    if (visibility === "private") {
+      setConfirmData({
+        isOpen: true,
+        title: "Change Visibility to Class Only",
+        message: "Assigning this study set to a class will change its visibility to 'Class Only'. Do you want to proceed?",
+        onConfirm: () => {
+          setVisibility("class_only");
+          setConfirmData((prev) => ({ ...prev, isOpen: false }));
+          setShowClassSelector(true);
+        },
+        onCancel: () => {
+          setConfirmData((prev) => ({ ...prev, isOpen: false }));
+        },
+      });
+    } else {
+      setShowClassSelector(true);
+    }
   };
 
   // --- 8. SAVE CHANGES ---
@@ -368,7 +403,7 @@ export default function EditStudySetPage() {
         subject: subject || null,
         topic: topic || null,
         visibility,
-        classId: visibility === "class_only" ? selectedClassIds : null,
+        classId: selectedClassIds,
         questionBankId,
         questions
       });
@@ -491,10 +526,38 @@ export default function EditStudySetPage() {
                   value={visibility}
                   onChange={(e) => {
                     const val = e.target.value;
+                    if (visibility === "class_only" && val !== "class_only" && selectedClassIds.length > 0) {
+                      setConfirmData({
+                        isOpen: true,
+                        title: "Clear Assigned Classes?",
+                        message: "Changing visibility from 'Class Only' to 'Public' or 'Private' will clear all assigned classes. Do you want to proceed?",
+                        onConfirm: () => {
+                          setSelectedClassIds([]);
+                          setSelectedClassNames([]);
+                          setVisibility(val);
+                          setConfirmData((prev) => ({ ...prev, isOpen: false }));
+                          setErrors((prev) => {
+                            const next = { ...prev };
+                            delete next.classIds;
+                            delete next.submit;
+                            return next;
+                          });
+                        },
+                        onCancel: () => {
+                          setConfirmData((prev) => ({ ...prev, isOpen: false }));
+                        },
+                      });
+                      return;
+                    }
+
                     setVisibility(val);
                     if (val === "class_only") {
                       if (selectedClassIds.length === 0) {
                         setShowClassSelector(true);
+                        setErrors((prev) => ({
+                          ...prev,
+                          classIds: "Please select at least one class."
+                        }));
                       }
                     } else {
                       setErrors((prev) => {
@@ -514,39 +577,43 @@ export default function EditStudySetPage() {
               </div>
 
               {/* Class Selection */}
-              {visibility === "class_only" && (
-                <div className="space-y-1.5 md:col-span-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <label className="text-sm font-semibold text-foreground flex items-center gap-1">
-                    Assigned Classes <span className="text-rose-500"> *</span>
-                  </label>
-                  <div
-                    onClick={() => setShowClassSelector(true)}
-                    className="cursor-pointer transition duration-150"
-                    title="Click to edit class assignments"
-                  >
-                    {selectedClassIds.length === 0 ? (
+              <div className="space-y-1.5 md:col-span-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                <label className="text-sm font-semibold text-foreground flex items-center gap-1">
+                  Assigned Classes {visibility === "class_only" && <span className="text-rose-500"> *</span>}
+                </label>
+                <div
+                  onClick={handleClassSelectorClick}
+                  className="cursor-pointer transition duration-150"
+                  title="Click to edit class assignments"
+                >
+                  {selectedClassIds.length === 0 ? (
+                    visibility === "class_only" ? (
                       <p className="text-xs text-rose-600 font-semibold bg-rose-50 p-3 rounded-xl border border-rose-200 hover:bg-rose-100/70 hover:border-rose-300">
                         No classes selected. Click here to select at least one class.
                       </p>
                     ) : (
-                      <div className="flex flex-wrap gap-1.5 bg-primary/5 p-3 rounded-xl border border-primary/20 hover:bg-primary/10 hover:border-primary/30">
-                        <span className="text-xs font-semibold text-primary/80 self-center mr-1">Assigned to:</span>
-                        {selectedClassNames.map((name, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-white shadow-sm"
-                          >
-                            {name}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {errors.classIds && (
-                    <p className="text-xs font-semibold text-rose-500 mt-1">{errors.classIds}</p>
+                      <p className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-xl border border-border hover:bg-muted/60">
+                        No classes selected. Click here to select classes to assign (optional).
+                      </p>
+                    )
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 bg-primary/5 p-3 rounded-xl border border-primary/20 hover:bg-primary/10 hover:border-primary/30">
+                      <span className="text-xs font-semibold text-primary/80 self-center mr-1">Assigned to:</span>
+                      {selectedClassNames.map((name, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-white shadow-sm"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
-              )}
+                {errors.classIds && (
+                  <p className="text-xs font-semibold text-rose-500 mt-1">{errors.classIds}</p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -668,6 +735,13 @@ export default function EditStudySetPage() {
         message={toast.message}
         type={toast.type}
         onClose={() => setToast({ message: "", type: "success" })}
+      />
+      <ConfirmModal
+        isOpen={confirmData.isOpen}
+        title={confirmData.title}
+        message={confirmData.message}
+        onConfirm={confirmData.onConfirm}
+        onCancel={confirmData.onCancel}
       />
     </main>
   );

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import classesService from "../../../../services/classes.service";
+import ToastNotification from "@/app/teacher/study-sets/ToastNotification";
 
 function InfoRow({ label, value }) {
   if (!value) return null;
@@ -25,6 +26,7 @@ export default function ClassDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [resolving, setResolving] = useState(null); // requestId currently being resolved
+  const [toast, setToast] = useState({ message: "", type: "success" });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -48,7 +50,9 @@ export default function ClassDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    load();
+    setTimeout(() => {
+      load();
+    }, 0);
   }, [load]);
 
   async function handleResolve(requestId, status) {
@@ -63,11 +67,10 @@ export default function ClassDetailPage() {
       setMembers(membersData);
       setJoinRequests(requestsData);
     } catch (err) {
-      alert(
-        err?.response?.data?.error ||
-          err.message ||
-          "Failed to resolve request.",
-      );
+      setToast({
+        message: err?.response?.data?.error || err.message || "Failed to resolve request.",
+        type: "error",
+      });
     } finally {
       setResolving(null);
     }
@@ -194,7 +197,7 @@ export default function ClassDetailPage() {
                       </span>
                       {req.request_message && (
                         <span className="mt-0.5 text-xs italic text-neutral-500">
-                          "{req.request_message}"
+                          &quot;{req.request_message}&quot;
                         </span>
                       )}
                     </div>
@@ -282,6 +285,12 @@ export default function ClassDetailPage() {
           )}
         </div>
       </div>
+
+      <ToastNotification
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ message: "", type: "success" })}
+      />
     </main>
   );
 }

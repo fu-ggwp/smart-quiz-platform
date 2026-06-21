@@ -6,6 +6,8 @@ import { ArrowLeft, Edit3, Trash2, Calendar, BookOpen, Layers, Eye, EyeOff, Chec
 import axiosClient from "@/services/axiosClient";
 import { Button } from "@/components/ui/button";
 import ToastNotification from "../ToastNotification";
+import ClassSelectorModal from "../create/ClassSelectorModal";
+import ConfirmModal from "@/components/common/ConfirmModal";
 
 export default function TeacherStudySetDetailPage() {
   const params = useParams();
@@ -18,12 +20,22 @@ export default function TeacherStudySetDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "success" });
+  const [showClassSelector, setShowClassSelector] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [confirmData, setConfirmData] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    onCancel: null,
+  });
 
   useEffect(() => {
     const savedToast = localStorage.getItem("study_set_toast");
     if (savedToast) {
       try {
-        setToast(JSON.parse(savedToast));
+        const parsed = JSON.parse(savedToast);
+        setTimeout(() => setToast(parsed), 0);
       } catch (e) {
         console.error(e);
       }
@@ -32,8 +44,8 @@ export default function TeacherStudySetDetailPage() {
   }, []);
 
   // Quản lý hiển thị đáp án
-  const [showAllAnswers, setShowAllAnswers] = useState(false);
   const [revealedQuestions, setRevealedQuestions] = useState(new Set());
+  const isAllRevealed = studySet?.questions?.length > 0 && revealedQuestions.size === studySet.questions.length;
 
   useEffect(() => {
     if (!id) return;
@@ -88,6 +100,46 @@ export default function TeacherStudySetDetailPage() {
     });
   };
 
+  const handleAssignConfirm = async (ids) => {
+    setSaving(true);
+    const isClearingClassOnly = studySet.visibility === "class_only" && ids.length === 0;
+
+    try {
+      const payload = { classId: ids };
+      if (studySet.visibility === "private" && ids.length > 0) {
+        payload.visibility = "class_only";
+      } else if (isClearingClassOnly) {
+        payload.visibility = "private";
+      }
+
+      await axiosClient.patch(`/api/study-sets/${id}`, payload);
+      setToast({
+        message: isClearingClassOnly
+          ? `Visibility of study set "${studySet.title}" reverted to Private because no classes were selected.`
+          : `Assigned study set "${studySet.title}" successfully.`,
+        type: isClearingClassOnly ? "warning" : "success",
+      });
+      setShowClassSelector(false);
+
+      // Re-fetch details to update UI immediately
+      const res = await axiosClient.get(`/api/study-sets/${id}`);
+      setStudySet(res.data?.data || null);
+    } catch (err) {
+      console.error("Failed to update assignments:", err);
+      setToast({
+        message: err.response?.data?.error || "Failed to update assignments. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const assignedClassIds = (studySet?.study_set_assignments || []).map((a) => a.class_id);
+  const assignedClassNames = (studySet?.study_set_assignments || [])
+    .map((a) => a.classes?.class_name)
+    .filter(Boolean);
+
   if (loading) {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center">
@@ -135,13 +187,31 @@ export default function TeacherStudySetDetailPage() {
 
           <div className="flex gap-2 shrink-0">
             <Button
-              onClick={() => router.push(`/teacher/study-sets/${id}/assign`)}
+              onClick={() => {
+                if (studySet.visibility === "private") {
+                  setConfirmData({
+                    isOpen: true,
+                    title: "Change Visibility to Class Only",
+                    message: "Assigning this study set to a class will change its visibility to 'Class Only'. Do you want to proceed?",
+                    onConfirm: () => {
+                      setConfirmData((prev) => ({ ...prev, isOpen: false }));
+                      setShowClassSelector(true);
+                    },
+                    onCancel: () => {
+                      setConfirmData((prev) => ({ ...prev, isOpen: false }));
+                    },
+                  });
+                } else {
+                  setShowClassSelector(true);
+                }
+              }}
               variant="outline"
               size="sm"
               className="gap-1.5"
+              disabled={saving}
             >
               <UserPlus size={14} />
-              Assign to Class
+              {saving ? "Saving..." : "Assign to Class"}
             </Button>
             <Button
               onClick={() => router.push(`/teacher/study-sets/${id}/edit`)}
@@ -192,10 +262,29 @@ export default function TeacherStudySetDetailPage() {
 
           {studySet.description && (
             <div className="space-y-1.5">
-              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Description</h3>
+              <h3 className="text-sm font-bold text-foreground">Description</h3>
               <p className="text-sm text-foreground leading-relaxed">{studySet.description}</p>
             </div>
           )}
+
+          {/* Assigned Classes */}
+          <div className="space-y-1.5 pt-3 border-t border-border/60">
+            <h3 className="text-sm font-bold text-foreground">Assigned Classes</h3>
+            {assignedClassNames.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">Not assigned to any classes.</p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {assignedClassNames.map((name, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary shadow-sm"
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Questions Section Header */}
@@ -205,15 +294,19 @@ export default function TeacherStudySetDetailPage() {
           </h2>
           <Button
             onClick={() => {
-              setShowAllAnswers(!showAllAnswers);
-              setRevealedQuestions(new Set()); // Reset các câu hỏi lẻ
+              if (isAllRevealed) {
+                setRevealedQuestions(new Set());
+              } else {
+                const allIds = (studySet?.questions || []).map((q) => q.question_id);
+                setRevealedQuestions(new Set(allIds));
+              }
             }}
             variant="ghost"
             size="sm"
             className="gap-2 text-xs text-primary"
           >
-            {showAllAnswers ? <EyeOff size={14} /> : <Eye size={14} />}
-            {showAllAnswers ? "Hide All Answers" : "Show All Answers"}
+            {isAllRevealed ? <EyeOff size={14} /> : <Eye size={14} />}
+            {isAllRevealed ? "Hide All Answers" : "Show All Answers"}
           </Button>
         </div>
 
@@ -225,7 +318,7 @@ export default function TeacherStudySetDetailPage() {
             </div>
           ) : (
             studySet.questions?.map((q, index) => {
-              const isRevealed = showAllAnswers || revealedQuestions.has(q.question_id);
+              const isRevealed = revealedQuestions.has(q.question_id);
 
               return (
                 <div
@@ -302,35 +395,31 @@ export default function TeacherStudySetDetailPage() {
       />
 
       {/* Delete confirmation modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="w-full max-w-sm rounded-2xl bg-card border border-border p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-foreground">
-              Delete Study Set
-            </h3>
-            <p className="mt-2.5 text-sm text-muted-foreground leading-relaxed">
-              Are you sure you want to delete <strong className="text-foreground">"{studySet.title}"</strong>? This action is permanent and cannot be undone.
-            </p>
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Study Set"
+        message={`Are you sure you want to delete "${studySet?.title}"? This action is permanent and cannot be undone.`}
+        confirmLabel={deleting ? "Deleting..." : "Delete"}
+        cancelLabel="Cancel"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+        variant="danger"
+      />
 
-            <div className="mt-6 flex justify-end gap-3">
-              <Button
-                onClick={() => setShowDeleteModal(false)}
-                variant="outline"
-                disabled={deleting}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="bg-rose-600 hover:bg-rose-700 text-white"
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </Button>
-            </div>
-          </div>
-        </div>
+      {showClassSelector && (
+        <ClassSelectorModal
+          initialSelectedIds={assignedClassIds}
+          onConfirm={handleAssignConfirm}
+          onCancel={() => setShowClassSelector(false)}
+        />
       )}
+      <ConfirmModal
+        isOpen={confirmData.isOpen}
+        title={confirmData.title}
+        message={confirmData.message}
+        onConfirm={confirmData.onConfirm}
+        onCancel={confirmData.onCancel}
+      />
     </main>
   );
 }

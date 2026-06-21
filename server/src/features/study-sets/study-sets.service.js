@@ -203,9 +203,14 @@ export async function update(id, teacherId, changes) {
   if (questionBankId !== undefined) {
     metadataChanges.source_question_bank_id = questionBankId;
   }
-  const { data, error } = await dao.update(id, metadataChanges);
-  if (error) {
-    throw dbError(error);
+
+  let data = set;
+  if (Object.keys(metadataChanges).length > 0) {
+    const { data: updatedData, error } = await dao.update(id, metadataChanges);
+    if (error) {
+      throw dbError(error);
+    }
+    data = updatedData;
   }
   if (changes.visibility === "class_only" || classId) {
     const { error: delAssignError } = await dao.deleteAssignments(id);

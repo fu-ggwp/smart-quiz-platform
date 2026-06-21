@@ -3,9 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
-import { AlertCircle, Eye, Layers3, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { AlertCircle, Eye, Layers3, Plus, Search, SlidersHorizontal, Users } from "lucide-react";
 import { AppPagination } from "@/components/common/app-pagination";
 import ToastNotification from "./ToastNotification";
+import axiosClient from "@/services/axiosClient";
+import ClassSelectorModal from "./create/ClassSelectorModal";
+import ConfirmModal from "@/components/common/ConfirmModal";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,11 +74,24 @@ export default function TeacherStudySetsPage() {
   const [pendingSortBy, setPendingSortBy] = useState("latest");
   const [toast, setToast] = useState({ message: "", type: "success" });
 
+  const [activeAssignSet, setActiveAssignSet] = useState(null);
+  const [assignLoadingId, setAssignLoadingId] = useState(null);
+  const [selectedClassIds, setSelectedClassIds] = useState([]);
+
+  const [confirmData, setConfirmData] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    onCancel: null,
+  });
+
   useEffect(() => {
     const savedToast = localStorage.getItem("study_set_toast");
     if (savedToast) {
       try {
-        setToast(JSON.parse(savedToast));
+        const parsed = JSON.parse(savedToast);
+        setTimeout(() => setToast(parsed), 0);
       } catch (e) {
         console.error(e);
       }
@@ -100,7 +116,7 @@ export default function TeacherStudySetsPage() {
     limit: 10,
   }), [appliedQuery, appliedVisibility, appliedAssignment, appliedSortBy, currentPage]);
 
-  const { studySets, pagination, loading, error } = useStudySets({
+  const { studySets, pagination, loading, error, reload } = useStudySets({
     mine: true,
     params,
   });
@@ -129,6 +145,77 @@ export default function TeacherStudySetsPage() {
 
     setCurrentPage(1);
   }
+
+  const handleAssignClick = async (studySet) => {
+    const studySetId = getStudySetId(studySet);
+
+    const proceedWithAssign = async () => {
+      setAssignLoadingId(studySetId);
+      try {
+        const res = await axiosClient.get(`/api/study-sets/${studySetId}`);
+        const data = res.data?.data || null;
+        if (data) {
+          const assignments = data.study_set_assignments || [];
+          const classIds = assignments.map((a) => a.class_id);
+          setSelectedClassIds(classIds);
+          setActiveAssignSet(studySet);
+        }
+      } catch (err) {
+        console.error("Failed to load assignments:", err);
+        setToast({ message: "Failed to load class assignments. Please try again.", type: "error" });
+      } finally {
+        setAssignLoadingId(null);
+      }
+    };
+
+    if (studySet.visibility === "private") {
+      setConfirmData({
+        isOpen: true,
+        title: "Change Visibility to Class Only",
+        message: "Assigning this study set to a class will change its visibility to 'Class Only'. Do you want to proceed?",
+        onConfirm: () => {
+          setConfirmData((prev) => ({ ...prev, isOpen: false }));
+          proceedWithAssign();
+        },
+        onCancel: () => {
+          setConfirmData((prev) => ({ ...prev, isOpen: false }));
+        },
+      });
+    } else {
+      await proceedWithAssign();
+    }
+  };
+
+  const handleAssignConfirm = async (ids) => {
+    if (!activeAssignSet) return;
+    const studySetId = getStudySetId(activeAssignSet);
+    const isClearingClassOnly = activeAssignSet.visibility === "class_only" && ids.length === 0;
+
+    try {
+      const payload = { classId: ids };
+      if (activeAssignSet.visibility === "private" && ids.length > 0) {
+        payload.visibility = "class_only";
+      } else if (isClearingClassOnly) {
+        payload.visibility = "private";
+      }
+
+      await axiosClient.patch(`/api/study-sets/${studySetId}`, payload);
+      setToast({
+        message: isClearingClassOnly
+          ? `Visibility of study set "${activeAssignSet.title}" reverted to Private because no classes were selected.`
+          : `Assigned study set "${activeAssignSet.title}" successfully.`,
+        type: isClearingClassOnly ? "warning" : "success",
+      });
+      setActiveAssignSet(null);
+      reload();
+    } catch (err) {
+      console.error("Failed to update assignments:", err);
+      setToast({
+        message: err.response?.data?.error || "Failed to update assignments. Please try again.",
+        type: "error",
+      });
+    }
+  };
 
   const hasFiltersApplied = appliedQuery || appliedVisibility !== "all" || appliedAssignment !== "all";
 
@@ -168,7 +255,11 @@ export default function TeacherStudySetsPage() {
           />
         ) : studySets.length ? (
           <>
-            <StudySetsTable studySets={studySets} />
+            <StudySetsTable
+              studySets={studySets}
+              onAssignClick={handleAssignClick}
+              assignLoadingId={assignLoadingId}
+            />
             <AppPagination
               currentPage={activePage}
               totalPages={totalPages}
@@ -206,6 +297,20 @@ export default function TeacherStudySetsPage() {
         message={toast.message}
         type={toast.type}
         onClose={() => setToast({ message: "", type: "success" })}
+      />
+      {activeAssignSet && (
+        <ClassSelectorModal
+          initialSelectedIds={selectedClassIds}
+          onConfirm={handleAssignConfirm}
+          onCancel={() => setActiveAssignSet(null)}
+        />
+      )}
+      <ConfirmModal
+        isOpen={confirmData.isOpen}
+        title={confirmData.title}
+        message={confirmData.message}
+        onConfirm={confirmData.onConfirm}
+        onCancel={confirmData.onCancel}
       />
     </main>
   );
@@ -310,7 +415,7 @@ function FilterBar({
   );
 }
 
-function StudySetsTable({ studySets }) {
+function StudySetsTable({ studySets, onAssignClick, assignLoadingId }) {
   const router = useRouter();
 
   return (
@@ -319,9 +424,9 @@ function StudySetsTable({ studySets }) {
         <table className="min-w-full divide-y divide-border text-sm">
           <thead className="bg-muted text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
             <tr>
-              {["Study Set", "Source", "Visibility", "Questions", "Assigned Classes", "Learners", "Actions"].map(
+              {["Study Set", "Source", "Visibility", "Questions", "Learners", "Actions"].map(
                 (header) => {
-                  const isCentered = ["Questions", "Assigned Classes", "Learners", "Visibility"].includes(header);
+                  const isCentered = ["Questions", "Learners", "Visibility"].includes(header);
                   return (
                     <th className={`px-4 py-3 ${isCentered ? "text-center" : ""}`} key={header}>
                       {header}
@@ -335,7 +440,6 @@ function StudySetsTable({ studySets }) {
           <tbody className="divide-y divide-border">
             {studySets.map((studySet) => {
               const id = getStudySetId(studySet);
-              const assignedClasses = getAssignedClasses(studySet);
 
               return (
                 <tr
@@ -354,14 +458,15 @@ function StudySetsTable({ studySets }) {
                     <VisibilityBadge visibility={studySet.visibility} />
                   </td>
                   <td className="px-4 py-3 text-muted-foreground text-center">{getQuestionCount(studySet)}</td>
-                  <td className="px-4 py-3 text-muted-foreground text-center">
-                    {assignedClasses.length ? assignedClasses.join(", ") : "Not assigned"}
-                  </td>
                   <td className="px-4 py-3 text-muted-foreground text-center">{getLearnerCount(studySet)}</td>
                   <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-wrap gap-2">
-                      <Button asChild size="sm">
-                        <Link href={`/teacher/study-sets/${id}/assign`}>Assign</Link>
+                      <Button
+                        size="sm"
+                        onClick={() => onAssignClick(studySet)}
+                        disabled={assignLoadingId === id}
+                      >
+                        {assignLoadingId === id ? "Loading..." : "Assign"}
                       </Button>
                     </div>
                   </td>

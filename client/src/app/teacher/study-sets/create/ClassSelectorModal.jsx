@@ -70,11 +70,6 @@ export default function ClassSelectorModal({
   };
 
   const handleConfirm = () => {
-    if (selectedIds.size === 0) {
-      setValidationError("You must select at least one class.");
-      return;
-    }
-
     const selectedList = classes.filter((c) => selectedIds.has(c.class_id));
     const ids = selectedList.map((c) => c.class_id);
     const names = selectedList.map((c) => c.class_name);
@@ -152,7 +147,7 @@ export default function ClassSelectorModal({
           {loading ? (
             <p className="text-xs text-muted-foreground text-center py-6">Loading classes...</p>
           ) : classes.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-6">You don't own any classes yet.</p>
+            <p className="text-xs text-muted-foreground text-center py-6">You don&apos;t own any classes yet.</p>
           ) : filteredClasses.length === 0 ? (
             <p className="text-xs text-muted-foreground text-center py-6">No classes match your search.</p>
           ) : (
