@@ -142,6 +142,32 @@ export const authService = {
     return data;
   },
 
+  async changePassword({ email, currentPassword, newPassword }) {
+    const { data: signInData, error: signInError } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password: currentPassword,
+      });
+
+    if (signInError) throw signInError;
+
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) throw error;
+    return { ...data, session: signInData?.session };
+  },
+
+  async setPassword({ newPassword }) {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) throw error;
+    return data;
+  },
+
   getSession: getCurrentSession,
   getProfile: getCurrentProfile,
   me: getCurrentProfile,
