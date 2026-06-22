@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Navbar } from "@/components/layout/navbar";
+import { RoleGuard } from "@/components/layout/role-guard";
 
 export default function TeacherLayout({ children }) {
   return (
@@ -7,7 +8,9 @@ export default function TeacherLayout({ children }) {
       <Navbar />
       <div className="min-h-0 flex-1 overflow-hidden md:flex">
         <AppSidebar role="teacher" />
-        <section className="min-w-0 flex-1 overflow-y-auto">{children}</section>
+        <section className="min-w-0 flex-1 overflow-y-auto">
+          <RoleGuard allowedRole="teacher">{children}</RoleGuard>
+        </section>
       </div>
     </main>
   );

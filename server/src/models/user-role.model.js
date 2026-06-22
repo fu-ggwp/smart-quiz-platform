@@ -27,5 +27,33 @@ export function createUserRoleModel(db) {
       if (error) throw error;
       return data;
     },
+
+    async findByUserAndRole(userId, role) {
+      const { data, error } = await db
+        .from(tableName)
+        .select("*")
+        .eq(userRoleColumns.userId, userId)
+        .eq(userRoleColumns.role, role)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+
+    async ensure(userId, role) {
+      const existing = await this.findByUserAndRole(userId, role);
+      if (existing) return existing;
+
+      const { data, error } = await db
+        .from(tableName)
+        .upsert(this.toInsert({ userId, role }), {
+          onConflict: `${userRoleColumns.userId},${userRoleColumns.role}`,
+        })
+        .select("*")
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
   };
 }

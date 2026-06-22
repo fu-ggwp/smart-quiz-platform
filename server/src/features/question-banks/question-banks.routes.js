@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
+import { requireRole } from "../../middlewares/role.middleware.js";
 import { uploadMaterial } from "../../middlewares/upload.middleware.js";
 import {
   create,
@@ -17,29 +18,32 @@ import {
 
 const questionBanksRouter = Router();
 
-questionBanksRouter.get("/", requireAuth, list);
-questionBanksRouter.post("/", requireAuth, create);
+questionBanksRouter.get("/", requireAuth, requireRole("teacher"), list);
+questionBanksRouter.post("/", requireAuth, requireRole("teacher"), create);
 questionBanksRouter.post(
   "/generate-from-material",
   requireAuth,
+  requireRole("teacher"),
   uploadMaterial,
   generateFromMaterial,
 );
-questionBanksRouter.get("/ready", requireAuth, listReady);
+questionBanksRouter.get("/ready", requireAuth, requireRole("teacher"), listReady);
 questionBanksRouter.get(
   "/ready/:id/questions",
   requireAuth,
+  requireRole("teacher"),
   listReadyQuestions,
 );
-questionBanksRouter.get("/questions/:questionId", requireAuth, getQuestionById);
+questionBanksRouter.get("/questions/:questionId", requireAuth, requireRole("teacher"), getQuestionById);
 questionBanksRouter.patch(
   "/questions/:questionId",
   requireAuth,
+  requireRole("teacher"),
   updateQuestion,
 );
-questionBanksRouter.get("/:id/questions", requireAuth, listQuestions);
-questionBanksRouter.get("/:id", requireAuth, getById);
-questionBanksRouter.patch("/:id", requireAuth, update);
-questionBanksRouter.delete("/:id", requireAuth, remove);
+questionBanksRouter.get("/:id/questions", requireAuth, requireRole("teacher"), listQuestions);
+questionBanksRouter.get("/:id", requireAuth, requireRole("teacher"), getById);
+questionBanksRouter.patch("/:id", requireAuth, requireRole("teacher"), update);
+questionBanksRouter.delete("/:id", requireAuth, requireRole("teacher"), remove);
 
 export default questionBanksRouter;

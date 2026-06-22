@@ -1,9 +1,12 @@
 import supabase, { supabaseAdmin } from "../../config/supabase.js";
 import { createUserModel, userColumns } from "../../models/user.model.js";
+import { createUserRoleModel } from "../../models/user-role.model.js";
 
 const db = supabaseAdmin || supabase;
 const userModel = createUserModel(db);
+const userRoleModel = createUserRoleModel(db);
 const usernamePattern = /^[a-zA-Z0-9_]+$/;
+const switchableRoles = new Set(["learner", "teacher"]);
 
 function serviceError(message, statusCode, fields) {
   const error = new Error(message);
@@ -111,5 +114,33 @@ export async function updateCurrentProfile(userId, body) {
   }
 
   const updatedProfile = await userModel.updateById(userId, changes);
+  return userModel.toPublic(updatedProfile);
+}
+
+export async function switchCurrentRole(userId, body = {}) {
+  const targetRole = String(body.role ?? "").trim().toLowerCase();
+
+  if (!switchableRoles.has(targetRole)) {
+    throw serviceError("Role must be either learner or teacher.", 400, {
+      role: "Role must be either learner or teacher.",
+    });
+  }
+
+  const existingProfile = await userModel.findById(userId);
+
+  if (!existingProfile) {
+    throw serviceError("Account profile was not found.", 404);
+  }
+
+  if (existingProfile[userColumns.accountStatus] !== "active") {
+    throw serviceError("This account cannot switch role right now.", 403);
+  }
+
+  await userRoleModel.ensure(userId, targetRole);
+
+  const updatedProfile = await userModel.updateById(userId, {
+    [userColumns.activeRole]: targetRole,
+  });
+
   return userModel.toPublic(updatedProfile);
 }

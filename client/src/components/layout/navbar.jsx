@@ -8,11 +8,21 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { authService } from "@/services/auth.service";
+import { profileService } from "@/services/profile.service";
+
+const ROLE_HOME = {
+  teacher: "/teacher/dashboard",
+  learner: "/learner/dashboard",
+};
 
 export function Navbar() {
   const router = useRouter();
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, role, refreshProfile } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
+
+  const targetRole =
+    role === "learner" ? "teacher" : role === "teacher" ? "learner" : null;
 
   async function handleLogout() {
     setIsLoggingOut(true);
@@ -25,6 +35,23 @@ export function Navbar() {
       router.replace("/login");
       router.refresh();
       setIsLoggingOut(false);
+    }
+  }
+
+  async function handleSwitchRole() {
+    if (!targetRole) return;
+
+    setIsSwitchingRole(true);
+
+    try {
+      await profileService.switchRole(targetRole);
+      await refreshProfile();
+      router.replace(ROLE_HOME[targetRole]);
+      router.refresh();
+    } catch (error) {
+      console.error("Role switch failed", error);
+    } finally {
+      setIsSwitchingRole(false);
     }
   }
 
@@ -45,6 +72,18 @@ export function Navbar() {
 
           {!loading && isAuthenticated ? (
             <>
+              {targetRole ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSwitchRole}
+                  disabled={isSwitchingRole || isLoggingOut}
+                >
+                  {isSwitchingRole
+                    ? "Switching..."
+                    : `Switch to ${targetRole === "teacher" ? "Teacher" : "Learner"}`}
+                </Button>
+              ) : null}
               <Button asChild variant="ghost">
                 <Link href="/profile">
                   <User data-icon="inline-start" />
