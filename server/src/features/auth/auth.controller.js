@@ -1,19 +1,20 @@
-import { getCurrentProfile } from "./auth.service.js";
-
-function sendError(res, error) {
-  const statusCode = error.statusCode || error.status || 500;
-
-  return res.status(statusCode).json({
-    message: error.message || "Authentication request failed.",
-    fields: error.fields,
-  });
-}
+import { getCurrentProfile, updateCurrentProfile } from "./auth.service.js";
+import { ok, fail } from "../../utils/api-response.js";
 
 export async function me(req, res) {
   try {
     const profile = await getCurrentProfile(req.user.id);
-    return res.status(200).json(profile);
+    return ok(res, profile);
   } catch (error) {
-    return sendError(res, error);
+    return fail(res, error, error.statusCode || error.status || 500);
+  }
+}
+
+export async function updateMe(req, res) {
+  try {
+    const profile = await updateCurrentProfile(req.user.id, req.body);
+    return ok(res, profile);
+  } catch (error) {
+    return fail(res, error, error.statusCode || error.status || 500);
   }
 }

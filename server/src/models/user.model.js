@@ -84,6 +84,18 @@ export function createUserModel(db) {
       return data;
     },
 
+    async updateById(userId, changes) {
+      const { data, error } = await db
+        .from(tableName)
+        .update(changes)
+        .eq(userColumns.userId, userId)
+        .select("*")
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
     async create(payload) {
       const { data, error } = await db
         .from(tableName)
