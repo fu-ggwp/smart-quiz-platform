@@ -32,12 +32,7 @@ questionBanksRouter.get(
   requireRole("teacher"),
   listReadyQuestions,
 );
-questionBanksRouter.patch(
-  "/questions/:questionId",
-  requireAuth,
-  requireRole("teacher"),
-  updateQuestion,
-);
+
 questionBanksRouter.get("/:id/questions", requireAuth, requireRole("teacher"), listQuestions);
 questionBanksRouter.get("/:id", requireAuth, requireRole("teacher"), getById);
 questionBanksRouter.patch("/:id", requireAuth, requireRole("teacher"), update);
