@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, CheckSquare, Home, Menu, RotateCw, Settings, Star } from "lucide-react";
+import { AlertTriangle, CheckSquare, Menu, Minus, Plus, Star } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -36,6 +36,8 @@ export default function TakeExamPage() {
   const [warning, setWarning] = useState("");
   const [needsReturn, setNeedsReturn] = useState(false);
   const [submitted, setSubmitted] = useState(null);
+  const [fontScale, setFontScale] = useState(1);
+  const [flaggedQuestions, setFlaggedQuestions] = useState({});
 
   const startedRef = useRef(false);
   const eventAtRef = useRef({});
@@ -241,6 +243,17 @@ export default function TakeExamPage() {
     submitAttempt(false);
   }
 
+  function changeFontScale(delta) {
+    setFontScale((current) => Math.min(Math.max(Number((current + delta).toFixed(2)), 0.85), 1.35));
+  }
+
+  function toggleFlag(questionId) {
+    setFlaggedQuestions((current) => ({
+      ...current,
+      [questionId]: !current[questionId],
+    }));
+  }
+
   if (loading) {
     return <main className="fixed inset-0 z-50 grid place-items-center bg-[#f2f2f2] text-sm text-slate-600">Loading exam...</main>;
   }
@@ -279,17 +292,31 @@ export default function TakeExamPage() {
       <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm">
         <div className="flex items-center gap-4 text-slate-600">
           <Menu className="size-5" />
-          <span className="text-sm font-semibold">FPT Education</span>
+          <span className="text-sm font-semibold">Smart Quiz Platform</span>
         </div>
-        <div className="flex items-center gap-4 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-slate-500">
           <span>{new Date().toLocaleTimeString()}</span>
-          <Settings className="size-4" />
-          <Home className="size-4" />
+          <button
+            className="grid size-8 place-items-center border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+            onClick={() => changeFontScale(-0.1)}
+            title="Decrease font size"
+            type="button"
+          >
+            <Minus className="size-4" />
+          </button>
+          <button
+            className="grid size-8 place-items-center border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+            onClick={() => changeFontScale(0.1)}
+            title="Increase font size"
+            type="button"
+          >
+            <Plus className="size-4" />
+          </button>
         </div>
       </header>
 
       <section className="border-b border-slate-200 bg-[#f7f7f7] px-4 py-3 text-sm font-semibold text-slate-600">
-        Kiem tra ca nhan - {examData.exam?.classes?.class_name || "Class"} - {examData.exam?.title}
+        Individual exam - {examData.exam?.classes?.class_name || "Class"} - {examData.exam?.title}
       </section>
 
       {warning ? (
@@ -301,24 +328,22 @@ export default function TakeExamPage() {
 
       <section className="grid gap-3 p-4 lg:grid-cols-[305px_1fr]">
         <aside className="border border-slate-300 bg-white p-3 shadow-sm">
-          <h2 className="border-b border-slate-200 pb-3 text-center text-sm font-bold text-slate-600">Thong tin phien thi</h2>
+          <h2 className="border-b border-slate-200 pb-3 text-center text-sm font-bold text-slate-600">Exam information</h2>
 
           <div className="mx-1 mt-4 border border-slate-100 bg-slate-50">
-            <div className="flex items-center justify-between bg-[#f3f3fb] px-4 py-3 text-sm font-semibold text-slate-600">
-              <span>Luu y khi lam bai</span>
-              <span>^</span>
+            <div className="bg-[#f3f3fb] px-4 py-3 text-sm font-semibold text-slate-600">
+              Exam notes
             </div>
             <ul className="space-y-1 px-8 py-4 text-xs leading-5 text-slate-600">
-              <li>Thi sinh chu y thoi gian lam bai</li>
-              <li>Tien trinh se duoc luu tu dong</li>
-              <li>Khong roi khoi man hinh bai thi</li>
-              <li>Lien he can bo coi thi neu co su co</li>
+              <li>Watch the remaining time carefully.</li>
+              <li>Your answers are saved automatically.</li>
+              <li>Stay on the exam screen.</li>
+              <li>Contact the teacher if you have a problem.</li>
             </ul>
           </div>
 
-          <div className="mx-1 my-4 h-3 border-l-4 border-blue-700 bg-slate-100" />
           <div className="mx-1 border-t border-slate-200 pt-4">
-            <p className="text-xs text-slate-500">Thoi gian con lai</p>
+            <p className="text-xs text-slate-500">Time remaining</p>
             <p className="mt-1 text-base font-bold text-[#53608a]">{formatTime(remainingSeconds)}</p>
           </div>
 
@@ -327,12 +352,13 @@ export default function TakeExamPage() {
               {questions.map((question, index) => {
                 const answered = (selectedAnswers[question.exam_question_id] ?? []).length > 0;
                 const active = index === activeIndex;
+                const flagged = Boolean(flaggedQuestions[question.exam_question_id]);
                 return (
                   <button
                     key={question.exam_question_id}
                     type="button"
                     onClick={() => setActiveIndex(index)}
-                    className={`h-8 border text-sm font-bold ${active ? "border-blue-700 bg-blue-600 text-white" : answered ? "border-blue-300 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600"}`}
+                    className={`h-8 border text-sm font-bold ${active ? "border-blue-700 bg-blue-600 text-white" : flagged ? "border-yellow-500 bg-yellow-100 text-yellow-800" : answered ? "border-blue-300 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600"}`}
                   >
                     {index + 1}
                   </button>
@@ -342,27 +368,31 @@ export default function TakeExamPage() {
 
             <Button className="h-8 w-full rounded-sm border-slate-400 bg-white text-slate-700 hover:bg-slate-50" variant="outline" onClick={handleSubmit}>
               <CheckSquare className="size-4" />
-              Nop bai
+              Submit
             </Button>
           </div>
         </aside>
 
         <section className="min-h-[398px] border border-slate-300 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-            <h1 className="text-sm font-bold text-[#53608a]">CAU HOI {activeIndex + 1} (SINGLECHOICE)</h1>
-            <button className="flex h-8 items-center gap-1 border border-yellow-200 px-3 text-xs font-semibold text-yellow-600" type="button">
+            <h1 className="text-sm font-bold text-[#53608a]">QUESTION {activeIndex + 1} (SINGLE CHOICE)</h1>
+            <button
+              className={`flex h-8 items-center gap-1 border px-3 text-xs font-semibold ${flaggedQuestions[activeQuestion?.exam_question_id] ? "border-yellow-500 bg-yellow-100 text-yellow-800" : "border-yellow-200 text-yellow-600"}`}
+              onClick={() => activeQuestion && toggleFlag(activeQuestion.exam_question_id)}
+              type="button"
+            >
               <Star className="size-4" />
-              Danh dau
+              Flag
             </button>
           </div>
 
           {activeQuestion ? (
             <div>
               <div className="min-h-[210px] border-b border-slate-200 px-6 py-9">
-                <p className="max-w-4xl text-base font-semibold leading-7 text-slate-800">{activeQuestion.question_text}</p>
+                <p className="max-w-4xl font-semibold leading-7 text-slate-800" style={{ fontSize: `${fontScale}rem` }}>{activeQuestion.question_text}</p>
               </div>
 
-              <div className="space-y-4 px-5 py-5">
+              <div className="space-y-4 px-5 py-5" style={{ fontSize: `${fontScale}rem` }}>
                 {activeOptions.map((option, index) => {
                   const checked = selectedAnswers[activeQuestion.exam_question_id]?.[0] === option.index;
                   return (
@@ -387,9 +417,8 @@ export default function TakeExamPage() {
         </section>
       </section>
 
-      <footer className="fixed bottom-0 left-0 right-0 pointer-events-none flex items-end justify-between px-0 text-xs text-slate-500">
-        <div className="bg-orange-300 px-6 py-3 text-2xl font-bold text-white">4. Take an exam</div>
-        <div className="pb-2 pr-4">Answered {answeredCount}/{questions.length}</div>
+      <footer className="pointer-events-none fixed bottom-0 right-0 px-4 pb-2 text-xs text-slate-500">
+        Answered {answeredCount}/{questions.length}
       </footer>
 
       {needsReturn ? (
@@ -407,14 +436,6 @@ export default function TakeExamPage() {
         </div>
       ) : null}
 
-      <button
-        className="fixed bottom-16 right-5 grid size-9 place-items-center border border-slate-300 bg-white text-slate-500 shadow-sm"
-        onClick={returnToExam}
-        title="Restore fullscreen"
-        type="button"
-      >
-        <RotateCw className="size-4" />
-      </button>
     </main>
   );
 }
