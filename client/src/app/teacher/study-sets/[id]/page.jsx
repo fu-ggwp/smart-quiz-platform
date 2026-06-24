@@ -242,12 +242,6 @@ export default function TeacherStudySetDetailPage() {
               <span className="text-xs font-semibold bg-primary/10 text-primary px-2.5 py-1 rounded-full capitalize">
                 {studySet.visibility?.replace("_", " ")}
               </span>
-              {studySet.subject && (
-                <span className="text-xs font-semibold bg-muted text-muted-foreground px-2.5 py-1 rounded-full flex items-center gap-1">
-                  <BookOpen size={12} />
-                  {studySet.subject}
-                </span>
-              )}
               {studySet.topic && (
                 <span className="text-xs font-semibold bg-muted text-muted-foreground px-2.5 py-1 rounded-full flex items-center gap-1">
                   <Layers size={12} />
