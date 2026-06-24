@@ -34,7 +34,6 @@ function matchesQuery(studySet, query) {
   return [
     studySet.title,
     studySet.description,
-    studySet.subject,
     studySet.topic,
     studySet.teacher_name,
     studySet.ownerName,
@@ -83,7 +82,7 @@ export function PublicStudySets({ limit, showSearch = false }) {
           <Input
             aria-label="Search public study sets"
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by title, subject, topic, or teacher"
+            placeholder="Search by title, topic, or teacher"
             value={query}
           />
         </div>
@@ -126,10 +125,7 @@ function StudySetCard({ studySet }) {
       <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase text-muted-foreground">
-              {studySet.subject || "General"}
-            </p>
-            <h3 className="mt-1 line-clamp-2 text-lg font-bold text-foreground">
+            <h3 className="line-clamp-2 text-lg font-bold text-foreground">
               {studySet.title || "Untitled study set"}
             </h3>
           </div>

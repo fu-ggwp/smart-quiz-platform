@@ -314,10 +314,7 @@ function StudySetCard({ studySet }) {
         <div className="flex flex-col gap-3">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase text-muted-foreground">
-                {studySet.subject || "General"}
-              </p>
-              <h3 className="mt-1 line-clamp-2 text-lg font-bold text-foreground">
+              <h3 className="line-clamp-2 text-lg font-bold text-foreground">
                 {studySet.title || "Untitled study set"}
               </h3>
             </div>

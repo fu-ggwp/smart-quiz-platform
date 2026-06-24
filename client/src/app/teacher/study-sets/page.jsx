@@ -362,7 +362,7 @@ function FilterBar({
               <Input
                 className="pl-8"
                 onChange={(event) => onQueryChange(event.target.value)}
-                placeholder="Title, subject, topic, owner"
+                placeholder="Title, topic, owner"
                 value={query}
               />
             </div>
@@ -450,7 +450,7 @@ function StudySetsTable({ studySets, onAssignClick, assignLoadingId }) {
                   <td className="px-4 py-3">
                     <p className="font-bold text-foreground hover:text-primary transition-colors">{studySet.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {studySet.subject || "No subject"} - {studySet.topic || "No topic"}
+                      {studySet.topic || "No topic"}
                     </p>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{getSourceName(studySet)}</td>

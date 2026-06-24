@@ -21,7 +21,6 @@ export default function EditStudySetPage() {
   // --- 1. STATE FOR STUDY SET METADATA ---
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
   const [visibility, setVisibility] = useState("private");
   const [questionBankId, setQuestionBankId] = useState(null);
@@ -61,7 +60,6 @@ export default function EditStudySetPage() {
         if (data) {
           setTitle(data.title || "");
           setDescription(data.description || "");
-          setSubject(data.subject || "");
           setTopic(data.topic || "");
           setVisibility(data.visibility || "private");
           setQuestionBankId(data.source_question_bank_id || null);
@@ -396,7 +394,7 @@ export default function EditStudySetPage() {
       await axiosClient.patch(`/api/study-sets/${id}`, {
         title,
         description,
-        subject: subject || null,
+        subject: null,
         topic: topic || null,
         visibility,
         classId: selectedClassIds,
@@ -497,14 +495,7 @@ export default function EditStudySetPage() {
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-foreground">Subject</label>
-                <Input
-                  placeholder="e.g. Physics, History"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                />
-              </div>
+
 
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-foreground">General Topic</label>
