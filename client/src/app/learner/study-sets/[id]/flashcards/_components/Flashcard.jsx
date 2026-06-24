@@ -45,7 +45,7 @@ export default function Flashcard({
       title="Click card to flip"
     >
       <div 
-        className={`w-full h-full rounded-3xl border border-border bg-card shadow-lg relative [transform-style:preserve-3d] ${
+        className={`w-full h-full rounded-3xl border border-border bg-card relative [transform-style:preserve-3d] ${
           transitionEnabled ? "transition-transform duration-500" : ""
         }`}
         style={{ transform: `rotateX(${rotation}deg)` }}

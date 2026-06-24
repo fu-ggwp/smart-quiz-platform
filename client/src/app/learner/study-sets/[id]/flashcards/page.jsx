@@ -139,7 +139,7 @@ export default function LearnerFlashcardsPage() {
         handlePrev();
       } else if (e.key === "ArrowRight") {
         handleNext();
-      } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      } else if (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === " " || e.key === "Spacebar") {
         e.preventDefault(); // Ngăn trình duyệt cuộn trang ngoài ý muốn
         setIsFlipped((prev) => !prev);
       }
