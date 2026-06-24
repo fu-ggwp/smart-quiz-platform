@@ -20,9 +20,15 @@ import {
   findMemberByClassAndLearner,
   reactivateClassMember,
   getUserById,
+  getClassWithTeacher,
+  getActiveMembership,
+  getAssignmentsByClass,
+  getLearnerAttemptsForStudySets,
 } from "./classes.dao.js";
 import { ClassJoinPolicy } from "../../models/class.model.js";
 import { JoinRequestStatus, ClassMemberStatus } from "../../models/join-request.model.js";
+import { StudySetVisibility } from "../../models/study-set.model.js";
+import { PracticeAttemptStatus } from "../../models/practice-attempt.model.js";
 import { notifyJoinRequestResolved } from "../../utils/notification.service.js";
 import { logger } from "../../utils/logger.js";
 
@@ -351,4 +357,141 @@ export async function joinClass(learnerId, { classCode, invitationToken }) {
   });
   if (error) throw new Error(error.message);
   return { joined: false, class: cls, joinRequest: data };
+}
+
+// Study sets in these visibilities are filtered out of a learner's assigned
+// list even if assigned (BR-23 — hidden/archived are not learner-accessible).
+const HIDDEN_VISIBILITIES = new Set([
+  StudySetVisibility.HIDDEN,
+  StudySetVisibility.ARCHIVED,
+]);
+
+/**
+ * Derive a learner's progress on one study set from their practice attempts.
+ *   status:   not_started | in_progress | completed
+ *   accuracy: best submitted accuracy as a 0–100 int (null if never submitted)
+ *   attempts: total attempt count
+ */
+function deriveProgress(attempts) {
+  if (!attempts || attempts.length === 0) {
+    return { status: "not_started", accuracy: null, attempts: 0 };
+  }
+
+  const submitted = attempts.filter(
+    (a) => a.status === PracticeAttemptStatus.SUBMITTED && a.max_score > 0
+  );
+
+  const accuracy =
+    submitted.length > 0
+      ? Math.round(Math.max(...submitted.map((a) => (a.total_score / a.max_score) * 100)))
+      : null;
+
+  const status =
+    submitted.length > 0
+      ? "completed"
+      : attempts.some((a) => a.status === PracticeAttemptStatus.IN_PROGRESS)
+        ? "in_progress"
+        : "not_started";
+
+  return { status, accuracy, attempts: attempts.length };
+}
+
+/**
+ * Learner Class Detail (UC-17 step 6 / §3.3.4): the class header plus the
+ * study sets ("assigned activities") visible to this learner, each annotated
+ * with the learner's own progress.
+ *
+ * Access (BR-12 / BR-22): the requester must be an ACTIVE member of the class,
+ * otherwise 403 (MSG11). A missing or soft-deleted class → 404. This use case
+ * is read-only — no membership data is changed (UC-17 POST-3).
+ */
+export async function getLearnerClassDetail(classId, learnerId) {
+  const { data: cls, error: classError } = await getClassWithTeacher(classId);
+  if (classError) throw new Error(classError.message);
+  if (!cls) {
+    const err = new Error("Class not found.");
+    err.status = 404;
+    throw err;
+  }
+
+  const { data: membership, error: memberError } = await getActiveMembership(classId, learnerId);
+  if (memberError) throw new Error(memberError.message);
+  if (!membership) {
+    const err = new Error("You do not have permission to access this class.");
+    err.status = 403;
+    throw err;
+  }
+
+  // Active member count for the class header (active-only, like the list views).
+  const { data: activeRows, error: countError } = await getActiveMemberCounts([classId]);
+  if (countError) throw new Error(countError.message);
+  const memberCount = tallyByClassId(activeRows)[classId] ?? 0;
+
+  // Assigned study sets, then filter to what the learner may actually open.
+  const { data: assignments, error: assignError } = await getAssignmentsByClass(classId);
+  if (assignError) throw new Error(assignError.message);
+
+  const now = Date.now();
+  const visible = (assignments ?? []).filter((row) => {
+    const set = row.study_set;
+    if (!set) return false;                                         // study set missing
+    if (set.deleted_at) return false;                               // soft-deleted (BR-23)
+    if (set.is_admin_hidden) return false;                          // admin-hidden (MSG34)
+    if (HIDDEN_VISIBILITIES.has(set.visibility)) return false;      // hidden/archived
+    if (row.release_at && new Date(row.release_at).getTime() > now) return false; // not yet released
+    return true;
+  });
+
+  // Pull the learner's attempts once, bucket by study set, then annotate.
+  const studySetIds = visible.map((row) => row.study_set.study_set_id);
+  const { data: attempts, error: attemptError } = await getLearnerAttemptsForStudySets(
+    learnerId,
+    studySetIds
+  );
+  if (attemptError) throw new Error(attemptError.message);
+
+  const attemptsBySet = {};
+  for (const a of attempts ?? []) {
+    (attemptsBySet[a.study_set_id] ??= []).push(a);
+  }
+
+  const assigned_study_sets = visible.map((row) => {
+    const set = row.study_set;
+    return {
+      assignment_id: row.assignment_id,
+      study_set_id: set.study_set_id,
+      title: set.title,
+      description: set.description,
+      subject: set.subject,
+      topic: set.topic,
+      practice_mode: set.practice_mode,
+      question_count: set.question_count,
+      tags: set.tags ?? [],
+      release_at: row.release_at,
+      due_at: row.due_at,
+      instructions: row.instructions,
+      progress: deriveProgress(attemptsBySet[set.study_set_id]),
+    };
+  });
+
+  return {
+    class: {
+      class_id: cls.class_id,
+      class_name: cls.class_name,
+      subject: cls.subject,
+      grade_level: cls.grade_level,
+      academic_year: cls.academic_year,
+      class_code: cls.class_code,
+      status: cls.status,
+      member_count: memberCount,
+      teacher: cls.teacher
+        ? {
+            full_name: cls.teacher.full_name,
+            username: cls.teacher.username,
+            avatar_url: cls.teacher.avatar_url,
+          }
+        : null,
+    },
+    assigned_study_sets,
+  };
 }

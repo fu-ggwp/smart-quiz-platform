@@ -1,6 +1,8 @@
 import { supabaseAdmin } from "../../config/supabase.js";
 import { CLASS_TABLE } from "../../models/class.model.js";
 import { CLASS_MEMBER_TABLE, JOIN_REQUEST_TABLE } from "../../models/join-request.model.js";
+import { STUDY_SET_ASSIGNMENT_TABLE } from "../../models/study-set-assignment.model.js";
+import { PRACTICE_ATTEMPT_TABLE } from "../../models/practice-attempt.model.js";
 
 /**
  * Get all classes created by a teacher.
@@ -300,6 +302,74 @@ export async function reactivateClassMember(classMemberId) {
     .eq("class_member_id", classMemberId)
     .select()
     .single();
+
+  return { data, error };
+}
+
+/**
+ * Get a single class by ID with its owning teacher's public info (not deleted).
+ * Backs the Learner Class Detail header (UC-17 step 6 / §3.3.4).
+ */
+export async function getClassWithTeacher(classId) {
+  const { data, error } = await supabaseAdmin
+    .from(CLASS_TABLE)
+    .select("*, teacher:users!teacher_id(user_id, full_name, username, avatar_url)")
+    .eq("class_id", classId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  return { data, error };
+}
+
+/**
+ * Find an ACTIVE membership row for a (class, learner) pair.
+ * Drives the learner-side access gate (BR-12 / BR-22): a removed or
+ * non-member learner must not read class-only assigned content.
+ */
+export async function getActiveMembership(classId, learnerId) {
+  const { data, error } = await supabaseAdmin
+    .from(CLASS_MEMBER_TABLE)
+    .select("class_member_id, status")
+    .eq("class_id", classId)
+    .eq("learner_id", learnerId)
+    .eq("status", "active")
+    .maybeSingle();
+
+  return { data, error };
+}
+
+/**
+ * Get all study-set assignments for a class, each joined to its study set.
+ * Visibility / release-window filtering is applied in the service layer.
+ */
+export async function getAssignmentsByClass(classId) {
+  const { data, error } = await supabaseAdmin
+    .from(STUDY_SET_ASSIGNMENT_TABLE)
+    .select(`
+      assignment_id, study_set_id, class_id, assigned_by, release_at, due_at, instructions, created_at,
+      study_set:study_sets!study_set_id(
+        study_set_id, title, description, subject, topic, visibility,
+        is_admin_hidden, practice_mode, question_count, tags, deleted_at
+      )
+    `)
+    .eq("class_id", classId)
+    .order("created_at", { ascending: false });
+
+  return { data, error };
+}
+
+/**
+ * The learner's practice attempts across a set of study sets — used to derive
+ * per-assignment progress (status + accuracy) on the class detail screen.
+ */
+export async function getLearnerAttemptsForStudySets(learnerId, studySetIds) {
+  if (!studySetIds || studySetIds.length === 0) return { data: [], error: null };
+
+  const { data, error } = await supabaseAdmin
+    .from(PRACTICE_ATTEMPT_TABLE)
+    .select("study_set_id, status, total_score, max_score, submitted_at")
+    .eq("learner_id", learnerId)
+    .in("study_set_id", studySetIds);
 
   return { data, error };
 }

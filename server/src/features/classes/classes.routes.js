@@ -9,6 +9,7 @@ import {
   joinClass,
   getJoinedClasses,
   removeMember,
+  getLearnerClassDetail,
 } from "./classes.controller.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requireRole } from "../../middlewares/role.middleware.js";
@@ -24,6 +25,9 @@ classesRouter.get("/joined", requireAuth, requireRole("learner"), getJoinedClass
 
 // Learner joins a class — must be before /:id
 classesRouter.post("/join", requireAuth, requireRole("learner"), joinClass);
+
+// Learner: class detail with assigned activities (UC-17 / §3.3.4)
+classesRouter.get("/:id/assigned-study-sets", requireAuth, requireRole("learner"), getLearnerClassDetail);
 
 // Join request resolve — must be before /:id
 classesRouter.patch("/join-requests/:requestId", requireAuth, requireRole("teacher"), resolveJoinRequest);
