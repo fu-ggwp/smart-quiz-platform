@@ -37,6 +37,15 @@ const STATUS_LABELS = {
   completed: "Completed",
 };
 
+const EXAM_STATUS_TONE = {
+  active: "bg-emerald-50 text-emerald-700",
+  closed: "bg-neutral-100 text-neutral-500",
+};
+
+function formatDateTime(value) {
+  return value ? new Date(value).toLocaleString() : null;
+}
+
 function ProgressBar({ progress }) {
   const pct = progress?.accuracy ?? 0;
   return (
@@ -55,6 +64,14 @@ function ProgressBar({ progress }) {
   );
 }
 
+function EmptyState({ children }) {
+  return (
+    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-neutral-200 py-12 text-center">
+      <p className="text-neutral-500">{children}</p>
+    </div>
+  );
+}
+
 export default function LearnerClassDetailPage() {
   const { id } = useParams();
   const { detail, loading, error, reload } = useLearnerClassDetail(id);
@@ -65,6 +82,7 @@ export default function LearnerClassDetailPage() {
 
   const cls = detail?.class;
   const allActivities = detail?.assigned_study_sets ?? [];
+  const exams = detail?.exams ?? [];
 
   const activities = useMemo(() => {
     const keyword = applied.keyword.trim().toLowerCase();
@@ -100,10 +118,8 @@ export default function LearnerClassDetailPage() {
           ← Back to Classes
         </Link>
 
-        {/* Loading */}
         {loading && <p className="text-sm text-neutral-400">Loading class details...</p>}
 
-        {/* Error (MSG13 / MSG11 / 404) */}
         {!loading && error && (
           <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
             {error}{" "}
@@ -151,10 +167,12 @@ export default function LearnerClassDetailPage() {
               </dl>
             </header>
 
-            {/* Assigned activities */}
+            {/* ── Assigned study sets ───────────────────────────── */}
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold">Assigned study sets</h2>
-              <p className="text-sm text-neutral-400">{activities.length} of {allActivities.length}</p>
+              <p className="text-sm text-neutral-400">
+                {activities.length} of {allActivities.length}
+              </p>
             </div>
 
             {/* Filter bar */}
@@ -210,13 +228,10 @@ export default function LearnerClassDetailPage() {
               </div>
             </div>
 
-            {/* Empty state (MSG45) */}
             {allActivities.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 py-16 text-center">
-                <p className="text-neutral-500">No study sets have been assigned to this class yet.</p>
-              </div>
+              <EmptyState>No study sets assigned yet.</EmptyState>
             ) : activities.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 py-16 text-center">
+              <div className="flex flex-col items-center gap-2 py-12 text-center">
                 <p className="text-neutral-500">No matching data was found.</p>
                 <button onClick={resetFilters} className="text-sm underline">
                   Clear filters
@@ -253,6 +268,61 @@ export default function LearnerClassDetailPage() {
 
                       <span className="mt-4 inline-block text-sm font-medium text-neutral-700">
                         Open study set →
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* ── Assigned exams ────────────────────────────────── */}
+            <div className="mb-4 mt-10 flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Available exams</h2>
+              <p className="text-sm text-neutral-400">{exams.length}</p>
+            </div>
+
+            {exams.length === 0 ? (
+              <EmptyState>No exams assigned yet.</EmptyState>
+            ) : (
+              <ul className="grid gap-4 sm:grid-cols-2">
+                {exams.map((ex) => (
+                  <li key={ex.exam_session_id}>
+                    <Link
+                      href="/learner/exams"
+                      className="block h-full rounded-xl border border-neutral-200 p-5 transition hover:border-neutral-400"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="text-lg font-semibold leading-tight">{ex.title}</h3>
+                        <span
+                          className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
+                            EXAM_STATUS_TONE[ex.status] ?? "bg-neutral-100 text-neutral-500"
+                          }`}
+                        >
+                          {ex.status === "active" ? "Open" : ex.status}
+                        </span>
+                      </div>
+
+                      <dl className="mt-3 grid grid-cols-2 gap-2 text-xs text-neutral-500">
+                        <div>
+                          <dt className="text-neutral-400">Start</dt>
+                          <dd>{formatDateTime(ex.start_at) ?? "—"}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-neutral-400">Duration</dt>
+                          <dd>{ex.duration_minutes} min</dd>
+                        </div>
+                        <div>
+                          <dt className="text-neutral-400">Questions</dt>
+                          <dd>{ex.question_count}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-neutral-400">Attempts</dt>
+                          <dd>{ex.attempt_limit}</dd>
+                        </div>
+                      </dl>
+
+                      <span className="mt-4 inline-block text-sm font-medium text-neutral-700">
+                        Go to exam →
                       </span>
                     </Link>
                   </li>

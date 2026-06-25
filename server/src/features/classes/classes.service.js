@@ -24,6 +24,7 @@ import {
   getActiveMembership,
   getAssignmentsByClass,
   getLearnerAttemptsForStudySets,
+  getPublishedExamsByClass,
 } from "./classes.dao.js";
 import { ClassJoinPolicy } from "../../models/class.model.js";
 import { JoinRequestStatus, ClassMemberStatus } from "../../models/join-request.model.js";
@@ -474,6 +475,23 @@ export async function getLearnerClassDetail(classId, learnerId) {
     };
   });
 
+  // Assigned exams (published exam sessions for this class, UC-24).
+  const { data: examRows, error: examError } = await getPublishedExamsByClass(classId);
+  if (examError) throw new Error(examError.message);
+
+  const exams = (examRows ?? []).map((e) => ({
+    exam_session_id: e.exam_session_id,
+    title: e.title,
+    description: e.description,
+    status: e.status,
+    start_at: e.start_at,
+    end_at: e.end_at,
+    duration_minutes: e.duration_minutes,
+    attempt_limit: e.attempt_limit,
+    question_count: e.question_count,
+    result_visibility: e.result_visibility,
+  }));
+
   return {
     class: {
       class_id: cls.class_id,
@@ -493,5 +511,6 @@ export async function getLearnerClassDetail(classId, learnerId) {
         : null,
     },
     assigned_study_sets,
+    exams,
   };
 }

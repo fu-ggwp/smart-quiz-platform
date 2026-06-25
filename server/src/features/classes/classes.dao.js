@@ -3,6 +3,7 @@ import { CLASS_TABLE } from "../../models/class.model.js";
 import { CLASS_MEMBER_TABLE, JOIN_REQUEST_TABLE } from "../../models/join-request.model.js";
 import { STUDY_SET_ASSIGNMENT_TABLE } from "../../models/study-set-assignment.model.js";
 import { PRACTICE_ATTEMPT_TABLE } from "../../models/practice-attempt.model.js";
+import { EXAM_SESSION_TABLE } from "../../models/exam.model.js";
 
 /**
  * Get all classes created by a teacher.
@@ -370,6 +371,26 @@ export async function getLearnerAttemptsForStudySets(learnerId, studySetIds) {
     .select("study_set_id, status, total_score, max_score, submitted_at")
     .eq("learner_id", learnerId)
     .in("study_set_id", studySetIds);
+
+  return { data, error };
+}
+
+/**
+ * Published exam sessions assigned to a class, for the Learner Class Detail
+ * screen (UC-24). Only non-draft / non-archived / non-deleted sessions are
+ * visible to learners; ordered by start time.
+ */
+export async function getPublishedExamsByClass(classId) {
+  const { data, error } = await supabaseAdmin
+    .from(EXAM_SESSION_TABLE)
+    .select(
+      "exam_session_id, class_id, title, description, status, start_at, end_at, " +
+        "duration_minutes, attempt_limit, question_count, result_visibility, created_at"
+    )
+    .eq("class_id", classId)
+    .in("status", ["active", "closed"])
+    .is("deleted_at", null)
+    .order("start_at", { ascending: true, nullsFirst: false });
 
   return { data, error };
 }
