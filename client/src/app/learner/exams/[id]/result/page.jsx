@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, CheckCircle2, Circle, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronDown, Circle, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -21,20 +21,6 @@ function formatDateTime(value) {
 
 function optionLabel(index) {
   return String.fromCharCode(65 + index);
-}
-
-function answerText(question, indexes = []) {
-  if (!indexes.length) return "No answer";
-  const byIndex = new Map((question.answer_options ?? []).map((option, position) => [
-    Number(option.index),
-    { ...option, position },
-  ]));
-  return indexes
-    .map((index) => {
-      const option = byIndex.get(Number(index));
-      return option ? `${optionLabel(option.position)}. ${option.text}` : optionLabel(Number(index));
-    })
-    .join(", ");
 }
 
 function ResultSummary({ result }) {
@@ -75,9 +61,6 @@ function ResultSummary({ result }) {
 }
 
 function QuestionReview({ question, index }) {
-  const selectedText = answerText(question, question.selected_exam_option_indexes);
-  const correctText = answerText(question, question.correct_option_indexes);
-
   return (
     <article className="rounded-md border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-col gap-2 border-b border-border pb-4 sm:flex-row sm:items-start sm:justify-between">
@@ -116,15 +99,16 @@ function QuestionReview({ question, index }) {
         ))}
       </div>
 
-      <div className="mt-4 grid gap-3 border-t border-border pt-4 text-sm lg:grid-cols-2">
-        <p><span className="font-bold text-foreground">Student answer:</span> <span className="text-muted-foreground">{selectedText}</span></p>
-        <p><span className="font-bold text-foreground">Correct answer:</span> <span className="text-muted-foreground">{correctText}</span></p>
-      </div>
-
       {question.explanation ? (
-        <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          <span className="font-bold">Explanation:</span> {question.explanation}
-        </div>
+        <details className="group mt-4 rounded-md border border-amber-200 bg-amber-50 text-sm text-amber-900">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 font-bold outline-none transition hover:bg-amber-100/70 [&::-webkit-details-marker]:hidden">
+            <span>Explanation</span>
+            <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="border-t border-amber-200 px-3 py-2 leading-6">
+            {question.explanation}
+          </div>
+        </details>
       ) : null}
     </article>
   );
