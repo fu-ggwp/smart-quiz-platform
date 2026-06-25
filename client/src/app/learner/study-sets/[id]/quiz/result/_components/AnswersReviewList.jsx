@@ -1,8 +1,49 @@
 import { useState } from "react";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, Sparkles, XCircle } from "lucide-react";
+import { studySetsService } from "@/services/study-sets.service";
 
-export default function AnswersReviewList({ questions, answers }) {
+function getAiExplanationError(error) {
+  const status = error?.response?.status;
+  const message = error?.response?.data?.error;
+
+  if (status === 403) {
+    return message || "AI explanations are available for Premium accounts only.";
+  }
+
+  if (status === 503 || status === 502) {
+    return message || "AI explanation is currently unavailable. Please try again later.";
+  }
+
+  return message || "Could not generate AI explanation. Please try again.";
+}
+
+export default function AnswersReviewList({ sessionId, questions, answers }) {
   const [showOnlyWrong, setShowOnlyWrong] = useState(false);
+  const [aiExplanations, setAiExplanations] = useState({});
+
+  async function handleGenerateAiExplanation(questionId) {
+    if (!sessionId || !questionId) return;
+
+    setAiExplanations((current) => ({
+      ...current,
+      [questionId]: { status: "loading", text: "", error: "" },
+    }));
+
+    try {
+      const response = await studySetsService.generateAnswerExplanation(sessionId, questionId);
+      const aiExplanation = response?.data?.aiExplanation || response?.aiExplanation || "";
+
+      setAiExplanations((current) => ({
+        ...current,
+        [questionId]: { status: "success", text: aiExplanation, error: "" },
+      }));
+    } catch (error) {
+      setAiExplanations((current) => ({
+        ...current,
+        [questionId]: { status: "error", text: "", error: getAiExplanationError(error) },
+      }));
+    }
+  }
 
   // Lọc danh sách câu hỏi dựa theo checkbox "Chỉ hiện câu sai"
   const filteredQuestions = questions.filter(q => {
@@ -43,6 +84,8 @@ export default function AnswersReviewList({ questions, answers }) {
             const userAns = answers.find(a => a.question_id === q.question_id);
             const userSelectedOptionIds = userAns?.selected_answer_option_ids || [];
             const isCorrect = userAns ? userAns.is_correct : false;
+            const aiState = aiExplanations[q.question_id] || { status: "idle", text: "", error: "" };
+            const isAiLoading = aiState.status === "loading";
 
             return (
               <div 
@@ -138,6 +181,39 @@ export default function AnswersReviewList({ questions, answers }) {
                     </p>
                   </div>
                 )}
+
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => handleGenerateAiExplanation(q.question_id)}
+                    disabled={isAiLoading || !sessionId}
+                    className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-700 transition-colors hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isAiLoading ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Sparkles size={14} />
+                    )}
+                    <span>{isAiLoading ? "Generating..." : "AI Explanation"}</span>
+                  </button>
+
+                  {aiState.status === "error" && (
+                    <p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                      {aiState.error}
+                    </p>
+                  )}
+
+                  {aiState.status === "success" && aiState.text && (
+                    <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 space-y-1">
+                      <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider block">
+                        AI Explanation
+                      </span>
+                      <p className="text-sm text-neutral-700 leading-relaxed">
+                        {aiState.text}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })

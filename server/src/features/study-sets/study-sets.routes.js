@@ -10,30 +10,36 @@ router.get("/learner", requireAuth, requireRole("learner"), studySetsController.
 router.get("/public", studySetsController.listPublic);
 router.get("/", requireAuth, studySetsController.listAvailable);
 router.post("/", requireAuth, studySetsController.create);
-router.get("/:id", requireAuth, studySetsController.getOne);
-router.patch("/:id", requireAuth, studySetsController.update);
-router.delete("/:id", requireAuth, studySetsController.remove);
 
-router.post("/:id/sessions", requireAuth, requireRole("learner"), studySetsController.startSession);
 router.get("/sessions/mine", requireAuth, requireRole("learner"), studySetsController.listMySessions);
 router.post(
   "/sessions/:sessionId/answers",
   requireAuth,
   requireRole("learner"),
-  studySetsController.submitAnswer
+  studySetsController.submitAnswer,
 );
 router.patch(
   "/sessions/:sessionId/complete",
   requireAuth,
   requireRole("learner"),
-  studySetsController.completeSession
+  studySetsController.completeSession,
 );
 router.get(
   "/sessions/:sessionId/results",
   requireAuth,
   requireRole("learner"),
-  studySetsController.getSessionResults
+  studySetsController.getSessionResults,
+);
+router.post(
+  "/sessions/:sessionId/questions/:questionId/ai-explanation",
+  requireAuth,
+  requireRole("learner"),
+  studySetsController.generateAnswerExplanation,
 );
 
+router.post("/:id/sessions", requireAuth, requireRole("learner"), studySetsController.startSession);
+router.get("/:id", requireAuth, studySetsController.getOne);
+router.patch("/:id", requireAuth, studySetsController.update);
+router.delete("/:id", requireAuth, studySetsController.remove);
 
 export default router;

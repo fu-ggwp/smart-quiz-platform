@@ -19,6 +19,10 @@ export const studySetsService = {
     axiosClient.patch(`/api/study-sets/sessions/${sessionId}/complete`, { score }).then((r) => r.data),
   getSessionResults: (sessionId) =>
     axiosClient.get(`/api/study-sets/sessions/${sessionId}/results`).then((r) => r.data),
+  generateAnswerExplanation: (sessionId, questionId) =>
+    axiosClient
+      .post(`/api/study-sets/sessions/${sessionId}/questions/${questionId}/ai-explanation`)
+      .then((r) => r.data),
   listLearnerStudySets: () =>
     axiosClient.get("/api/study-sets/learner").then((r) => r.data),
 };

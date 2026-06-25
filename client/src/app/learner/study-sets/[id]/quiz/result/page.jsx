@@ -98,6 +98,7 @@ export default function LearnerQuizResultPage() {
 
         {/* Danh sách rà soát câu đúng/sai */}
         <AnswersReviewList 
+          sessionId={sessionId}
           questions={questions}
           answers={answers}
         />
