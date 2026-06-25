@@ -56,7 +56,9 @@ export default function LearnerStudySetsPage() {
       if (activeTab === "assigned") {
         matchesTab = set.is_assigned;
       } else if (activeTab === "started") {
-        matchesTab = set.source_type === "public-started";
+        matchesTab = set.source_type === "public-started" || (set.is_owned && set.is_started);
+      } else if (activeTab === "owned") {
+        matchesTab = set.is_owned;
       }
       return matchesQuery && matchesTab;
     });
@@ -77,6 +79,7 @@ export default function LearnerStudySetsPage() {
               { id: "all", label: "All sets" },
               { id: "assigned", label: "Assigned" },
               { id: "started", label: "Self-study" },
+              { id: "owned", label: "Owned" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -139,6 +142,8 @@ export default function LearnerStudySetsPage() {
                 ? "You don't have any study sets assigned. Join a class using a code to receive study sets."
                 : activeTab === "started"
                 ? "You haven't started any self-study sets yet. Browse public study sets to start."
+                : activeTab === "owned"
+                ? "You don't own any study sets. Switch to Teacher role to create a new study set."
                 : "You don't have any study sets available at the moment."
             }
             action={
@@ -168,6 +173,10 @@ export default function LearnerStudySetsPage() {
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-warning/10 text-warning ring-1 ring-warning/20">
                           <GraduationCap className="size-3" />
                           {set.assigned_class?.class_name}
+                        </span>
+                      ) : set.is_owned ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary ring-1 ring-primary/20">
+                          Owned
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-info/10 text-info ring-1 ring-info/20">

@@ -27,7 +27,7 @@ export const listPublic = async (req, res) => {
 
 export const getOne = async (req, res) => {
   try {
-    return ok(res, await service.getOne(req.params.id));
+    return ok(res, await service.getOne(req.params.id, req.user));
   } catch (err) {
     return fail(res, err, err.status || 404);
   }
@@ -60,7 +60,7 @@ export const remove = async (req, res) => {
 
 export const startSession = async (req, res) => {
   try {
-    return ok(res, await service.startSession(req.user.user_id || req.user.id, req.params.id, req.body.mode), 201);
+    return ok(res, await service.startSession(req.user, req.params.id, req.body.mode), 201);
   } catch (err) {
     return fail(res, err, err.status || 400);
   }

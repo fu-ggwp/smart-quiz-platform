@@ -8,6 +8,7 @@ import { USER_TABLE } from "../../models/user.model.js";
 import { STUDY_SET_ASSIGNMENT_TABLE } from "../../models/study-set-assignment.model.js";
 import { CLASS_MEMBER_TABLE } from "../../models/join-request.model.js";
 import { getPagination } from "../../utils/pagination.js";
+import { CLASS_TABLE } from "../../models/class.model.js";
 
 // Tìm theo gv sở hữu là teacher_id, hỗ trợ pagination và filters
 export async function findByTeacher(teacherId, filters = {}) {
@@ -341,29 +342,44 @@ export function deleteAssignments(studySetId) {
     .eq("study_set_id", studySetId);
 }
 
-// Active members (with contact info) of one or more classes — used to notify
-// learners after a study set is assigned. Admin client bypasses RLS so emails
-// of other users can be read server-side.
+// Lấy email thành viên lớp học đang hoạt động 
 export function getActiveClassMemberEmails(classIds) {
-  if (!classIds || classIds.length === 0) {
-    return Promise.resolve({ data: [], error: null });
-  }
-  const db = supabaseAdmin ?? supabase;
-  return db
+  return supabase
     .from(CLASS_MEMBER_TABLE)
     .select("learner:users!learner_id(email, full_name)")
     .in("class_id", classIds)
     .eq("status", "active");
 }
 
-// Class names for a set of class IDs (for the notification body).
+// Lấy danh sách tên lớp học theo ID
 export function getClassNamesByIds(classIds) {
-  if (!classIds || classIds.length === 0) {
-    return Promise.resolve({ data: [], error: null });
-  }
-  const db = supabaseAdmin ?? supabase;
-  return db
-    .from("classes")
+  return supabase
+    .from(CLASS_TABLE)
     .select("class_id, class_name")
     .in("class_id", classIds);
+}
+
+export function checkAssignmentMatch(studySetId, classIds) {
+  return supabase
+    .from(STUDY_SET_ASSIGNMENT_TABLE)
+    .select("assignment_id")
+    .eq("study_set_id", studySetId)
+    .in("class_id", classIds)
+    .limit(1);
+}
+
+export function getCorrectOptions(questionId) {
+  return supabase
+    .from(ANSWER_OPTION_TABLE)
+    .select("answer_option_id")
+    .eq("question_id", questionId)
+    .eq("is_correct", true);
+}
+
+export function getOwnedStudySetIds(teacherId) {
+  return supabase
+    .from(STUDY_SET_TABLE)
+    .select("study_set_id")
+    .eq("teacher_id", teacherId)
+    .is("deleted_at", null);
 }

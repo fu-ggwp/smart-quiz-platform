@@ -1,9 +1,274 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, AlertCircle, HelpCircle } from "lucide-react";
+import { studySetsService } from "@/services/study-sets.service";
+import { Button } from "@/components/ui/button";
+
+import QuizCard from "./_components/QuizCard";
+import QuestionMap from "./_components/QuestionMap";
+import ConfirmExitModal from "./_components/ConfirmExitModal";
+
+function shuffleArray(array) {
+  const newArr = [...array];
+  for (let i = newArr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+  }
+  return newArr;
+}
+
 export default function LearnerQuizPage() {
+  const params = useParams();
+  const router = useRouter();
+  const studySetId = params.id;
+
+  const [studySet, setStudySet] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [sessionId, setSessionId] = useState(null);
+  
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
+  const [showConfirmExit, setShowConfirmExit] = useState(false);
+
+  useEffect(() => {
+    if (!studySetId) return;
+
+    async function initializeQuiz() {
+      setLoading(true);
+      try {
+        const res = await studySetsService.getOne(studySetId);
+        const setInfo = res.data || res;
+        const originalQuestions = setInfo.questions || [];
+
+        if (originalQuestions.length === 0) {
+          setError({ status: 400, message: "No questions available for quiz mode." });
+          setLoading(false);
+          return;
+        }
+
+        setStudySet(setInfo);
+        setQuestions(shuffleArray(originalQuestions));
+
+        const sessionRes = await studySetsService.startSession(studySetId, "quiz");
+        const newSessionId = sessionRes?.data?.practice_attempt_id || sessionRes?.practice_attempt_id;
+        
+        if (newSessionId) {
+          setSessionId(newSessionId);
+        } else {
+          throw new Error("Failed to initialize quiz session.");
+        }
+        setError(null);
+      } catch (err) {
+        console.error("Failed to initialize quiz:", err);
+        const status = err.response?.status || err.status || 500;
+        const message = err.response?.data?.error || err.message;
+        setError({ status, message });
+      } finally {
+        setLoading(false);
+      }
+    }
+    initializeQuiz();
+  }, [studySetId]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (sessionId && !submitting) {
+        e.preventDefault();
+        e.returnValue = "Your quiz is in progress. Exiting will leave it incomplete.";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [sessionId, submitting]);
+
+  const handleSelectOption = async (questionId, optionId) => {
+    const question = questions.find(q => q.question_id === questionId);
+    const correctCount = (question?.answer_options || []).filter(opt => opt.is_correct).length;
+    const isMultiSelect = correctCount > 1;
+
+    let newSelections = [];
+    if (isMultiSelect) {
+      const currentSelections = Array.isArray(selectedAnswers[questionId])
+        ? selectedAnswers[questionId]
+        : selectedAnswers[questionId]
+          ? [selectedAnswers[questionId]]
+          : [];
+
+      if (currentSelections.includes(optionId)) {
+        newSelections = currentSelections.filter(id => id !== optionId);
+      } else {
+        newSelections = [...currentSelections, optionId];
+      }
+    } else {
+      newSelections = [optionId];
+    }
+
+    setSelectedAnswers(prev => ({ ...prev, [questionId]: newSelections }));
+    try {
+      await studySetsService.submitAnswer(sessionId, {
+        question_id: questionId,
+        selected_answer_option_ids: newSelections
+      });
+    } catch (err) {
+      console.error("Failed to save answer:", err);
+    }
+  };
+
+  const handleSubmitQuiz = async () => {
+    setSubmitting(true);
+    setShowConfirmSubmit(false);
+    try {
+      await studySetsService.completeSession(sessionId);
+      router.push(`/learner/study-sets/${studySetId}/quiz/result?sessionId=${sessionId}`);
+    } catch (err) {
+      console.error("Failed to submit quiz:", err);
+      alert("Failed to submit quiz. Please try again.");
+      setSubmitting(false);
+    }
+  };
+
+  const handleConfirmExit = () => {
+    setShowConfirmExit(false);
+    router.push(`/learner/study-sets/${studySetId}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-50/50 flex flex-col items-center justify-center space-y-4">
+        <div className="size-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm font-semibold text-neutral-500">Generating your quiz...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    const isNoPermission = error.status === 403 && error.message.includes("permission");
+    const isNotAvailable = error.status === 403 && error.message.includes("available");
+    const isNoQuestions = error.status === 400;
+
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-6 text-center">
+        <div className="max-w-md bg-white border border-neutral-200 rounded-3xl p-8 shadow-sm space-y-6">
+          <div className="size-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto">
+            <AlertCircle size={32} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-extrabold text-neutral-900">
+              {isNoPermission && "Access Denied"}
+              {isNotAvailable && "Quiz Unavailable"}
+              {isNoQuestions && "No Questions Available"}
+              {!isNoPermission && !isNotAvailable && !isNoQuestions && "Error Occurred"}
+            </h2>
+            <p className="text-sm text-neutral-500 leading-relaxed">
+              {error.message || "An unexpected error occurred."}
+            </p>
+          </div>
+          <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 font-semibold" onClick={() => router.push("/learner/study-sets")}>
+            Back to Study Sets
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentQuestion = questions[currentIndex];
+  const answeredCount = Object.values(selectedAnswers).filter(
+    (ans) => (Array.isArray(ans) ? ans.length > 0 : !!ans)
+  ).length;
+  const progressPercent = (answeredCount / questions.length) * 100;
+
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <section className="w-full max-w-3xl">
-        <h1 className="text-2xl font-semibold">Quiz</h1>
-      </section>
+    <main className="min-h-screen bg-neutral-50/50 text-neutral-900 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* KHU VỰC LÀM BÀI */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => setShowConfirmExit(true)} 
+              className="flex items-center gap-1.5 text-sm font-semibold text-neutral-500 hover:text-neutral-900 transition-colors"
+            >
+              <ArrowLeft size={16} />
+              <span>Exit Practice</span>
+            </button>
+            <span className="text-xs font-bold bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full border border-indigo-100/50">
+              Quiz Mode
+            </span>
+          </div>
+
+          {/* Thanh Tiến Độ */}
+          <div className="bg-white border border-neutral-100 rounded-2xl p-5 shadow-sm space-y-3">
+            <div className="flex items-center justify-between text-xs font-bold text-neutral-500">
+              <span>PROGRESS</span>
+              <span>{answeredCount} of {questions.length} answered</span>
+            </div>
+            <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-600 transition-all duration-300 rounded-full" style={{ width: `${progressPercent}%` }} ></div>
+            </div>
+          </div>
+
+          <QuizCard 
+            question={currentQuestion} 
+            questionNumber={currentIndex + 1}
+            selectedOptionIds={selectedAnswers[currentQuestion?.question_id] || []}
+            onSelectOption={(optId) => handleSelectOption(currentQuestion.question_id, optId)}
+            onPrev={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
+            onNext={() => setCurrentIndex(prev => prev + 1)}
+            disablePrev={currentIndex === 0}
+            isLast={currentIndex === questions.length - 1}
+            onSubmit={() => setShowConfirmSubmit(true)}
+          />
+        </div>
+
+        {/* BẢNG TIẾN ĐỘ VÀ ĐIỀU HƯỚNG NHANH */}
+        <div className="space-y-6">
+          <QuestionMap 
+            questions={questions}
+            currentIndex={currentIndex}
+            selectedAnswers={selectedAnswers}
+            onSelectQuestion={(idx) => setCurrentIndex(idx)}
+            onSubmit={() => setShowConfirmSubmit(true)}
+          />
+        </div>
+      </div>
+
+      {/* CONFIRM SUBMIT MODAL */}
+      {showConfirmSubmit && (
+        <div className="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-neutral-100 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center space-y-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="size-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto">
+              <HelpCircle size={32} strokeWidth={1.5} className="text-indigo-600" />
+            </div>
+            <div className="space-y-2">
+              <h4 className="text-lg font-bold text-neutral-900">Submit Practice Quiz?</h4>
+              <p className="text-sm text-neutral-500 leading-relaxed">
+                You have answered <strong>{answeredCount}</strong> out of <strong>{questions.length}</strong> questions. Are you ready to submit and calculate your grade?
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1 border-neutral-200 hover:bg-neutral-50 rounded-xl" onClick={() => setShowConfirmSubmit(false)} disabled={submitting}>
+                Cancel
+              </Button>
+              <Button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl" onClick={handleSubmitQuiz} disabled={submitting}>
+                {submitting ? "Submitting..." : "Yes, Submit"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM EXIT MODAL */}
+      <ConfirmExitModal 
+        isOpen={showConfirmExit}
+        onClose={() => setShowConfirmExit(false)}
+        onConfirm={handleConfirmExit}
+      />
     </main>
   );
 }
