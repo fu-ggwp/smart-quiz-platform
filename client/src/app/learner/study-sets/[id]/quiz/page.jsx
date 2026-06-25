@@ -29,12 +29,64 @@ export default function LearnerQuizPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [sessionId, setSessionId] = useState(null);
+  const [isAnswerChecked, setIsAnswerChecked] = useState(false);
   
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [showConfirmExit, setShowConfirmExit] = useState(false);
+
+  const handleSubmitQuiz = async () => {
+    setSubmitting(true);
+    try {
+      await studySetsService.completeSession(sessionId);
+      router.push(`/learner/study-sets/${studySetId}/quiz/result?sessionId=${sessionId}`);
+    } catch (err) {
+      console.error("Failed to submit quiz:", err);
+      alert("Failed to submit quiz. Please try again.");
+      setSubmitting(false);
+    }
+  };
+
+  const handleSelectOption = async (questionId, optionId) => {
+    if (isAnswerChecked) return;
+    const question = questions.find(q => q.question_id === questionId);
+    const correctCount = (question?.answer_options || []).filter(opt => opt.is_correct).length;
+    const isMultiSelect = correctCount > 1;
+
+    let newSelections = [];
+    if (isMultiSelect) {
+      const currentSelections = Array.isArray(selectedAnswers[questionId])
+        ? selectedAnswers[questionId]
+        : selectedAnswers[questionId]
+          ? [selectedAnswers[questionId]]
+          : [];
+
+      if (currentSelections.includes(optionId)) {
+        newSelections = currentSelections.filter(id => id !== optionId);
+      } else {
+        newSelections = [...currentSelections, optionId];
+      }
+    } else {
+      newSelections = [optionId];
+    }
+
+    setSelectedAnswers(prev => ({ ...prev, [questionId]: newSelections }));
+    try {
+      await studySetsService.submitAnswer(sessionId, {
+        question_id: questionId,
+        selected_answer_option_ids: newSelections
+      });
+    } catch (err) {
+      console.error("Failed to save answer:", err);
+    }
+  };
+
+  const handleConfirmExit = () => {
+    setShowConfirmExit(false);
+    router.push(`/learner/study-sets/${studySetId}`);
+  };
 
   useEffect(() => {
     if (!studySetId) return;
@@ -87,56 +139,35 @@ export default function LearnerQuizPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [sessionId, submitting]);
 
-  const handleSelectOption = async (questionId, optionId) => {
-    const question = questions.find(q => q.question_id === questionId);
-    const correctCount = (question?.answer_options || []).filter(opt => opt.is_correct).length;
-    const isMultiSelect = correctCount > 1;
-
-    let newSelections = [];
-    if (isMultiSelect) {
-      const currentSelections = Array.isArray(selectedAnswers[questionId])
-        ? selectedAnswers[questionId]
-        : selectedAnswers[questionId]
-          ? [selectedAnswers[questionId]]
-          : [];
-
-      if (currentSelections.includes(optionId)) {
-        newSelections = currentSelections.filter(id => id !== optionId);
-      } else {
-        newSelections = [...currentSelections, optionId];
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") {
+        return;
       }
-    } else {
-      newSelections = [optionId];
-    }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const currentQ = questions[currentIndex];
+        const hasSelection = (selectedAnswers[currentQ?.question_id] || []).length > 0;
 
-    setSelectedAnswers(prev => ({ ...prev, [questionId]: newSelections }));
-    try {
-      await studySetsService.submitAnswer(sessionId, {
-        question_id: questionId,
-        selected_answer_option_ids: newSelections
-      });
-    } catch (err) {
-      console.error("Failed to save answer:", err);
-    }
-  };
+        if (!isAnswerChecked) {
+          if (hasSelection) {
+            setIsAnswerChecked(true);
+          }
+        } else {
+          if (currentIndex < questions.length - 1) {
+            setIsAnswerChecked(false);
+            setCurrentIndex(prev => prev + 1);
+          } else {
+            handleSubmitQuiz();
+          }
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isAnswerChecked, selectedAnswers, currentIndex, questions, handleSubmitQuiz]);
 
-  const handleSubmitQuiz = async () => {
-    setSubmitting(true);
-    setShowConfirmSubmit(false);
-    try {
-      await studySetsService.completeSession(sessionId);
-      router.push(`/learner/study-sets/${studySetId}/quiz/result?sessionId=${sessionId}`);
-    } catch (err) {
-      console.error("Failed to submit quiz:", err);
-      alert("Failed to submit quiz. Please try again.");
-      setSubmitting(false);
-    }
-  };
 
-  const handleConfirmExit = () => {
-    setShowConfirmExit(false);
-    router.push(`/learner/study-sets/${studySetId}`);
-  };
 
   if (loading) {
     return (
@@ -190,13 +221,17 @@ export default function LearnerQuizPage() {
         {/* KHU VỰC LÀM BÀI */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
-            <button 
-              onClick={() => setShowConfirmExit(true)} 
-              className="flex items-center gap-1.5 text-sm font-semibold text-neutral-500 hover:text-neutral-900 transition-colors"
-            >
-              <ArrowLeft size={16} />
-              <span>Exit Practice</span>
-            </button>
+            {answeredCount < questions.length ? (
+              <button 
+                onClick={() => setShowConfirmExit(true)} 
+                className="flex items-center gap-1.5 text-sm font-semibold text-neutral-500 hover:text-neutral-900 transition-colors"
+              >
+                <ArrowLeft size={16} />
+                <span>Exit Practice</span>
+              </button>
+            ) : (
+              <div />
+            )}
             <span className="text-xs font-bold bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full border border-indigo-100/50">
               Quiz Mode
             </span>
@@ -218,11 +253,14 @@ export default function LearnerQuizPage() {
             questionNumber={currentIndex + 1}
             selectedOptionIds={selectedAnswers[currentQuestion?.question_id] || []}
             onSelectOption={(optId) => handleSelectOption(currentQuestion.question_id, optId)}
-            onPrev={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
-            onNext={() => setCurrentIndex(prev => prev + 1)}
-            disablePrev={currentIndex === 0}
+            isAnswerChecked={isAnswerChecked}
+            onCheckAnswer={() => setIsAnswerChecked(true)}
+            onNextQuestion={() => {
+              setIsAnswerChecked(false);
+              setCurrentIndex(prev => prev + 1);
+            }}
             isLast={currentIndex === questions.length - 1}
-            onSubmit={() => setShowConfirmSubmit(true)}
+            onSubmit={handleSubmitQuiz}
           />
         </div>
 
@@ -232,36 +270,9 @@ export default function LearnerQuizPage() {
             questions={questions}
             currentIndex={currentIndex}
             selectedAnswers={selectedAnswers}
-            onSelectQuestion={(idx) => setCurrentIndex(idx)}
-            onSubmit={() => setShowConfirmSubmit(true)}
           />
         </div>
       </div>
-
-      {/* CONFIRM SUBMIT MODAL */}
-      {showConfirmSubmit && (
-        <div className="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-neutral-100 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center space-y-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
-            <div className="size-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto">
-              <HelpCircle size={32} strokeWidth={1.5} className="text-indigo-600" />
-            </div>
-            <div className="space-y-2">
-              <h4 className="text-lg font-bold text-neutral-900">Submit Practice Quiz?</h4>
-              <p className="text-sm text-neutral-500 leading-relaxed">
-                You have answered <strong>{answeredCount}</strong> out of <strong>{questions.length}</strong> questions. Are you ready to submit and calculate your grade?
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 border-neutral-200 hover:bg-neutral-50 rounded-xl" onClick={() => setShowConfirmSubmit(false)} disabled={submitting}>
-                Cancel
-              </Button>
-              <Button className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl" onClick={handleSubmitQuiz} disabled={submitting}>
-                {submitting ? "Submitting..." : "Yes, Submit"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* CONFIRM EXIT MODAL */}
       <ConfirmExitModal 
