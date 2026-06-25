@@ -506,7 +506,8 @@ const swaggerOptions = {
             },
             result_visibility: {
               type: "string",
-              example: "after_submit",
+              enum: ["completion_only", "score_only", "question_answer"],
+              example: "question_answer",
             },
           },
         },

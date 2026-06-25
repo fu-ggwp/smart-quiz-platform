@@ -218,7 +218,7 @@ CREATE TABLE public.exam_sessions (
   question_count integer NOT NULL CHECK (question_count > 0),
   randomize_questions boolean NOT NULL DEFAULT true,
   randomize_answers boolean NOT NULL DEFAULT true,
-  result_visibility character varying NOT NULL DEFAULT 'score_only'::character varying CHECK (result_visibility::text = ANY (ARRAY['completion_only'::character varying, 'score_only'::character varying]::text[])),
+  result_visibility character varying NOT NULL DEFAULT 'score_only'::character varying CHECK (result_visibility::text = ANY (ARRAY['completion_only'::character varying, 'score_only'::character varying, 'question_answer'::character varying]::text[])),
   access_code character varying UNIQUE,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),

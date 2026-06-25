@@ -46,5 +46,5 @@ export const examsService = {
     }).catch(() => {});
   },
   getAttemptResults: (attemptId) =>
-    axiosClient.get(`/api/exams/attempts/${attemptId}/results`).then((r) => r.data),
+    axiosClient.get(`/api/exams/attempts/${attemptId}/results`).then((r) => r.data.data),
 };

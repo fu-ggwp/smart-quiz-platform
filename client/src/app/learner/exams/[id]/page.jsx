@@ -11,6 +11,7 @@ import { examsService } from "@/services/exams.service";
 function visibilityLabel(value) {
   if (value === "completion_only") return "Visible after submit";
   if (value === "score_only") return "Score only";
+  if (value === "question_answer") return "Score and question answers";
   return "Not set";
 }
 

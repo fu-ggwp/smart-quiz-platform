@@ -173,6 +173,15 @@ export function findTeacherExamSession(examSessionId, teacherId) {
     .maybeSingle();
 }
 
+export function findExamSessionById(examSessionId) {
+  return db
+    .from(EXAM_SESSION_TABLE)
+    .select(EXAM_SESSION_SELECT)
+    .eq("exam_session_id", examSessionId)
+    .is("deleted_at", null)
+    .maybeSingle();
+}
+
 /**
  * Update configurable columns for a teacher-owned exam session.
  */

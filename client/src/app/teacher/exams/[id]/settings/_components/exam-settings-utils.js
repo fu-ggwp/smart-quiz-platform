@@ -27,7 +27,7 @@ export function buildSettingsForm(exam) {
   return {
     title: exam?.title ?? "",
     description: exam?.description ?? "",
-    status: exam?.status ?? "draft",
+    status: exam?.status ?? "active",
     start_at: toDateTimeLocal(exam?.start_at),
     end_at: toDateTimeLocal(exam?.end_at),
     duration_minutes: String(exam?.duration_minutes ?? ""),
@@ -45,12 +45,10 @@ export function isExamSettingsLocked(exam) {
 
   const now = Date.now();
   const startTime = exam.start_at ? new Date(exam.start_at).getTime() : null;
-  const endTime = exam.end_at ? new Date(exam.end_at).getTime() : null;
 
   return (
     lockedStatuses.has(exam.status) ||
-    (Number.isFinite(startTime) && startTime <= now) ||
-    (Number.isFinite(endTime) && endTime <= now)
+    (exam.status === "active" && Number.isFinite(startTime) && startTime <= now)
   );
 }
 

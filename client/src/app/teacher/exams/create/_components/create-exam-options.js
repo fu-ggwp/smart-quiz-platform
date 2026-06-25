@@ -3,7 +3,7 @@ export const INITIAL_FORM = {
   description: "",
   class_id: "",
   question_bank_id: "",
-  status: "draft",
+  status: "active",
   start_at: "",
   end_at: "",
   duration_minutes: "60",
@@ -23,6 +23,7 @@ export const STATUS_OPTIONS = [
 export const RESULT_VISIBILITY_OPTIONS = [
   { value: "score_only", label: "Score only" },
   { value: "completion_only", label: "Completion only" },
+  { value: "question_answer", label: "Question answers" },
 ];
 
 export function getQuestionCount(bank) {
