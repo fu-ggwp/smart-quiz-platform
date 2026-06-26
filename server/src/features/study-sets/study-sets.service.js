@@ -608,6 +608,42 @@ export async function getSessionResults(sessionId) {
 }
 
 
+// ── Admin moderation (UC-53 / §3.9.3) ──────────────────────────────────────
+
+// List public study sets for admin review. `status`: "visible" | "hidden" | all.
+export async function adminListPublicStudySets(query = {}) {
+  const filters = {
+    page: parseInt(query.page, 10) || 1,
+    limit: parseInt(query.limit, 10) || 10,
+    keyword: query.q || query.keyword || "",
+    hidden:
+      query.status === "hidden" ? true : query.status === "visible" ? false : undefined,
+  };
+
+  const { data, error, count, page, limit } = await dao.adminListPublicStudySets(filters);
+  if (error) throw dbError(error, 500);
+
+  return buildPaginatedResponse({ items: data || [], count, page, limit });
+}
+
+// Hide (true) / restore (false) a public study set.
+export async function adminSetVisibility(studySetId, hidden) {
+  if (typeof hidden !== "boolean") {
+    throw Object.assign(
+      new Error("The information is invalid. Please check and try again."),
+      { status: 400 },
+    );
+  }
+
+  const { data: existing, error: findError } = await dao.adminFindStudySetById(studySetId);
+  if (findError) throw dbError(findError, 500);
+  if (!existing) throw notFound();
+
+  const { data, error } = await dao.adminSetHidden(studySetId, hidden);
+  if (error) throw dbError(error, 500);
+  return data;
+}
+
 export async function generateAnswerExplanation(user, sessionId, questionId) {
   const learnerId = user.user_id || user.id;
 

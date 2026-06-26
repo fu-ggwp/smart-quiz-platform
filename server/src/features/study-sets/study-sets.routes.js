@@ -8,6 +8,16 @@ const router = Router();
 router.get("/mine", requireAuth, studySetsController.listMine);
 router.get("/learner", requireAuth, requireRole("learner"), studySetsController.listLearnerStudySets);
 router.get("/public", studySetsController.listPublic);
+
+// Admin moderation (UC-53 / §3.9.3) — registered before "/:id"
+router.get("/admin/resources", requireAuth, requireRole("admin"), studySetsController.adminListResources);
+router.patch(
+  "/admin/resources/:id/visibility",
+  requireAuth,
+  requireRole("admin"),
+  studySetsController.adminSetVisibility
+);
+
 router.get("/", requireAuth, studySetsController.listAvailable);
 router.post("/", requireAuth, studySetsController.create);
 
