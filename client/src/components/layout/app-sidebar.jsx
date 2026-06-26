@@ -30,10 +30,10 @@ const roleConfig = {
   },
   teacher: {
     label: "Teacher workspace",
-    homeHref: "/teacher/dashboard",
+    homeHref: "/teacher",
     icon: ShieldCheck,
     nav: [
-      { label: "Dashboard", href: "/teacher/dashboard", icon: Home },
+      { label: "Dashboard", href: "/teacher", icon: Home, exact: true },
       { label: "Study sets", href: "/teacher/study-sets", icon: BookOpen },
       {
         label: "Question banks",
@@ -47,10 +47,10 @@ const roleConfig = {
   },
   learner: {
     label: "Learner workspace",
-    homeHref: "/learner/dashboard",
+    homeHref: "/learner",
     icon: GraduationCap,
     nav: [
-      { label: "Dashboard", href: "/learner/dashboard", icon: Home },
+      { label: "Dashboard", href: "/learner", icon: Home, exact: true },
       { label: "Study sets", href: "/learner/study-sets", icon: BookOpen },
       { label: "Classes", href: "/learner/classes", icon: Building2 },
       { label: "Exams", href: "/learner/exams", icon: GraduationCap },
@@ -61,8 +61,9 @@ const roleConfig = {
 
 function SidebarLink({ item, pathname }) {
   const Icon = item.icon;
-  const isActive =
-    pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const isActive = item.exact
+    ? pathname === item.href
+    : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
   return (
     <Link

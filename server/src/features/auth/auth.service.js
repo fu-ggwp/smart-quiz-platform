@@ -1,10 +1,8 @@
 import { supabase } from "../../config/supabase.js";
 import { createUserModel, userColumns } from "../../models/user.model.js";
-import { createUserRoleModel } from "../../models/user-role.model.js";
 
 const db = supabase;
 const userModel = createUserModel(db);
-const userRoleModel = createUserRoleModel(db);
 const usernamePattern = /^[a-zA-Z0-9_]+$/;
 const switchableRoles = new Set(["learner", "teacher"]);
 
@@ -135,8 +133,6 @@ export async function switchCurrentRole(userId, body = {}) {
   if (existingProfile[userColumns.accountStatus] !== "active") {
     throw serviceError("This account cannot switch role right now.", 403);
   }
-
-  await userRoleModel.ensure(userId, targetRole);
 
   const updatedProfile = await userModel.updateById(userId, {
     [userColumns.activeRole]: targetRole,
