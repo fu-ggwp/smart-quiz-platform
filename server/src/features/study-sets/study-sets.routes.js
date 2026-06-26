@@ -2,8 +2,41 @@ import { Router } from "express";
 import * as studySetsController from "./study-sets.controller.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requireRole } from "../../middlewares/role.middleware.js";
+import { supabase, supabaseClient } from "../../config/supabase.js";
+import { USER_TABLE } from "../../models/user.model.js";
 
 const router = Router();
+
+// Optional authentication middleware: resolves req.user if a token is present,
+// but lets unauthenticated requests proceed without error.
+async function optionalAuth(req, res, next) {
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const { data, error } = await supabaseClient.auth.getUser(token);
+    if (error || !data?.user) {
+      return next();
+    }
+
+    req.user = data.user;
+    const { data: dbUser } = await supabase
+      .from(USER_TABLE)
+      .select("active_role")
+      .eq("user_id", data.user.id)
+      .single();
+    if (dbUser) {
+      req.user.role = dbUser.active_role;
+    }
+  } catch (err) {
+    console.error("Error in optionalAuth middleware:", err);
+  }
+  next();
+}
 
 router.get("/mine", requireAuth, studySetsController.listMine);
 router.get("/learner", requireAuth, requireRole("learner"), studySetsController.listLearnerStudySets);
@@ -48,7 +81,7 @@ router.post(
 );
 
 router.post("/:id/sessions", requireAuth, requireRole("learner"), studySetsController.startSession);
-router.get("/:id", requireAuth, studySetsController.getOne);
+router.get("/:id", optionalAuth, studySetsController.getOne);
 router.patch("/:id", requireAuth, studySetsController.update);
 router.delete("/:id", requireAuth, studySetsController.remove);
 

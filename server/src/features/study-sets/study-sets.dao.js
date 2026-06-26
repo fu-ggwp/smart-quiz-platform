@@ -149,7 +149,8 @@ export function findById(id) {
       study_set_assignments (
         class_id,
         classes (
-          class_name
+          class_name,
+          teacher_id
         )
       )
     `)
@@ -283,7 +284,7 @@ export function getLearnerClassMemberships(learnerId) {
 export function getAssignmentsByClassIds(classIds) {
   return db
     .from(STUDY_SET_ASSIGNMENT_TABLE)
-    .select("study_set_id, class_id, classes(class_name)")
+    .select("study_set_id, class_id, classes(class_name, teacher_id)")
     .in("class_id", classIds);
 }
 
@@ -291,7 +292,7 @@ export function getAssignmentsByClassIds(classIds) {
 export function getPracticeAttempts(learnerId) {
   return db
     .from(PRACTICE_ATTEMPT_TABLE)
-    .select("study_set_id, started_at")
+    .select("study_set_id, started_at, status")
     .eq("learner_id", learnerId);
 }
 

@@ -228,14 +228,39 @@ export async function getOne(id, user = null) {
     const userId = user.user_id || user.id;
     const userRole = user.role;
     await validateStudySetAccess(studySet, userId, userRole);
+  } else {
+    if (
+      studySet.deleted_at ||
+      studySet.is_admin_hidden ||
+      studySet.visibility === "hidden" ||
+      studySet.visibility === "archived" ||
+      studySet.visibility === "private" ||
+      studySet.visibility === "class_only"
+    ) {
+      throw accessDenied("Please log in to access this study set.");
+    }
   }
   const { data: questions, error: qError } =
     await dao.listQuestionByStudySet(id);
   if (qError) {
     throw dbError(qError, 500);
   }
+
+  let setCopy = { ...studySet };
+  if (user && user.role === "learner") {
+    const userId = user.user_id || user.id;
+    const { data: memberships } = await dao.getLearnerClassMemberships(userId);
+    const enrolledClassIds = (memberships || []).map((m) => m.class_id);
+    
+    if (setCopy.study_set_assignments) {
+      setCopy.study_set_assignments = setCopy.study_set_assignments.filter((a) => {
+        return enrolledClassIds.includes(a.class_id) && a.classes?.teacher_id !== userId;
+      });
+    }
+  }
+
   return {
-    ...studySet,
+    ...setCopy,
     questions: questions || [],
   };
 }
@@ -705,7 +730,10 @@ export async function listLearnerStudySets(learnerId) {
     const { data: assignments, error: assignError } =
       await dao.getAssignmentsByClassIds(classIds);
     if (assignError) throw dbError(assignError, 500);
-    assignedStudySets = assignments || [];
+    // Filter out assignments where the learner is the teacher of the class
+    assignedStudySets = (assignments || []).filter(
+      (a) => a.classes?.teacher_id !== learnerId
+    );
   }
   const { data: attempts, error: attemptError } =
     await dao.getPracticeAttempts(learnerId);
@@ -726,7 +754,10 @@ export async function listLearnerStudySets(learnerId) {
   (attempts || []).forEach((att) => {
     const current = startedMap.get(att.study_set_id);
     if (!current || new Date(att.started_at) > new Date(current.started_at)) {
-      startedMap.set(att.study_set_id, { started_at: att.started_at });
+      startedMap.set(att.study_set_id, { 
+        started_at: att.started_at,
+        status: att.status
+      });
     }
   });
 
@@ -763,6 +794,7 @@ export async function listLearnerStudySets(learnerId) {
       is_started: !!attempt,
       is_owned: isOwned,
       last_studied_at: attempt ? attempt.started_at : null,
+      study_status: attempt ? attempt.status : null,
       source_type: sourceType,
     };
   });

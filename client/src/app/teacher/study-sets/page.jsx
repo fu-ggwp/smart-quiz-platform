@@ -19,8 +19,6 @@ const visibilityOptions = [
   { value: "public", label: "Public" },
   { value: "private", label: "Private" },
   { value: "class-only", label: "Class Only" },
-  { value: "hidden", label: "Hidden" },
-  { value: "archived", label: "Archived" },
 ];
 
 

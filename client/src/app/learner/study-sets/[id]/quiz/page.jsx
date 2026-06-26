@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, AlertCircle, HelpCircle } from "lucide-react";
 import { studySetsService } from "@/services/study-sets.service";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 import QuizCard from "./_components/QuizCard";
 import QuestionMap from "./_components/QuestionMap";
@@ -23,6 +24,8 @@ export default function LearnerQuizPage() {
   const params = useParams();
   const router = useRouter();
   const studySetId = params.id;
+
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   const [studySet, setStudySet] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -89,7 +92,12 @@ export default function LearnerQuizPage() {
   };
 
   useEffect(() => {
-    if (!studySetId) return;
+    if (!studySetId || authLoading) return;
+
+    if (!isAuthenticated) {
+      router.replace(`/study-sets/${studySetId}`);
+      return;
+    }
 
     async function initializeQuiz() {
       setLoading(true);
@@ -126,7 +134,7 @@ export default function LearnerQuizPage() {
       }
     }
     initializeQuiz();
-  }, [studySetId]);
+  }, [studySetId, authLoading, isAuthenticated, router]);
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {

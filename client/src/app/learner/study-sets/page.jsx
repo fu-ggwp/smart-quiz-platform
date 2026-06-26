@@ -10,7 +10,8 @@ import {
   Calendar, 
   Clock, 
   AlertCircle, 
-  ChevronRight 
+  ChevronRight,
+  CheckCircle
 } from "lucide-react";
 import { studySetsService } from "@/services/study-sets.service";
 import { Button } from "@/components/ui/button";
@@ -205,10 +206,17 @@ export default function LearnerStudySetsPage() {
                       Created by <strong className="font-semibold text-foreground">{set.teacher?.full_name || "Teacher"}</strong>
                     </span>
                     {set.is_started && set.last_studied_at ? (
-                      <span className="flex items-center gap-1 text-primary font-medium">
-                        <Clock className="size-3.5" />
-                        In progress
-                      </span>
+                      set.study_status === "submitted" ? (
+                        <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                          <CheckCircle className="size-3.5" />
+                          Completed
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-primary font-medium">
+                          <Clock className="size-3.5" />
+                          In progress
+                        </span>
+                      )
                     ) : (
                       <span className="flex items-center gap-1 hover:text-primary font-medium">
                         Study now

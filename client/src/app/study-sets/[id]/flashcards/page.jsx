@@ -1,9 +1,19 @@
+"use client";
+
+import { useParams } from "next/navigation";
+import { FlashcardPracticeView } from "@/components/study-set/FlashcardPracticeView";
+
 export default function PublicStudySetFlashcardsPage() {
+  const params = useParams();
+  const id = params.id;
+
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <section className="w-full max-w-4xl">
-        <h1 className="text-3xl font-semibold">Study Set Flashcards</h1>
-      </section>
-    </main>
+    <FlashcardPracticeView 
+      studySetId={id}
+      isGuest={true}
+      exitHref={`/study-sets/${id}`}
+      quizHref=""
+      showNavbar={true}
+    />
   );
 }
