@@ -16,12 +16,13 @@ export const examsService = {
   listForClass: (classId) => axiosClient.get(`/api/exams/class/${classId}`).then((r) => r.data),
   getOne: (id) => axiosClient.get(`/api/exams/${id}`).then((r) => r.data.data),
   getStatistics: (id) => axiosClient.get(`/api/exams/${id}/statistics`).then((r) => r.data.data),
+  getAttempts: (id) => axiosClient.get(`/api/exams/${id}/attempts`).then((r) => r.data.data),
   getLearnerExam: (id) => axiosClient.get(`/api/exams/learner/${id}`).then((r) => r.data.data),
   create: (payload) => axiosClient.post("/api/exams", payload).then((r) => r.data),
   updateSettings: (id, changes) =>
     axiosClient.patch(`/api/exams/${id}/settings`, changes).then((r) => r.data),
   remove: (id) => axiosClient.delete(`/api/exams/${id}`).then((r) => r.data),
-  listAttempts: (id) => axiosClient.get(`/api/exams/${id}/attempts`).then((r) => r.data),
+  listAttempts: (id) => axiosClient.get(`/api/exams/${id}/attempts`).then((r) => r.data.data),
 
   // Learner: take exams
   startAttempt: (id, payload) => axiosClient.post(`/api/exams/${id}/attempts`, payload).then((r) => r.data.data),

@@ -3,6 +3,7 @@ import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requireRole } from "../../middlewares/role.middleware.js";
 import {
   createExamSession,
+  getExamAttempts,
   getAvailableExamSessions,
   getExamDetail,
   getExamStatistics,
@@ -36,6 +37,7 @@ examsRouter.get("/", requireAuth, requireRole("teacher"), getMyExamSessions);
 examsRouter.post("/", requireAuth, requireRole("teacher"), createExamSession);
 
 // Exam detail and settings routes
+examsRouter.get("/:id/attempts", requireAuth, requireRole("teacher"), getExamAttempts);
 examsRouter.get("/:id/statistics", requireAuth, requireRole("teacher"), getExamStatistics);
 examsRouter.get("/:id", requireAuth, requireRole("teacher"), getExamDetail);
 examsRouter.patch("/:id/settings", requireAuth, requireRole("teacher"), updateExamSettings);

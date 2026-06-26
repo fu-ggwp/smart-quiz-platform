@@ -74,6 +74,37 @@ function withExamMaxScore(attempt) {
   return attempt ? { ...attempt, max_score: EXAM_MAX_SCORE } : attempt;
 }
 
+function attemptDurationSeconds(attempt) {
+  if (!attempt?.started_at || !attempt?.submitted_at) return null;
+
+  const started = new Date(attempt.started_at).getTime();
+  const submitted = new Date(attempt.submitted_at).getTime();
+  if (!Number.isFinite(started) || !Number.isFinite(submitted) || submitted < started) return null;
+
+  return Math.round((submitted - started) / 1000);
+}
+
+function normalizeTeacherAttempt(attempt) {
+  const isSubmitted = attempt.status === ExamAttemptStatus.SUBMITTED;
+
+  return {
+    exam_attempt_id: attempt.exam_attempt_id,
+    exam_session_id: attempt.exam_session_id,
+    learner_id: attempt.learner_id,
+    learner: attempt.learner ?? null,
+    attempt_number: attempt.attempt_number,
+    status: attempt.status,
+    started_at: attempt.started_at,
+    submitted_at: attempt.submitted_at,
+    expires_at: attempt.expires_at,
+    duration_seconds: isSubmitted ? attemptDurationSeconds(attempt) : null,
+    score: isSubmitted ? roundScore(attempt.total_score) : null,
+    max_score: EXAM_MAX_SCORE,
+    warning_count: attempt.warning_count ?? 0,
+    is_auto_submitted: Boolean(attempt.is_auto_submitted),
+  };
+}
+
 function toScore(value) {
   const score = Number(value || 0);
   return Number.isFinite(score) ? score : 0;
@@ -519,6 +550,27 @@ export async function getExamStatistics(examSessionId, teacherId) {
       question_text: question.question_text,
       display_order: question.display_order,
     })),
+  };
+}
+
+export async function getExamAttempts(examSessionId, teacherId) {
+  const exam = await getExamDetail(examSessionId, teacherId);
+  const { data, error } = await dao.listTeacherExamAttempts(examSessionId);
+  if (error) throw dbError(error, 500);
+
+  const attempts = (data ?? []).map(normalizeTeacherAttempt);
+  const uniqueLearners = new Set(attempts.map((attempt) => attempt.learner_id).filter(Boolean));
+
+  return {
+    exam,
+    summary: {
+      totalAttempts: attempts.length,
+      inProgressCount: attempts.filter((attempt) => attempt.status === ExamAttemptStatus.IN_PROGRESS).length,
+      submittedCount: attempts.filter((attempt) => attempt.status === ExamAttemptStatus.SUBMITTED).length,
+      uniqueLearners: uniqueLearners.size,
+      maxScore: EXAM_MAX_SCORE,
+    },
+    attempts,
   };
 }
 
