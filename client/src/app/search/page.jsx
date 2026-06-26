@@ -1,11 +1,13 @@
 import { PublicSearchResults } from "@/components/public-search-results";
-import { Navbar } from "@/components/layout/navbar";
+import { PublicSearchShell } from "@/components/public-search-shell";
 
-export default function SearchPage() {
+export default async function SearchPage({ searchParams }) {
+  const params = await searchParams;
+  const initialQuery = typeof params?.q === "string" ? params.q.trim() : "";
+
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8">
+    <PublicSearchShell>
+      <div className="min-h-screen bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8">
         <section className="mx-auto flex max-w-7xl flex-col gap-8">
           <div className="border-b border-border pb-6">
             <p className="text-sm font-semibold text-primary">Explore</p>
@@ -17,9 +19,9 @@ export default function SearchPage() {
             </p>
           </div>
 
-          <PublicSearchResults />
+          <PublicSearchResults key={initialQuery} initialQuery={initialQuery} />
         </section>
-      </main>
-    </>
+      </div>
+    </PublicSearchShell>
   );
 }
