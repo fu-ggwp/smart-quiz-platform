@@ -68,13 +68,13 @@ export function Navbar() {
 
   return (
     <header className="shrink-0 border-b border-border bg-background/95">
-      <div className="mx-auto grid max-w-7xl gap-3 px-4 py-4 sm:px-6 lg:grid-cols-[auto_minmax(20rem,1fr)_auto] lg:items-center lg:px-8">
+      <div className="relative flex w-full flex-col gap-3 px-5 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <Link href="/" className="text-lg font-bold text-foreground">
           Smart Quiz Platform
         </Link>
 
         <form
-          className="flex h-9 w-full items-center rounded-2xl border border-transparent bg-input/50 pl-4 pr-1 transition-[color,box-shadow] duration-200 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 lg:mx-auto lg:max-w-xl"
+          className="flex h-9 w-full items-center rounded-2xl border border-transparent bg-input/50 pl-4 pr-1 transition-[color,box-shadow] duration-200 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 lg:absolute lg:left-1/2 lg:max-w-xl lg:-translate-x-1/2"
           onSubmit={handleSearchSubmit}
         >
           <Input
