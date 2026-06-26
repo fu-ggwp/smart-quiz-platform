@@ -107,3 +107,21 @@ export const listLearnerStudySets = async (req, res) => {
     return fail(res, err, err.status || 500);
   }
 };
+
+// GET /api/study-sets/admin/resources — admin moderation list (UC-53 / §3.9.3)
+export const adminListResources = async (req, res) => {
+  try {
+    return ok(res, await service.adminListPublicStudySets(req.query));
+  } catch (err) {
+    return fail(res, err, err.status || 500);
+  }
+};
+
+// PATCH /api/study-sets/admin/resources/:id/visibility — hide/restore { hidden }
+export const adminSetVisibility = async (req, res) => {
+  try {
+    return ok(res, await service.adminSetVisibility(req.params.id, req.body?.hidden));
+  } catch (err) {
+    return fail(res, err, err.status || 500);
+  }
+};

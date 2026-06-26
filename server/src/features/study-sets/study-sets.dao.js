@@ -383,3 +383,62 @@ export function getOwnedStudySetIds(teacherId) {
     .eq("teacher_id", teacherId)
     .is("deleted_at", null);
 }
+
+// ── Admin moderation (UC-53 / §3.9.3) ──────────────────────────────────────
+// `subject` is intentionally omitted so moderation does not depend on the
+// study_sets.subject column (planned for removal).
+const ADMIN_MODERATION_SELECT =
+  "study_set_id, title, description, topic, visibility, is_admin_hidden, question_count, created_at, updated_at, " +
+  "teacher:users!teacher_id(user_id, full_name, username)";
+
+// List PUBLIC study sets for admin review (visible + admin-hidden), paginated.
+export async function adminListPublicStudySets(filters = {}) {
+  const db = supabaseAdmin ?? supabase;
+  const { page, limit, from, to } = getPagination(filters, { defaultLimit: 10 });
+  const keyword = sanitizeSearchKeyword(filters.keyword);
+
+  let query = db
+    .from(STUDY_SET_TABLE)
+    .select(ADMIN_MODERATION_SELECT, { count: "exact" })
+    .eq("visibility", "public")
+    .is("deleted_at", null);
+
+  if (keyword) {
+    query = query.or(
+      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%`,
+    );
+  }
+  if (filters.hidden === true) query = query.eq("is_admin_hidden", true);
+  else if (filters.hidden === false) query = query.eq("is_admin_hidden", false);
+
+  const { data, error, count } = await query
+    .order("updated_at", { ascending: false })
+    .range(from, to);
+
+  return { data, error, count, page, limit };
+}
+
+// Existence check before toggling (clean 404).
+export async function adminFindStudySetById(studySetId) {
+  const db = supabaseAdmin ?? supabase;
+  const { data, error } = await db
+    .from(STUDY_SET_TABLE)
+    .select("study_set_id")
+    .eq("study_set_id", studySetId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  return { data, error };
+}
+
+// Hide (true) / restore (false) a study set by flipping is_admin_hidden.
+export async function adminSetHidden(studySetId, hidden) {
+  const db = supabaseAdmin ?? supabase;
+  const { data, error } = await db
+    .from(STUDY_SET_TABLE)
+    .update({ is_admin_hidden: hidden, updated_at: new Date().toISOString() })
+    .eq("study_set_id", studySetId)
+    .is("deleted_at", null)
+    .select(ADMIN_MODERATION_SELECT)
+    .single();
+  return { data, error };
+}
