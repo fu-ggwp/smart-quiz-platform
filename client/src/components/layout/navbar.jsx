@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Search, User } from "lucide-react";
+import { LogOut, Menu, Search, User } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toggleSavedSidebarCollapsed } from "@/components/layout/sidebar-state";
 import { useAuth } from "@/hooks/use-auth";
 import { authService } from "@/services/auth.service";
 import { profileService } from "@/services/profile.service";
@@ -69,9 +70,23 @@ export function Navbar() {
   return (
     <header className="shrink-0 border-b border-border bg-background/95">
       <div className="relative flex w-full flex-col gap-3 px-5 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-        <Link href="/" className="text-lg font-bold text-foreground">
-          Smart Quiz Platform
-        </Link>
+        <div className="flex items-center gap-2">
+          {!loading && isAuthenticated ? (
+            <Button
+              aria-label="Toggle sidebar"
+              className="lg:-ml-2"
+              onClick={toggleSavedSidebarCollapsed}
+              size="icon"
+              type="button"
+              variant="ghost"
+            >
+              <Menu />
+            </Button>
+          ) : null}
+          <Link href="/" className="text-lg font-bold text-foreground">
+            Smart Quiz Platform
+          </Link>
+        </div>
 
         <form
           className="flex h-9 w-full items-center rounded-2xl border border-transparent bg-input/50 pl-4 pr-1 transition-[color,box-shadow] duration-200 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 lg:absolute lg:left-1/2 lg:max-w-xl lg:-translate-x-1/2"
