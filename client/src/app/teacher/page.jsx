@@ -10,8 +10,6 @@ import {
   CalendarClock,
   GraduationCap,
   LibraryBig,
-  Plus,
-  Users,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -147,21 +145,6 @@ export default function TeacherDashboardPage() {
     };
   }, []);
 
-  const metrics = useMemo(() => {
-    const classes = sections.classes.data;
-    const totalLearners = classes.reduce(
-      (sum, item) => sum + Number(item.member_count ?? 0),
-      0,
-    );
-
-    return [
-      { label: "Classes", value: classes.length, icon: Building2 },
-      { label: "Study sets", value: sections.studySets.total, icon: BookOpen },
-      { label: "Exams", value: sections.exams.total, icon: GraduationCap },
-      { label: "Learners", value: totalLearners, icon: Users },
-    ];
-  }, [sections]);
-
   const recentClasses = useMemo(
     () =>
       [...sections.classes.data]
@@ -173,42 +156,17 @@ export default function TeacherDashboardPage() {
   return (
     <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
       <section className="mx-auto max-w-7xl space-y-7">
-        <PageHeader />
         <QuickActions />
-        <MetricsGrid metrics={metrics} loading={loading} />
 
-        <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-          <TeachingWorkflow
-            exams={sections.exams}
-            loading={loading}
-            studySets={sections.studySets}
-          />
-          <ClassHealth classes={sections.classes} loading={loading} />
-        </div>
+        <TeachingWorkflow
+          exams={sections.exams}
+          loading={loading}
+          studySets={sections.studySets}
+        />
 
         <ManagedClasses classes={recentClasses} error={sections.classes.error} loading={loading} />
       </section>
     </main>
-  );
-}
-
-function PageHeader() {
-  return (
-    <div className="flex flex-col gap-4 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
-      <div className="max-w-3xl">
-        <p className="text-sm font-semibold text-primary">Teacher Dashboard</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight">Plan, assign, and monitor learning</h1>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Review your teaching work, open recent resources, and jump into class management.
-        </p>
-      </div>
-      <Button asChild>
-        <Link href="/teacher/classes/create">
-          <Plus className="size-4" />
-          Create Class
-        </Link>
-      </Button>
-    </div>
   );
 }
 
@@ -235,34 +193,6 @@ function QuickActions() {
           </Link>
         );
       })}
-    </div>
-  );
-}
-
-function MetricsGrid({ loading, metrics }) {
-  return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {metrics.map((metric) => (
-        <MetricCard key={metric.label} loading={loading} metric={metric} />
-      ))}
-    </div>
-  );
-}
-
-function MetricCard({ loading, metric }) {
-  const Icon = metric.icon;
-
-  return (
-    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-xs font-bold uppercase text-muted-foreground">{metric.label}</p>
-          <p className="mt-2 text-3xl font-bold">{loading ? "--" : metric.value}</p>
-        </div>
-        <span className="flex size-11 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-          <Icon className="size-5" />
-        </span>
-      </div>
     </div>
   );
 }
@@ -300,33 +230,6 @@ function TeachingWorkflow({ exams, loading, studySets }) {
           items={exams.data}
           loading={loading}
           title="Latest Exams"
-        />
-      </div>
-    </section>
-  );
-}
-
-function ClassHealth({ classes, loading }) {
-  return (
-    <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
-      <SectionHeader
-        actionHref="/teacher/classes"
-        actionLabel="View classes"
-        description="Capacity and activity overview."
-        title="Class Health"
-      />
-
-      <div className="mt-5">
-        <ResourceList
-          emptyMessage="No classes yet. Create a class to invite learners."
-          error={classes.error}
-          getHref={(item) => `/teacher/classes/${item.class_id}`}
-          getMeta={(item) => `${item.member_count ?? 0} / ${item.learner_capacity ?? "--"} members`}
-          getTitle={(item) => item.class_name}
-          icon={Building2}
-          items={classes.data.slice(0, 5)}
-          loading={loading}
-          title="Recent Classes"
         />
       </div>
     </section>
