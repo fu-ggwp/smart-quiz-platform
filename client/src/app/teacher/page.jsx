@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   ArrowRight,
   BookOpen,
   Building2,
   CalendarClock,
+  ChevronLeft,
+  ChevronRight,
   GraduationCap,
   LibraryBig,
 } from "lucide-react";
@@ -158,13 +160,9 @@ export default function TeacherDashboardPage() {
       <section className="mx-auto max-w-7xl space-y-7">
         <QuickActions />
 
-        <TeachingWorkflow
-          exams={sections.exams}
-          loading={loading}
-          studySets={sections.studySets}
-        />
-
-        <ManagedClasses classes={recentClasses} error={sections.classes.error} loading={loading} />
+        <RecentStudySetsSection loading={loading} studySets={sections.studySets} />
+        <LatestExamsSection exams={sections.exams} loading={loading} />
+        <ManagedClassesSection classes={recentClasses} error={sections.classes.error} loading={loading} />
       </section>
     </main>
   );
@@ -197,153 +195,263 @@ function QuickActions() {
   );
 }
 
-function TeachingWorkflow({ exams, loading, studySets }) {
+function RecentStudySetsSection({ loading, studySets }) {
   return (
-    <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+    <section className="space-y-4">
+      <SectionHeader
+        actionHref="/teacher/study-sets"
+        actionLabel="View all"
+        title="Recent Study Sets"
+      />
+
+      <CardRail
+        emptyMessage="No study sets yet. Create one from a question bank when ready."
+        error={studySets.error}
+        getKey={getStudySetId}
+        items={studySets.data}
+        loading={loading}
+        renderItem={(studySet) => <StudySetCard studySet={studySet} />}
+      />
+    </section>
+  );
+}
+
+function LatestExamsSection({ exams, loading }) {
+  return (
+    <section className="space-y-4">
       <SectionHeader
         actionHref="/teacher/exams"
         actionLabel="View exams"
-        description="Recent resources and scheduled work."
-        title="Teaching Workflow"
+        title="Latest Exams"
       />
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        <ResourceList
-          emptyMessage="No study sets yet. Create one from a question bank when ready."
-          error={studySets.error}
-          getHref={(item) => `/teacher/study-sets/${getStudySetId(item)}`}
-          getMeta={(item) => `${item.question_count ?? 0} questions`}
-          getTitle={(item) => item.title}
-          icon={BookOpen}
-          items={studySets.data}
-          loading={loading}
-          title="Recent Study Sets"
-        />
-
-        <ResourceList
-          emptyMessage="No exam sessions yet. Create an exam when your class is ready."
-          error={exams.error}
-          getHref={(item) => `/teacher/exams/${getExamId(item)}`}
-          getMeta={(item) => `${item.classes?.class_name ?? "Unassigned class"} - ${formatDateTime(item.start_at)}`}
-          getTitle={(item) => item.title}
-          icon={CalendarClock}
-          items={exams.data}
-          loading={loading}
-          title="Latest Exams"
-        />
-      </div>
+      <CardRail
+        emptyMessage="No exam sessions yet. Create an exam when your class is ready."
+        error={exams.error}
+        getKey={getExamId}
+        items={exams.data}
+        loading={loading}
+        renderItem={(exam) => <ExamCard exam={exam} />}
+      />
     </section>
   );
 }
 
-function ManagedClasses({ classes, error, loading }) {
+function ManagedClassesSection({ classes, error, loading }) {
   return (
-    <section className="rounded-lg border border-border bg-card p-5 shadow-sm">
+    <section className="space-y-4">
       <SectionHeader
         actionHref="/teacher/classes"
         actionLabel="Manage all"
-        description="Open class details, manage members, or share invites."
         title="Managed Classes"
       />
 
-      {loading ? <StatePanel message="Loading managed classes..." /> : null}
-      {!loading && error ? <StatePanel icon={AlertCircle} message={error} tone="error" /> : null}
-      {!loading && !error && classes.length === 0 ? (
-        <StatePanel message="No classes yet. Create your first class to start teaching." />
-      ) : null}
-
-      {!loading && !error && classes.length > 0 ? (
-        <div className="mt-5 overflow-hidden rounded-lg border border-border">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] table-fixed text-left text-sm">
-              <thead className="bg-muted text-xs font-bold uppercase text-muted-foreground">
-                <tr>
-                  <th className="w-[34%] px-4 py-3">Class</th>
-                  <th className="w-[18%] px-4 py-3">Subject</th>
-                  <th className="w-[18%] px-4 py-3">Members</th>
-                  <th className="w-[14%] px-4 py-3">Code</th>
-                  <th className="w-[16%] px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {classes.map((classItem) => (
-                  <tr className="align-middle transition hover:bg-muted/40" key={classItem.class_id}>
-                    <td className="px-4 py-4">
-                      <p className="truncate font-bold text-foreground">{classItem.class_name}</p>
-                      <p className="mt-1 truncate text-xs text-muted-foreground">
-                        {classItem.grade_level || "No grade level"}
-                      </p>
-                    </td>
-                    <td className="px-4 py-4 text-muted-foreground">
-                      <span className="line-clamp-1">{classItem.subject || "General"}</span>
-                    </td>
-                    <td className="px-4 py-4 text-muted-foreground">
-                      {classItem.member_count ?? 0} / {classItem.learner_capacity ?? "--"}
-                    </td>
-                    <td className="px-4 py-4 font-mono text-xs text-muted-foreground">
-                      {classItem.class_code || "--"}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex justify-end gap-2">
-                        <Button asChild size="xs" variant="outline">
-                          <Link href={`/teacher/classes/${classItem.class_id}`}>Open</Link>
-                        </Button>
-                        <Button asChild size="xs" variant="ghost">
-                          <Link href={`/teacher/classes/${classItem.class_id}/members`}>Members</Link>
-                        </Button>
-                        <Button asChild size="xs" variant="ghost">
-                          <Link href={`/teacher/classes/${classItem.class_id}/invite`}>Invite</Link>
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : null}
+      <CardRail
+        emptyMessage="No classes yet. Create your first class to start teaching."
+        error={error}
+        getKey={(classItem) => classItem.class_id}
+        items={classes}
+        loading={loading}
+        renderItem={(classItem) => <ClassCard classItem={classItem} />}
+      />
     </section>
   );
 }
 
-function ResourceList({ emptyMessage, error, getHref, getMeta, getTitle, icon: Icon, items, loading, title }) {
+function CardRail({ emptyMessage, error, getKey, items, loading, renderItem }) {
+  const visibleItems = items.slice(0, 5);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const cardRefs = useRef([]);
+  const safeActiveIndex = Math.min(activeIndex, Math.max(visibleItems.length - 1, 0));
+  const canMove = visibleItems.length > 1;
+
+  function showCard(index) {
+    const isFirstCard = index === 0;
+    const isLastCard = index === visibleItems.length - 1;
+
+    setActiveIndex(index);
+    cardRefs.current[index]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: isFirstCard ? "start" : isLastCard ? "end" : "center",
+    });
+  }
+
+  function showPrevious() {
+    const previousIndex = safeActiveIndex === 0 ? visibleItems.length - 1 : safeActiveIndex - 1;
+    showCard(previousIndex);
+  }
+
+  function showNext() {
+    showCard((safeActiveIndex + 1) % visibleItems.length);
+  }
+
   return (
     <div>
-      <h3 className="text-sm font-bold text-foreground">{title}</h3>
-      <div className="mt-3 space-y-2">
-        {loading ? <StatePanel message="Loading..." compact /> : null}
-        {!loading && error ? <StatePanel icon={AlertCircle} message={error} tone="error" compact /> : null}
-        {!loading && !error && items.length === 0 ? <StatePanel message={emptyMessage} compact /> : null}
-        {!loading && !error
-          ? items.slice(0, 5).map((item) => (
-              <Link
-                className="flex items-center gap-3 rounded-lg border border-border bg-background p-3 transition hover:border-ring/50 hover:bg-muted/40"
-                href={getHref(item)}
-                key={getHref(item)}
+      {loading ? <StatePanel message="Loading..." /> : null}
+      {!loading && error ? <StatePanel icon={AlertCircle} message={error} tone="error" /> : null}
+      {!loading && !error && items.length === 0 ? <StatePanel message={emptyMessage} /> : null}
+      {!loading && !error && visibleItems.length > 0 ? (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            {canMove && safeActiveIndex > 0 ? (
+              <Button
+                aria-label="Previous card"
+                className="hidden shrink-0 sm:inline-flex"
+                onClick={showPrevious}
+                size="icon"
+                type="button"
+                variant="outline"
               >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                  <Icon className="size-5" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-bold text-foreground">{getTitle(item) || "Untitled"}</span>
-                  <span className="block truncate text-xs text-muted-foreground">{getMeta(item)}</span>
-                </span>
-                <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
-              </Link>
-            ))
-          : null}
-      </div>
+                <ChevronLeft className="size-4" />
+              </Button>
+            ) : null}
+
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <div className="overflow-x-auto scroll-smooth pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex gap-4 pr-[22%] sm:pr-[36%] lg:pr-[48%] xl:pr-[54%]">
+                  {visibleItems.map((item, index) => (
+                    <div
+                      className="min-w-full sm:min-w-full lg:min-w-[91%] xl:min-w-[81%]"
+                      key={getKey(item)}
+                      ref={(node) => {
+                        cardRefs.current[index] = node;
+                      }}
+                    >
+                      {renderItem(item)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <Button
+              aria-label="Next card"
+              className="shrink-0"
+              disabled={!canMove}
+              onClick={showNext}
+              size="icon"
+              type="button"
+              variant="outline"
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+
+          {canMove ? (
+            <div className="flex items-center justify-center gap-2">
+              {visibleItems.map((item, index) => (
+                <button
+                  aria-label={`Show card ${index + 1}`}
+                  className={`size-2 rounded-full transition ${
+                    index === safeActiveIndex ? "bg-primary" : "bg-muted hover:bg-muted-foreground/40"
+                  }`}
+                  key={getKey(item)}
+                  onClick={() => showCard(index)}
+                  type="button"
+                />
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function SectionHeader({ actionHref, actionLabel, description, title }) {
+function StudySetCard({ studySet }) {
+  return (
+    <article className="flex min-h-48 w-full flex-col justify-between rounded-lg border border-border bg-card p-5 shadow-sm">
+      <div className="space-y-3">
+        <span className="inline-flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+          <BookOpen className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <h3 className="truncate text-lg font-bold text-foreground">{studySet.title || "Untitled study set"}</h3>
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+            {studySet.topic || studySet.description || "No topic provided"}
+          </p>
+        </div>
+      </div>
+      <div className="mt-5 flex items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-muted-foreground">{studySet.question_count ?? 0} questions</p>
+        <Button asChild size="sm">
+          <Link href={`/teacher/study-sets/${getStudySetId(studySet)}`}>Open</Link>
+        </Button>
+      </div>
+    </article>
+  );
+}
+
+function ExamCard({ exam }) {
+  return (
+    <article className="flex min-h-48 w-full flex-col justify-between rounded-lg border border-border bg-card p-5 shadow-sm">
+      <div className="space-y-3">
+        <span className="inline-flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+          <CalendarClock className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <h3 className="truncate text-lg font-bold text-foreground">{exam.title || "Untitled exam"}</h3>
+          <p className="mt-1 truncate text-sm text-muted-foreground">{exam.classes?.class_name || "Unassigned class"}</p>
+        </div>
+      </div>
+      <div className="mt-5 flex items-center justify-between gap-3">
+        <p className="min-w-0 truncate text-sm font-semibold text-muted-foreground">
+          {formatDateTime(exam.start_at)}
+          {exam.duration_minutes ? ` - ${exam.duration_minutes} minutes` : ""}
+        </p>
+        <Button asChild size="sm">
+          <Link href={`/teacher/exams/${getExamId(exam)}`}>Open</Link>
+        </Button>
+      </div>
+    </article>
+  );
+}
+
+function ClassCard({ classItem }) {
+  return (
+    <article className="flex min-h-52 w-full flex-col justify-between rounded-lg border border-border bg-card p-5 shadow-sm">
+      <div className="space-y-3">
+        <span className="inline-flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+          <Building2 className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <h3 className="truncate text-lg font-bold text-foreground">{classItem.class_name || "Untitled class"}</h3>
+          <p className="mt-1 truncate text-sm text-muted-foreground">
+            {classItem.subject || "General"}{classItem.grade_level ? ` - ${classItem.grade_level}` : ""}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="rounded-lg bg-background p-3">
+            <p className="text-xs font-bold uppercase text-muted-foreground">Members</p>
+            <p className="mt-1 font-semibold text-foreground">{classItem.member_count ?? 0} / {classItem.learner_capacity ?? "--"}</p>
+          </div>
+          <div className="rounded-lg bg-background p-3">
+            <p className="text-xs font-bold uppercase text-muted-foreground">Code</p>
+            <p className="mt-1 truncate font-mono font-semibold text-foreground">{classItem.class_code || "--"}</p>
+          </div>
+        </div>
+      </div>
+      <div className="mt-5 flex flex-wrap gap-2">
+        <Button asChild size="sm">
+          <Link href={`/teacher/classes/${classItem.class_id}`}>Open</Link>
+        </Button>
+        <Button asChild size="sm" variant="outline">
+          <Link href={`/teacher/classes/${classItem.class_id}/members`}>Members</Link>
+        </Button>
+        <Button asChild size="sm" variant="ghost">
+          <Link href={`/teacher/classes/${classItem.class_id}/invite`}>Invite</Link>
+        </Button>
+      </div>
+    </article>
+  );
+}
+
+function SectionHeader({ actionHref, actionLabel, title }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div>
         <h2 className="text-lg font-bold text-foreground">{title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>
       <Button asChild size="sm" variant="outline">
         <Link href={actionHref}>{actionLabel}</Link>
