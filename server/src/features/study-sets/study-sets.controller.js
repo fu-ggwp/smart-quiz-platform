@@ -98,6 +98,21 @@ export const getSessionResults = async (req, res) => {
   }
 };
 
+export const generateAnswerExplanation = async (req, res) => {
+  try {
+    return ok(
+      res,
+      await service.generateAnswerExplanation(
+        req.user,
+        req.params.sessionId,
+        req.params.questionId,
+      ),
+    );
+  } catch (err) {
+    return fail(res, err, err.status || 500);
+  }
+};
+
 export const listLearnerStudySets = async (req, res) => {
   try {
     const learnerId = req.user.id || req.user.user_id;

@@ -8,6 +8,7 @@ import {
   joinClass as joinClassService,
   listJoinedClasses as listJoinedClassesService,
   removeMember as removeMemberService,
+  getLearnerClassDetail as getLearnerClassDetailService,
 } from "./classes.service.js";
 import { JoinRequestStatus } from "../../models/join-request.model.js";
 
@@ -21,6 +22,20 @@ export async function getJoinedClasses(req, res) {
     res.json({ ok: true, data: classes });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
+  }
+}
+
+/**
+ * GET /api/classes/:id/assigned-study-sets
+ * Learner Class Detail — class header + assigned activities for the logged-in
+ * learner (UC-17 step 6 / §3.3.4). Gated to active members of the class.
+ */
+export async function getLearnerClassDetail(req, res) {
+  try {
+    const detail = await getLearnerClassDetailService(req.params.id, req.user.id);
+    res.json({ ok: true, data: detail });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
   }
 }
 

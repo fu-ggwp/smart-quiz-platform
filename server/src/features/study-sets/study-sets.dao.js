@@ -383,3 +383,11 @@ export function getOwnedStudySetIds(teacherId) {
     .eq("teacher_id", teacherId)
     .is("deleted_at", null);
 }
+
+export function getUserPremiumStatus(userId) {
+  return supabase
+    .from(USER_TABLE)
+    .select("is_premium")
+    .eq("user_id", userId)
+    .single();
+}

@@ -15,6 +15,10 @@ const classesService = {
   // Learner: list joined classes
   listJoined: () => axiosClient.get("/api/classes/joined").then((r) => r.data.data),
 
+  // Learner: class detail + assigned activities (UC-17 / §3.3.4)
+  getLearnerDetail: (id) =>
+    axiosClient.get(`/api/classes/${id}/assigned-study-sets`).then((r) => r.data.data),
+
   // Learner: join a class by code or invitation token
   joinClass: ({ classCode, invitationToken }) =>
     axiosClient.post("/api/classes/join", {

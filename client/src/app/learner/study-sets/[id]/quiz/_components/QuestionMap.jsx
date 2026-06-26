@@ -1,11 +1,9 @@
-import { Button } from "@/components/ui/button";
-
-export default function QuestionMap({ questions, currentIndex, selectedAnswers, onSelectQuestion, onSubmit }) {
+export default function QuestionMap({ questions, currentIndex, selectedAnswers }) {
   return (
     <div className="bg-white border border-neutral-100 rounded-3xl p-6 shadow-sm space-y-6">
       <div>
-        <h3 className="font-extrabold text-neutral-900 text-base">Question Map</h3>
-        <p className="text-xs text-neutral-400 mt-1">Jump directly to any card</p>
+        <h3 className="font-extrabold text-neutral-900 text-base">Question Progress</h3>
+        <p className="text-xs text-neutral-400 mt-1">Quiz question navigation is sequential</p>
       </div>
 
       {/* Grid chỉ mục các câu hỏi */}
@@ -17,17 +15,16 @@ export default function QuestionMap({ questions, currentIndex, selectedAnswers, 
             : !!selectedAnswers[q.question_id];
 
           return (
-            <button
+            <div
               key={q.question_id}
-              onClick={() => onSelectQuestion(idx)}
-              className={`h-10 rounded-xl font-bold text-sm border flex items-center justify-center transition-all duration-200 ${
+              className={`h-10 rounded-xl font-bold text-sm border flex items-center justify-center transition-all duration-200 select-none ${
                 isCurrent ? "bg-indigo-600 text-white border-indigo-600 shadow-sm" :
-                isAnswered ? "bg-emerald-50 text-emerald-600 border-emerald-100 hover:border-emerald-300" :
-                "bg-white text-neutral-400 border-neutral-200 hover:border-indigo-300 hover:text-indigo-600"
+                isAnswered ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                "bg-white text-neutral-400 border-neutral-200"
               }`}
             >
               {idx + 1}
-            </button>
+            </div>
           );
         })}
       </div>
@@ -43,11 +40,6 @@ export default function QuestionMap({ questions, currentIndex, selectedAnswers, 
           <span>Unanswered</span>
         </div>
       </div>
-
-      {/* Nút nộp bài cuối cùng */}
-      <Button onClick={onSubmit} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3 font-bold">
-        Finish and Submit
-      </Button>
     </div>
   );
 }

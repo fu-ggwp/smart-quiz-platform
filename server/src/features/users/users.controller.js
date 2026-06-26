@@ -8,3 +8,15 @@ export const listPublic = async (req, res) => {
     return fail(res, err, err.status || 500);
   }
 };
+
+/**
+ * GET /api/users
+ * Admin user list with search + role/status/premium filters (UC-51 / §3.9.1).
+ */
+export const listAll = async (req, res) => {
+  try {
+    return ok(res, await service.listForAdmin(req.query));
+  } catch (err) {
+    return fail(res, err, err.status || 500);
+  }
+};

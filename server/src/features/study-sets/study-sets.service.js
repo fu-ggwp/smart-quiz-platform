@@ -1,7 +1,12 @@
+import { GoogleGenAI } from "@google/genai";
 import * as dao from "./study-sets.dao.js";
+import { env } from "../../config/env.js";
 import { buildPaginatedResponse } from "../../utils/pagination.js";
 import { notifyStudySetAssigned } from "../../utils/notification.service.js";
 import { logger } from "../../utils/logger.js";
+
+const premiumRequiredMessage = "AI explanations are available for Premium accounts only. Please upgrade to continue.";
+const aiUnavailableMessage = "AI processing is currently unavailable. Please try again later.";
 
 function shouldNotify(payload = {}) {
   const flag = payload.notifyLearners ?? payload.notify_learners;
@@ -42,9 +47,104 @@ function dbError(error, status = 400) {
   return Object.assign(new Error(error.message), { status });
 }
 
+function serviceError(message, status = 400) {
+  return Object.assign(new Error(message), { status });
+}
+
 // Thông báo study set này không tìm thấy
 function notFound(message = "Study set not found") {
   return Object.assign(new Error(message), { status: 404 });
+}
+
+function formatOptionList(options = []) {
+  return options
+    .map((option, index) => {
+      const letter = String.fromCharCode(65 + index);
+      return `${letter}. ${option.option_text}`;
+    })
+    .join("\n");
+}
+
+function formatSelectedOptions(options = [], selectedOptionIds = []) {
+  if (!selectedOptionIds.length) return "No answer selected.";
+
+  const selected = options.filter((option) => selectedOptionIds.includes(option.answer_option_id));
+  if (!selected.length) return "No matching selected answer found.";
+
+  return formatOptionList(selected);
+}
+
+function buildAnswerExplanationPrompt({ studySet, question, attemptAnswer }) {
+  const options = question.answer_options || [];
+  const correctOptions = options.filter((option) => option.is_correct);
+
+  return [
+    "You are helping a learner understand a quiz answer.",
+    "Explain the answer clearly and briefly. Use the same language as the question or existing explanation.",
+    "Do not mention that you are an AI. Do not use markdown tables.",
+    "",
+    "Study set context:",
+    `Title: ${studySet.title || "Untitled"}`,
+    `Description: ${studySet.description || "No description"}`,
+    `Subject: ${studySet.subject || "Not specified"}`,
+    `Topic: ${studySet.topic || "Not specified"}`,
+    `Tags: ${(studySet.tags || []).join(", ") || "None"}`,
+    "",
+    "Question:",
+    question.question_text,
+    "",
+    "Answer options:",
+    formatOptionList(options),
+    "",
+    "Correct answer:",
+    formatOptionList(correctOptions),
+    "",
+    "Learner selected answer:",
+    formatSelectedOptions(options, attemptAnswer?.selected_answer_option_ids || []),
+    "",
+    "Existing explanation:",
+    question.explanation || "No existing explanation.",
+    "",
+    "Return one concise explanation paragraph plus, if helpful, one short sentence about why the selected answer is right or wrong.",
+  ].join("\n");
+}
+
+async function requirePremiumLearner(userId) {
+  const { data, error } = await dao.getUserPremiumStatus(userId);
+  if (error) {
+    throw dbError(error, 500);
+  }
+
+  if (!data?.is_premium) {
+    throw serviceError(premiumRequiredMessage, 403);
+  }
+}
+
+async function callGeminiForAnswerExplanation(prompt) {
+  if (!env.geminiApiKey) {
+    throw serviceError(aiUnavailableMessage, 503);
+  }
+
+  try {
+    const ai = new GoogleGenAI({ apiKey: env.geminiApiKey });
+    const response = await ai.models.generateContent({
+      model: env.geminiModel,
+      contents: [{ text: prompt }],
+      config: {
+        temperature: 0.2,
+      },
+    });
+
+    const aiExplanation = String(response.text || "").trim();
+    if (!aiExplanation) {
+      throw serviceError(aiUnavailableMessage, 502);
+    }
+
+    return aiExplanation;
+  } catch (error) {
+    if (error.status || error.statusCode) throw error;
+    throw serviceError(aiUnavailableMessage, 502);
+  }
 }
 
 // List toàn bộ study set của giáo viên
@@ -507,6 +607,56 @@ export async function getSessionResults(sessionId) {
   return { session: session.data, answers: data };
 }
 
+
+export async function generateAnswerExplanation(user, sessionId, questionId) {
+  const learnerId = user.user_id || user.id;
+
+  const session = await dao.findAttemptById(sessionId);
+  if (session.error || !session.data) {
+    throw notFound("Practice session not found");
+  }
+
+  if (session.data.learner_id !== learnerId) {
+    throw accessDenied("You do not have permission to access this practice session.");
+  }
+
+  if (session.data.mode !== "quiz") {
+    throw serviceError("AI explanations are only available for quiz results.", 400);
+  }
+
+  const { data: answers, error: answersErr } = await dao.listAnswersByAttempt(sessionId);
+  if (answersErr) {
+    throw dbError(answersErr, 500);
+  }
+
+  if (session.data.status !== "submitted" && !(answers || []).length) {
+    throw serviceError("Complete the quiz before requesting AI explanations.", 400);
+  }
+
+  await requirePremiumLearner(learnerId);
+
+  const studySet = await getOne(session.data.study_set_id, user);
+  const question = (studySet.questions || []).find((item) => item.question_id === questionId);
+  if (!question) {
+    throw notFound("Question not found in this quiz session");
+  }
+
+  const sortedQuestion = {
+    ...question,
+    answer_options: [...(question.answer_options || [])].sort(
+      (left, right) => (left.display_order || 0) - (right.display_order || 0),
+    ),
+  };
+  const attemptAnswer = (answers || []).find((answer) => answer.question_id === questionId);
+  const prompt = buildAnswerExplanationPrompt({
+    studySet,
+    question: sortedQuestion,
+    attemptAnswer,
+  });
+  const aiExplanation = await callGeminiForAnswerExplanation(prompt);
+
+  return { aiExplanation };
+}
 
 export async function listLearnerStudySets(learnerId) {
   const { data: memberships, error: memberError } =
