@@ -1,7 +1,7 @@
-import supabase, { supabaseAdmin } from "../../config/supabase.js";
+import { supabase } from "../../config/supabase.js";
 import { createUserModel, userColumns } from "../../models/user.model.js";
 
-const db = supabaseAdmin || supabase;
+const db = supabase;
 const userModel = createUserModel(db);
 const usernamePattern = /^[a-zA-Z0-9_]+$/;
 const switchableRoles = new Set(["learner", "teacher"]);

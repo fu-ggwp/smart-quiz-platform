@@ -1,4 +1,4 @@
-import supabase from "../config/supabase.js";
+import { supabase, supabaseClient } from "../config/supabase.js";
 import { USER_TABLE } from "../models/user.model.js";
 // Verifies the Supabase JWT sent in the Authorization header and attaches
 // the resolved user to `req.user`. Use on any route that requires login.
@@ -10,7 +10,7 @@ export async function requireAuth(req, res, next) {
     return res.status(401).json({ ok: false, error: "Missing access token" });
   }
 
-  const { data, error } = await supabase.auth.getUser(token);
+  const { data, error } = await supabaseClient.auth.getUser(token);
 
   if (error || !data?.user) {
     return res.status(401).json({ ok: false, error: "Invalid or expired token" });

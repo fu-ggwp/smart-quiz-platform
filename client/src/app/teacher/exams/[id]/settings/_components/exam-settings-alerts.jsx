@@ -3,7 +3,7 @@ export function ExamSettingsAlerts({ locked, error, success }) {
     <>
       {locked ? (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
-          You do not have permission to access or perform this action.
+          Active exam sessions cannot be configured after their start time. Draft exams remain editable until they are activated.
         </div>
       ) : null}
 

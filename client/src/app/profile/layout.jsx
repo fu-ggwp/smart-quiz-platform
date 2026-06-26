@@ -8,11 +8,11 @@ export default function ProfileLayout({ children }) {
   const { role } = useAuth();
 
   return (
-    <main className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+    <main className="flex min-h-screen flex-col bg-background text-foreground">
       <Navbar />
-      <div className="min-h-0 flex-1 overflow-hidden md:flex">
+      <div className="flex-1 md:flex">
         <AppSidebar role={role || "learner"} />
-        <section className="min-w-0 flex-1 overflow-y-auto">{children}</section>
+        <section className="min-w-0 flex-1">{children}</section>
       </div>
     </main>
   );

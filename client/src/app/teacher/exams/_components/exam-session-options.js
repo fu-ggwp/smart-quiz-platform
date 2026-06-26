@@ -20,6 +20,7 @@ export const RESULT_VISIBILITY_OPTIONS = [
   { value: "", label: "All visibility" },
   { value: "score_only", label: "Score only" },
   { value: "completion_only", label: "Completion only" },
+  { value: "question_answer", label: "Question answers" },
 ];
 
 export const SORT_OPTIONS = [
@@ -46,6 +47,7 @@ const STATUS_LABELS = {
 const VISIBILITY_LABELS = {
   score_only: "Score only",
   completion_only: "Completion only",
+  question_answer: "Question answers",
 };
 
 export function formatDateTime(value) {

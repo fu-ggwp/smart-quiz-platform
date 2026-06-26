@@ -14,11 +14,9 @@ export function isExamLocked(exam) {
 
   const now = Date.now();
   const startTime = exam.start_at ? new Date(exam.start_at).getTime() : null;
-  const endTime = exam.end_at ? new Date(exam.end_at).getTime() : null;
 
   return (
     lockedStatuses.has(exam.status) ||
-    (Number.isFinite(startTime) && startTime <= now) ||
-    (Number.isFinite(endTime) && endTime <= now)
+    (exam.status === "active" && Number.isFinite(startTime) && startTime <= now)
   );
 }

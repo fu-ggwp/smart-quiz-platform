@@ -1,4 +1,4 @@
-import supabase, { supabaseAdmin } from "../../config/supabase.js";
+import { supabase } from "../../config/supabase.js";
 import { STUDY_SET_TABLE } from "../../models/study-set.model.js";
 import { PRACTICE_ATTEMPT_TABLE } from "../../models/practice-attempt.model.js";
 import { ATTEMPT_ANSWER_TABLE } from "../../models/attempt-answer.model.js";
@@ -10,6 +10,8 @@ import { CLASS_MEMBER_TABLE } from "../../models/join-request.model.js";
 import { getPagination } from "../../utils/pagination.js";
 import { CLASS_TABLE } from "../../models/class.model.js";
 
+const db = supabase;
+
 // Tìm theo gv sở hữu là teacher_id, hỗ trợ pagination và filters
 export async function findByTeacher(teacherId, filters = {}) {
   const { page, limit, from, to } = getPagination(filters, { defaultLimit: 10 });
@@ -20,7 +22,7 @@ export async function findByTeacher(teacherId, filters = {}) {
 
   let assignedIds = [];
   if (assignment) {
-    const { data: assignments } = await supabase
+    const { data: assignments } = await db
       .from("study_set_assignments")
       .select("study_set_id")
       .eq("assigned_by", teacherId);
@@ -28,7 +30,7 @@ export async function findByTeacher(teacherId, filters = {}) {
     assignedIds = [...new Set((assignments || []).map((a) => a.study_set_id))];
   }
 
-  let query = supabase
+  let query = db
     .from(STUDY_SET_TABLE)
     .select(`
       *,
@@ -93,7 +95,7 @@ export async function findPublicStudySets(filters = {}) {
   const { page, limit, from, to } = getPagination(filters, { defaultLimit: 10 });
   const keyword = sanitizeSearchKeyword(filters.keyword);
 
-  let query = supabase
+  let query = db
     .from(STUDY_SET_TABLE)
     .select("study_set_id, title, description, topic, tags, question_count, created_at, updated_at", { count: "exact" })
     .eq("visibility", "public")
@@ -115,10 +117,10 @@ export async function findPublicStudySets(filters = {}) {
 
 export async function findPublic({ classId } = {}) {
   if (!classId) {
-    return supabase.from(STUDY_SET_TABLE).select("*").eq("visibility", "public");
+    return db.from(STUDY_SET_TABLE).select("*").eq("visibility", "public");
   }
 
-  const { data: assignments, error: assignError } = await supabase
+  const { data: assignments, error: assignError } = await db
     .from("study_set_assignments")
     .select("study_set_id")
     .eq("class_id", classId);
@@ -129,7 +131,7 @@ export async function findPublic({ classId } = {}) {
 
   const assignedIds = (assignments || []).map((a) => a.study_set_id);
 
-  let query = supabase.from(STUDY_SET_TABLE).select("*");
+  let query = db.from(STUDY_SET_TABLE).select("*");
   if (assignedIds.length > 0) {
     query = query.or(`visibility.eq.public,study_set_id.in.(${assignedIds.join(",")})`);
   } else {
@@ -140,7 +142,7 @@ export async function findPublic({ classId } = {}) {
 
 // Tìm study set theo id
 export function findById(id) {
-  return supabase
+  return db
     .from(STUDY_SET_TABLE)
     .select(`
       *,
@@ -157,17 +159,17 @@ export function findById(id) {
 
 // Tạo mới study set
 export function create(payload) {
-  return supabase.from(STUDY_SET_TABLE).insert(payload).select().single();
+  return db.from(STUDY_SET_TABLE).insert(payload).select().single();
 }
 
 // Cập nhật study set
 export function update(id, changes) {
-  return supabase.from(STUDY_SET_TABLE).update(changes).eq("study_set_id", id).select().single();
+  return db.from(STUDY_SET_TABLE).update(changes).eq("study_set_id", id).select().single();
 }
 
 // Xóa học phần (Soft Delete)
 export function remove(id) {
-  return supabase
+  return db
     .from(STUDY_SET_TABLE)
     .update({ deleted_at: new Date().toISOString() })
     .eq("study_set_id", id);
@@ -175,27 +177,27 @@ export function remove(id) {
 
 // Gán study set cho lớp học
 export function assignToClass(payload) {
-  return supabase.from("study_set_assignments").insert(payload);
+  return db.from("study_set_assignments").insert(payload);
 }
 
 // Tạo attempt mới
 export function createAttempt(payload) {
-  return supabase.from(PRACTICE_ATTEMPT_TABLE).insert(payload).select().single();
+  return db.from(PRACTICE_ATTEMPT_TABLE).insert(payload).select().single();
 }
 
 // Tìm thông tin attempt theo id
 export function findAttemptById(id) {
-  return supabase.from(PRACTICE_ATTEMPT_TABLE).select("*").eq("practice_attempt_id", id).single();
+  return db.from(PRACTICE_ATTEMPT_TABLE).select("*").eq("practice_attempt_id", id).single();
 }
 
 // Cập nhật info attempt
 export function updateAttempt(id, changes) {
-  return supabase.from(PRACTICE_ATTEMPT_TABLE).update(changes).eq("practice_attempt_id", id).select().single();
+  return db.from(PRACTICE_ATTEMPT_TABLE).update(changes).eq("practice_attempt_id", id).select().single();
 }
 
 // List toàn bộ attempts của học sinh
 export function listAttemptsByLearner(learnerId) {
-  return supabase
+  return db
     .from(PRACTICE_ATTEMPT_TABLE)
     .select("*")
     .eq("learner_id", learnerId)
@@ -204,7 +206,7 @@ export function listAttemptsByLearner(learnerId) {
 
 // Lưu các câu trả lời của học sinh
 export async function recordAnswer(payload) {
-  const { data: existing } = await supabase
+  const { data: existing } = await db
     .from(ATTEMPT_ANSWER_TABLE)
     .select("attempt_answer_id")
     .eq("practice_attempt_id", payload.practice_attempt_id)
@@ -212,7 +214,7 @@ export async function recordAnswer(payload) {
     .maybeSingle();
 
   if (existing) {
-    return supabase
+    return db
       .from(ATTEMPT_ANSWER_TABLE)
       .update(payload)
       .eq("attempt_answer_id", existing.attempt_answer_id)
@@ -220,38 +222,38 @@ export async function recordAnswer(payload) {
       .single();
   }
 
-  return supabase.from(ATTEMPT_ANSWER_TABLE).insert(payload).select().single();
+  return db.from(ATTEMPT_ANSWER_TABLE).insert(payload).select().single();
 }
 
 // List toàn bộ câu trả lời của 1 attempt
 export function listAnswersByAttempt(attemptId) {
-  return supabase.from(ATTEMPT_ANSWER_TABLE).select("*").eq("practice_attempt_id", attemptId);
+  return db.from(ATTEMPT_ANSWER_TABLE).select("*").eq("practice_attempt_id", attemptId);
 }
 
 
 //Check tkhoan premium
 export function checkPremium(userId) {
-  return supabase.from(USER_TABLE).select("is_premium").eq("user_id", userId).single();
+  return db.from(USER_TABLE).select("is_premium").eq("user_id", userId).single();
 }
 
 //Thêm câu hỏi
 export function creationQuestions(questionPayload) {
-  return supabase.from(QUESTION_TABLE).insert(questionPayload).select();
+  return db.from(QUESTION_TABLE).insert(questionPayload).select();
 }
 
 //Thêm đáp án
 export function createOptions(optionsPayload) {
-  return supabase.from(ANSWER_OPTION_TABLE).insert(optionsPayload);
+  return db.from(ANSWER_OPTION_TABLE).insert(optionsPayload);
 }
 
 //Update slg câu hỏi
 export function updateQuestionCount(studysetId, count) {
-  return supabase.from(STUDY_SET_TABLE).update({ question_count: count }).eq("study_set_id", studysetId);
+  return db.from(STUDY_SET_TABLE).update({ question_count: count }).eq("study_set_id", studysetId);
 }
 
 //Lấy full ques và ans trong study set
 export function listQuestionByStudySet(studysetId) {
-  return supabase
+  return db
     .from(QUESTION_TABLE)
     .select(`
       *,
@@ -270,7 +272,7 @@ export function listQuestionByStudySet(studysetId) {
 
 //Lấy dsach lớp của hsinh
 export function getLearnerClassMemberships(learnerId) {
-  return supabase
+  return db
     .from(CLASS_MEMBER_TABLE)
     .select("class_id")
     .eq("learner_id", learnerId)
@@ -279,7 +281,7 @@ export function getLearnerClassMemberships(learnerId) {
 
 //Lấy ttin gán với hphan 
 export function getAssignmentsByClassIds(classIds) {
-  return supabase
+  return db
     .from(STUDY_SET_ASSIGNMENT_TABLE)
     .select("study_set_id, class_id, classes(class_name)")
     .in("class_id", classIds);
@@ -287,7 +289,7 @@ export function getAssignmentsByClassIds(classIds) {
 
 //Lấy lsu làm bài
 export function getPracticeAttempts(learnerId) {
-  return supabase
+  return db
     .from(PRACTICE_ATTEMPT_TABLE)
     .select("study_set_id, started_at")
     .eq("learner_id", learnerId);
@@ -295,7 +297,7 @@ export function getPracticeAttempts(learnerId) {
 
 //Lấy ttin chi tiết study set
 export function getStudySetsByIds(ids) {
-  return supabase
+  return db
     .from(STUDY_SET_TABLE)
     .select("*, teacher:users!teacher_id(full_name, avatar_url)")
     .in("study_set_id", ids)
@@ -305,7 +307,7 @@ export function getStudySetsByIds(ids) {
 
 //Cập nhật in4 chi tiết 1 câu hỏi
 export function updateQuestion(questionId, changes) {
-  return supabase
+  return db
     .from(QUESTION_TABLE)
     .update(changes)
     .eq("question_id", questionId);
@@ -313,7 +315,7 @@ export function updateQuestion(questionId, changes) {
 
 //Xóa 1 câu hỏi
 export function deleteQuestions(questionIds) {
-  return supabase
+  return db
     .from(QUESTION_TABLE)
     .update({ deleted_at: new Date().toISOString() })
     .in("question_id", questionIds);
@@ -321,7 +323,7 @@ export function deleteQuestions(questionIds) {
 
 //Cập nhật in4 chi tiết 1 đáp ná
 export function updateOption(optionId, changes) {
-  return supabase
+  return db
     .from(ANSWER_OPTION_TABLE)
     .update(changes)
     .eq("answer_option_id", optionId);
@@ -329,14 +331,14 @@ export function updateOption(optionId, changes) {
 
 //Xóa đáp án
 export function deleteOptions(optionIds) {
-  return supabase
+  return db
     .from(ANSWER_OPTION_TABLE)
     .delete()
     .in("answer_option_id", optionIds);
 }
 
 export function deleteAssignments(studySetId) {
-  return supabase
+  return db
     .from(STUDY_SET_ASSIGNMENT_TABLE)
     .delete()
     .eq("study_set_id", studySetId);
@@ -344,7 +346,7 @@ export function deleteAssignments(studySetId) {
 
 // Lấy email thành viên lớp học đang hoạt động 
 export function getActiveClassMemberEmails(classIds) {
-  return supabase
+  return db
     .from(CLASS_MEMBER_TABLE)
     .select("learner:users!learner_id(email, full_name)")
     .in("class_id", classIds)
@@ -353,14 +355,14 @@ export function getActiveClassMemberEmails(classIds) {
 
 // Lấy danh sách tên lớp học theo ID
 export function getClassNamesByIds(classIds) {
-  return supabase
+  return db
     .from(CLASS_TABLE)
     .select("class_id, class_name")
     .in("class_id", classIds);
 }
 
 export function checkAssignmentMatch(studySetId, classIds) {
-  return supabase
+  return db
     .from(STUDY_SET_ASSIGNMENT_TABLE)
     .select("assignment_id")
     .eq("study_set_id", studySetId)
@@ -369,7 +371,7 @@ export function checkAssignmentMatch(studySetId, classIds) {
 }
 
 export function getCorrectOptions(questionId) {
-  return supabase
+  return db
     .from(ANSWER_OPTION_TABLE)
     .select("answer_option_id")
     .eq("question_id", questionId)
@@ -377,7 +379,7 @@ export function getCorrectOptions(questionId) {
 }
 
 export function getOwnedStudySetIds(teacherId) {
-  return supabase
+  return db
     .from(STUDY_SET_TABLE)
     .select("study_set_id")
     .eq("teacher_id", teacherId)
@@ -393,7 +395,6 @@ const ADMIN_MODERATION_SELECT =
 
 // List PUBLIC study sets for admin review (visible + admin-hidden), paginated.
 export async function adminListPublicStudySets(filters = {}) {
-  const db = supabaseAdmin ?? supabase;
   const { page, limit, from, to } = getPagination(filters, { defaultLimit: 10 });
   const keyword = sanitizeSearchKeyword(filters.keyword);
 
@@ -420,7 +421,6 @@ export async function adminListPublicStudySets(filters = {}) {
 
 // Existence check before toggling (clean 404).
 export async function adminFindStudySetById(studySetId) {
-  const db = supabaseAdmin ?? supabase;
   const { data, error } = await db
     .from(STUDY_SET_TABLE)
     .select("study_set_id")
@@ -432,7 +432,6 @@ export async function adminFindStudySetById(studySetId) {
 
 // Hide (true) / restore (false) a study set by flipping is_admin_hidden.
 export async function adminSetHidden(studySetId, hidden) {
-  const db = supabaseAdmin ?? supabase;
   const { data, error } = await db
     .from(STUDY_SET_TABLE)
     .update({ is_admin_hidden: hidden, updated_at: new Date().toISOString() })
@@ -443,7 +442,7 @@ export async function adminSetHidden(studySetId, hidden) {
   return { data, error };
 }
 export function getUserPremiumStatus(userId) {
-  return supabase
+  return db
     .from(USER_TABLE)
     .select("is_premium")
     .eq("user_id", userId)

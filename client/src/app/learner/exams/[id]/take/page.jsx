@@ -45,7 +45,7 @@ export default function TakeExamPage() {
 
   const attempt = examData?.attempt;
   const examAttemptId = attempt?.exam_attempt_id;
-  const questions = examData?.questions ?? [];
+  const questions = useMemo(() => examData?.questions ?? [], [examData?.questions]);
   const activeQuestion = questions[activeIndex] ?? questions[0];
   const activeOptions = Array.isArray(activeQuestion?.answer_options) ? activeQuestion.answer_options : [];
 
@@ -272,16 +272,30 @@ export default function TakeExamPage() {
   }
 
   if (submitted) {
+    const canReviewAnswers = submitted.result_visibility === "question_answer";
+
     return (
       <main className="fixed inset-0 z-50 grid place-items-center bg-[#f2f2f2] p-6">
         <section className="w-full max-w-xl border border-slate-300 bg-white p-6 text-center shadow-sm">
           <h1 className="text-xl font-bold text-slate-700">Exam submitted successfully</h1>
-          {submitted.result_visibility === "score_only" ? (
+          {submitted.result_visibility === "score_only" || canReviewAnswers ? (
             <p className="mt-3 text-sm text-slate-600">Score: {submitted.total_score} / {submitted.max_score}</p>
           ) : (
             <p className="mt-3 text-sm text-slate-600">Your completion status has been saved.</p>
           )}
-          <Button className="mt-5 rounded-sm" onClick={() => router.push("/learner/exams")}>Back to exams</Button>
+          <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
+            {canReviewAnswers ? (
+              <Button
+                className="rounded-sm"
+                onClick={() => router.push(`/learner/exams/${examId}/result?attempt=${submitted.exam_attempt_id}`)}
+              >
+                View question answers
+              </Button>
+            ) : null}
+            <Button className="rounded-sm" variant={canReviewAnswers ? "outline" : "default"} onClick={() => router.push("/learner/exams")}>
+              Back to exams
+            </Button>
+          </div>
         </section>
       </main>
     );

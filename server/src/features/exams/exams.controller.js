@@ -2,6 +2,7 @@ import {
   createExamSession as createExamSessionService,
   getExamDetail as getExamDetailService,
   getLearnerExamAttempt as getLearnerExamAttemptService,
+  getLearnerExamAttemptResults as getLearnerExamAttemptResultsService,
   getLearnerExamDetail as getLearnerExamDetailService,
   listLearnerExamSessions,
   listTeacherExamSessions,
@@ -110,6 +111,15 @@ export async function startLearnerExamAttempt(req, res) {
 export async function getLearnerExamAttempt(req, res) {
   try {
     const data = await getLearnerExamAttemptService(req.params.attemptId, getUserId(req));
+    res.json({ ok: true, data });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+export async function getLearnerExamAttemptResults(req, res) {
+  try {
+    const data = await getLearnerExamAttemptResultsService(req.params.attemptId, getUserId(req));
     res.json({ ok: true, data });
   } catch (error) {
     sendError(res, error);

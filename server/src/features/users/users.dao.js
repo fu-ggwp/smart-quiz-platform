@@ -1,4 +1,4 @@
-import supabase, { supabaseAdmin } from "../../config/supabase.js";
+import { supabase } from "../../config/supabase.js";
 import { USER_TABLE } from "../../models/user.model.js";
 import { getPagination } from "../../utils/pagination.js";
 
@@ -22,7 +22,7 @@ const ADMIN_USER_COLUMNS =
  * (the anon client is RLS-limited and is reserved for the public search).
  */
 export async function findUsersForAdmin(filters = {}) {
-  const db = supabaseAdmin ?? supabase;
+  const db = supabase;
   const { page, limit, from, to } = getPagination(filters, { defaultLimit: 10 });
   const keyword = sanitizeSearchKeyword(filters.keyword);
 

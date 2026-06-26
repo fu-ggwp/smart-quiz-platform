@@ -73,6 +73,12 @@ function isExpiredActiveExam(exam, now = Date.now()) {
   return Number.isFinite(endTime) && endTime <= now;
 }
 
+function isStartedActiveExam(exam, now = Date.now()) {
+  if (exam?.status !== ExamSessionStatus.ACTIVE || !exam.start_at) return false;
+  const startTime = new Date(exam.start_at).getTime();
+  return Number.isFinite(startTime) && startTime <= now;
+}
+
 function getNext(exam, changes, field) {
   return Object.prototype.hasOwnProperty.call(changes, field) ? changes[field] : exam[field];
 }
@@ -106,8 +112,11 @@ function assertActivatable(exam, changes) {
   }
 }
 
-function normalizeStatus(value, fallback = ExamSessionStatus.DRAFT) {
-  const status = text(value || fallback).toLowerCase();
+function normalizeStatus(value, fallback = ExamSessionStatus.ACTIVE) {
+  const rawStatus = text(value);
+  if (!rawStatus) return fallback;
+
+  const status = rawStatus.toLowerCase();
   return [ExamSessionStatus.DRAFT, ExamSessionStatus.ACTIVE].includes(status)
     ? status
     : ExamSessionStatus.DRAFT;
@@ -206,8 +215,6 @@ function toExamQuestionRows(examSessionId, questions) {
       question_type: question.question_type || "multiple_choice",
       score: question.score || 1,
       explanation: question.explanation || null,
-      subject: question.subject || null,
-      topic: null,
       chapter: question.chapter || null,
       answer_options_json: orderedOptions.map((option, optionIndex) => ({
         index: optionIndex,
@@ -285,6 +292,10 @@ export async function updateExamSettings(examSessionId, teacherId, payload = {})
 
   if ([ExamSessionStatus.CLOSED, ExamSessionStatus.ARCHIVED].includes(exam.status)) {
     throw fail("You do not have permission to access or perform this action.", 409);
+  }
+
+  if (isStartedActiveExam(exam)) {
+    throw fail("Active exam sessions cannot be configured after their start time.", 409);
   }
 
   const changes = pickConfigChanges(payload);
@@ -554,6 +565,33 @@ function visibleQuestions(questions, attempt) {
   });
 }
 
+function resultQuestions(questions, answers, attempt) {
+  const answersByQuestion = new Map(
+    (answers ?? []).map((answer) => [answer.exam_question_id, answer])
+  );
+
+  return visibleQuestions(questions, attempt).map((question) => {
+    const source = (questions ?? []).find((item) => item.exam_question_id === question.exam_question_id) || {};
+    const answer = answersByQuestion.get(question.exam_question_id);
+    const selectedIndexes = answer?.selected_exam_option_indexes ?? [];
+    const correctIndexes = source.correct_option_indexes ?? [];
+
+    return {
+      ...question,
+      explanation: source.explanation || null,
+      selected_exam_option_indexes: selectedIndexes,
+      correct_option_indexes: correctIndexes,
+      is_correct: Boolean(answer?.is_correct),
+      score_awarded: Number(answer?.score_awarded || 0),
+      answer_options: question.answer_options.map((option) => ({
+        ...option,
+        is_selected: selectedIndexes.map(Number).includes(Number(option.index)),
+        is_correct: correctIndexes.map(Number).includes(Number(option.index)),
+      })),
+    };
+  });
+}
+
 async function getLearnerClassIds(learnerId) {
   const { data, error } = await dao.listActiveClassMemberships(learnerId);
   if (error) throw dbError(error, 500);
@@ -706,6 +744,36 @@ export async function submitLearnerExamAttempt(examAttemptId, learnerId, auto = 
   return {
     ...data,
     result_visibility: exam.result_visibility,
+  };
+}
+
+export async function getLearnerExamAttemptResults(examAttemptId, learnerId) {
+  requireUser(learnerId);
+
+  const { data: attempt, error: attemptError } = await dao.findLearnerExamAttempt(examAttemptId, learnerId);
+  if (attemptError) throw dbError(attemptError, 500);
+  if (!attempt) throw notFound("Exam attempt not found");
+  if (attempt.status !== ExamAttemptStatus.SUBMITTED) {
+    throw fail("Submit this exam before viewing detailed results.", 409);
+  }
+
+  const { data: exam, error: examError } = await dao.findExamSessionById(attempt.exam_session_id);
+  if (examError) throw dbError(examError, 500);
+  if (!exam) throw notFound("Exam session not found");
+  if (exam.result_visibility !== ExamResultVisibility.QUESTION_ANSWER) {
+    throw fail("Detailed question answers are not available for this exam.", 403);
+  }
+
+  const { data: questions, error: questionError } = await dao.listExamQuestions(attempt.exam_session_id);
+  if (questionError) throw dbError(questionError, 500);
+
+  const { data: answers, error: answerError } = await dao.listExamAttemptAnswers(examAttemptId);
+  if (answerError) throw dbError(answerError, 500);
+
+  return {
+    exam,
+    attempt,
+    questions: resultQuestions(questions ?? [], answers ?? [], attempt),
   };
 }
 

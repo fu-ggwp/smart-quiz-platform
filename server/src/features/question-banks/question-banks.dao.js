@@ -1,10 +1,10 @@
-import supabase, { supabaseAdmin } from "../../config/supabase.js";
+import { supabase } from "../../config/supabase.js";
 import { ANSWER_OPTION_TABLE } from "../../models/answer-option.model.js";
 import { QUESTION_BANK_TABLE } from "../../models/question-bank.model.js";
 import { QUESTION_TABLE } from "../../models/question.model.js";
 import { getPagination } from "../../utils/pagination.js";
 
-const db = supabaseAdmin || supabase;
+const db = supabase;
 
 const sortableColumns = new Set([
   "title",

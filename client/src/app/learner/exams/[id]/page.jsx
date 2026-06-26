@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -10,6 +11,7 @@ import { examsService } from "@/services/exams.service";
 function visibilityLabel(value) {
   if (value === "completion_only") return "Visible after submit";
   if (value === "score_only") return "Score only";
+  if (value === "question_answer") return "Score and question answers";
   return "Not set";
 }
 
@@ -30,6 +32,13 @@ function getErrorMessage(error) {
   return error?.response?.data?.error || error?.message || "Unable to load exam information.";
 }
 
+function formatExamTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString();
+}
+
 export default function LearnerExamDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -38,6 +47,7 @@ export default function LearnerExamDetailPage() {
   const [accessCode, setAccessCode] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     let ignore = false;
@@ -65,13 +75,53 @@ export default function LearnerExamDetailPage() {
     };
   }, [examId]);
 
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 30000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const availabilityNotice = useMemo(() => {
+    if (!exam) return "";
+
+    const startTime = exam.start_at ? new Date(exam.start_at).getTime() : null;
+    const endTime = exam.end_at ? new Date(exam.end_at).getTime() : null;
+    const enteredCode = accessCode.trim().toUpperCase();
+    const requiredCode = exam.access_code?.toUpperCase();
+
+    if (exam.status !== "active") {
+      return "This exam session is not active yet. Please wait for your teacher to publish it.";
+    }
+
+    if (Number.isFinite(startTime) && startTime > now) {
+      const startLabel = formatExamTime(exam.start_at);
+      return startLabel
+        ? `This exam session has not started yet. It starts at ${startLabel}.`
+        : "This exam session has not started yet.";
+    }
+
+    if (Number.isFinite(endTime) && endTime < now) {
+      return "This exam session has already ended.";
+    }
+
+    if (exam.attempts_remaining <= 0) {
+      return "You have no attempts remaining for this exam.";
+    }
+
+    if (requiredCode && enteredCode && enteredCode !== requiredCode) {
+      return "The exam access code is incorrect. Please check the code and try again.";
+    }
+
+    if (requiredCode && !enteredCode) {
+      return "Enter the exam access code to enable Confirm.";
+    }
+
+    return "";
+  }, [accessCode, exam, now]);
+
   const canStart = useMemo(() => {
     if (!exam) return false;
-    if (exam.status !== "active") return false;
-    if (exam.attempts_remaining <= 0) return false;
-    if (exam.access_code && accessCode.trim().toUpperCase() !== exam.access_code.toUpperCase()) return false;
-    return true;
-  }, [accessCode, exam]);
+    return !availabilityNotice;
+  }, [availabilityNotice, exam]);
 
   if (loading) {
     return (
@@ -118,10 +168,11 @@ export default function LearnerExamDetailPage() {
             </label>
           </div>
 
-          {!canStart ? (
-            <p className="mt-4 text-sm font-medium text-muted-foreground">
-              Confirm is enabled when attempts remain and the access code is correct.
-            </p>
+          {availabilityNotice ? (
+            <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+              <p>{availabilityNotice}</p>
+            </div>
           ) : null}
 
           <div className="mt-6 flex justify-center gap-3">

@@ -16,6 +16,7 @@ export const ExamSessionStatus = Object.freeze({
 export const ExamResultVisibility = Object.freeze({
   COMPLETION_ONLY: "completion_only",
   SCORE_ONLY: "score_only",
+  QUESTION_ANSWER: "question_answer",
 });
 
 export const ExamSessionConfigFields = Object.freeze({
@@ -53,7 +54,7 @@ export const EXAM_SESSION_CONFIG_COLUMNS = Object.freeze(
  * @property {number} question_count
  * @property {boolean} randomize_questions
  * @property {boolean} randomize_answers
- * @property {"completion_only"|"score_only"} result_visibility
+ * @property {"completion_only"|"score_only"|"question_answer"} result_visibility
  * @property {string} [access_code]          - unique
  * @property {string} created_at
  * @property {string} updated_at
@@ -69,7 +70,7 @@ export const EXAM_SESSION_CONFIG_COLUMNS = Object.freeze(
  * @property {"multiple_choice"|"true_false"} question_type
  * @property {number} score
  * @property {string} [explanation]
- * @property {string} [subject]
+ * @property {string} [chapter]
  * @property {Object} answer_options_json    - jsonb snapshot of the options
  * @property {number[]} correct_option_indexes
  * @property {number} display_order

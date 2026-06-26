@@ -1,10 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
 import { env } from "../../config/env.js";
-import supabase, { supabaseAdmin } from "../../config/supabase.js";
+import { supabase } from "../../config/supabase.js";
 import { createUserModel } from "../../models/user.model.js";
 import * as questionBanksDao from "./question-banks.dao.js";
 
-const db = supabaseAdmin || supabase;
+const db = supabase;
 const userModel = createUserModel(db);
 
 const allowedStatus = new Set(["Draft", "Ready"]);
