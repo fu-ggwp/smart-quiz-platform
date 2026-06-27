@@ -68,8 +68,8 @@ export function StudySetCard({ studySet }) {
           </Badge>
         </CardContent>
 
-        <CardFooter className="gap-3 px-6 pb-6">
-          <Avatar size="lg">
+        <CardFooter className="gap-2 px-6 pb-6">
+          <Avatar>
             {teacher.avatarUrl ? (
               <AvatarImage alt={teacher.name} src={teacher.avatarUrl} />
             ) : null}

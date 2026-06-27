@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AlertCircle, BookOpen, Search, UserRound } from "lucide-react";
 
 import { StudySetCard } from "@/components/study-set/study-set-card";
+import { PublicUserCard } from "@/components/public/public-user-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -50,15 +50,6 @@ function unwrapPage(payload) {
 
 function getStudySetId(studySet) {
   return studySet.study_set_id ?? studySet.id;
-}
-
-function formatShortDate(value) {
-  if (!value) return "Recently updated";
-
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-  }).format(new Date(value));
 }
 
 function getTotalLabel(pagination, noun) {
@@ -201,7 +192,7 @@ export function PublicSearchResults({ initialQuery = "" }) {
         {users.items.length ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {users.items.map((user) => (
-              <UserCard key={user.username} user={user} />
+              <PublicUserCard key={user.username} user={user} />
             ))}
           </div>
         ) : (
@@ -295,46 +286,6 @@ function Pager({ onPageChange, page, totalPages }) {
         </PaginationItem>
       </PaginationContent>
     </Pagination>
-  );
-}
-
-function UserCard({ user }) {
-  const initial = (user.full_name || user.username || "?").charAt(0).toUpperCase();
-  const href = user.username ? `/users/${user.username}` : "/search";
-
-  return (
-    <Link
-      className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-      href={href}
-    >
-      <article className="flex min-h-44 flex-col justify-between rounded-lg border border-border bg-card p-5 shadow-sm transition-colors hover:border-primary/60 hover:bg-accent/30">
-        <div className="flex items-start gap-3">
-          {user.avatar_url ? (
-            <div
-              aria-hidden="true"
-              className="size-12 rounded-full border border-border bg-cover bg-center"
-              style={{ backgroundImage: `url(${user.avatar_url})` }}
-            />
-          ) : (
-            <div className="flex size-12 items-center justify-center rounded-full bg-secondary text-base font-bold text-secondary-foreground">
-              {initial}
-            </div>
-          )}
-
-          <div className="min-w-0">
-            <h3 className="truncate text-lg font-bold text-foreground">
-              {user.full_name || user.username || "Public user"}
-            </h3>
-            <p className="truncate text-sm font-semibold text-muted-foreground">
-              @{user.username}
-            </p>
-            <p className="mt-2 text-xs font-semibold text-muted-foreground">
-              Joined {formatShortDate(user.created_at)}
-            </p>
-          </div>
-        </div>
-      </article>
-    </Link>
   );
 }
 

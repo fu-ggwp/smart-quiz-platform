@@ -1,4 +1,5 @@
 import { supabase } from "../../config/supabase.js";
+import { STUDY_SET_TABLE } from "../../models/study-set.model.js";
 import { USER_TABLE } from "../../models/user.model.js";
 import { getPagination } from "../../utils/pagination.js";
 
@@ -58,7 +59,7 @@ export async function findPublicUsers(filters = {}) {
 
   let query = supabase
     .from(USER_TABLE)
-    .select("username, full_name, avatar_url, created_at", { count: "exact" })
+    .select("username, full_name, avatar_url, active_role, created_at", { count: "exact" })
     .eq("account_status", "active")
     .is("deleted_at", null);
 
@@ -71,4 +72,27 @@ export async function findPublicUsers(filters = {}) {
     .range(from, to);
 
   return { data, error, count, page, limit };
+}
+
+export function findPublicUserByUsername(username) {
+  return supabase
+    .from(USER_TABLE)
+    .select("user_id, username, full_name, avatar_url, bio, active_role, created_at")
+    .eq("username", username)
+    .eq("account_status", "active")
+    .is("deleted_at", null)
+    .maybeSingle();
+}
+
+export function findPublicStudySetsByTeacher(teacherId) {
+  return supabase
+    .from(STUDY_SET_TABLE)
+    .select(
+      "study_set_id, title, description, topic, tags, question_count, created_at, updated_at, teacher:users!teacher_id(full_name, username, avatar_url)",
+    )
+    .eq("teacher_id", teacherId)
+    .eq("visibility", "public")
+    .is("deleted_at", null)
+    .eq("is_admin_hidden", false)
+    .order("updated_at", { ascending: false });
 }

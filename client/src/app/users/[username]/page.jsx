@@ -1,11 +1,15 @@
 import { PublicSearchShell } from "@/components/public/public-search-shell";
+import { PublicUserDetail } from "@/components/public/public-user-detail";
 
-export default function PublicProfilePage() {
+export default async function PublicProfilePage({ params }) {
+  const resolvedParams = await params;
+  const username = resolvedParams?.username ?? "";
+
   return (
     <PublicSearchShell>
-      <main className="flex min-h-screen items-center justify-center px-6 text-foreground">
-        <section className="w-full max-w-4xl">
-          <h1 className="text-3xl font-semibold">User Profile</h1>
+      <main className="min-h-screen bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8">
+        <section className="mx-auto flex max-w-7xl flex-col gap-8">
+          <PublicUserDetail username={username} />
         </section>
       </main>
     </PublicSearchShell>
