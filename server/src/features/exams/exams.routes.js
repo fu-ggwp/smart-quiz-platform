@@ -10,6 +10,7 @@ import {
   getLearnerExamAttemptResults,
   getLearnerExamDetail,
   getMyExamSessions,
+  getTeacherExamAttemptResults,
   recordLearnerExamEvent,
   saveLearnerExamAnswer,
   startLearnerExamAttempt,
@@ -24,6 +25,7 @@ const examsRouter = Router();
 examsRouter.get("/learner", requireAuth, requireRole("learner"), getAvailableExamSessions);
 examsRouter.get("/learner/:id", requireAuth, requireRole("learner"), getLearnerExamDetail);
 examsRouter.post("/:id/attempts", requireAuth, requireRole("learner"), startLearnerExamAttempt);
+examsRouter.get("/teacher/attempts/:attemptId/results", requireAuth, requireRole("teacher"), getTeacherExamAttemptResults);
 examsRouter.get("/attempts/:attemptId/results", requireAuth, requireRole("learner"), getLearnerExamAttemptResults);
 examsRouter.get("/attempts/:attemptId", requireAuth, requireRole("learner"), getLearnerExamAttempt);
 examsRouter.post("/attempts/:attemptId/answers", requireAuth, requireRole("learner"), saveLearnerExamAnswer);

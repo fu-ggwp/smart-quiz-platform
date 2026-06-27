@@ -38,7 +38,7 @@ export function ExamDetailHeader({ exam, examId }) {
           className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-sm font-bold hover:bg-muted"
         >
           <ClipboardList className="size-4" />
-          Attempts
+          Results
         </Link>
       </div>
     </header>

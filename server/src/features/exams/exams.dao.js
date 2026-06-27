@@ -375,6 +375,14 @@ export function findLearnerExamAttempt(examAttemptId, learnerId) {
     .maybeSingle();
 }
 
+export function findExamAttemptById(examAttemptId) {
+  return db
+    .from(EXAM_ATTEMPT_TABLE)
+    .select(`${EXAM_ATTEMPT_SELECT}, learner:users!learner_id(user_id, email, username, full_name)`)
+    .eq("exam_attempt_id", examAttemptId)
+    .maybeSingle();
+}
+
 export function findInProgressExamAttempt(examSessionId, learnerId) {
   return db
     .from(EXAM_ATTEMPT_TABLE)

@@ -16,6 +16,8 @@ export const examsService = {
   listForClass: (classId) => axiosClient.get(`/api/exams/class/${classId}`).then((r) => r.data),
   getOne: (id) => axiosClient.get(`/api/exams/${id}`).then((r) => r.data.data),
   getAttempts: (id) => axiosClient.get(`/api/exams/${id}/attempts`).then((r) => r.data.data),
+  getTeacherAttemptResults: (attemptId) =>
+    axiosClient.get(`/api/exams/teacher/attempts/${attemptId}/results`).then((r) => r.data.data),
   getLearnerExam: (id) => axiosClient.get(`/api/exams/learner/${id}`).then((r) => r.data.data),
   create: (payload) => axiosClient.post("/api/exams", payload).then((r) => r.data),
   updateSettings: (id, changes) =>

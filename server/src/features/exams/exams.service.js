@@ -861,6 +861,41 @@ export async function getLearnerExamAttemptResults(examAttemptId, learnerId) {
   };
 }
 
+export async function getTeacherExamAttemptResults(examAttemptId, teacherId) {
+  requireUser(teacherId);
+
+  const { data: attempt, error: attemptError } = await dao.findExamAttemptById(examAttemptId);
+  if (attemptError) throw dbError(attemptError, 500);
+  if (!attempt) throw notFound("Exam attempt not found");
+
+  const exam = await getExamDetail(attempt.exam_session_id, teacherId);
+
+  if (attempt.status !== ExamAttemptStatus.SUBMITTED) {
+    return {
+      exam,
+      attempt: withExamMaxScore(attempt),
+      learner: attempt.learner ?? null,
+      questions: [],
+      review_available: false,
+      message: "Question review is available after the attempt is submitted.",
+    };
+  }
+
+  const { data: questions, error: questionError } = await dao.listExamQuestions(attempt.exam_session_id);
+  if (questionError) throw dbError(questionError, 500);
+
+  const { data: answers, error: answerError } = await dao.listExamAttemptAnswers(examAttemptId);
+  if (answerError) throw dbError(answerError, 500);
+
+  return {
+    exam,
+    attempt: withExamMaxScore(attempt),
+    learner: attempt.learner ?? null,
+    questions: resultQuestions(questions ?? [], answers ?? [], attempt),
+    review_available: true,
+  };
+}
+
 export async function recordLearnerExamEvent(examAttemptId, learnerId, payload = {}) {
   requireUser(learnerId);
   const eventType = text(payload.event_type);

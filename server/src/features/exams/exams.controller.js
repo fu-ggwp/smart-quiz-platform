@@ -5,6 +5,7 @@ import {
   getLearnerExamAttempt as getLearnerExamAttemptService,
   getLearnerExamAttemptResults as getLearnerExamAttemptResultsService,
   getLearnerExamDetail as getLearnerExamDetailService,
+  getTeacherExamAttemptResults as getTeacherExamAttemptResultsService,
   listLearnerExamSessions,
   listTeacherExamSessions,
   recordLearnerExamEvent as recordLearnerExamEventService,
@@ -130,6 +131,15 @@ export async function getLearnerExamAttempt(req, res) {
 export async function getLearnerExamAttemptResults(req, res) {
   try {
     const data = await getLearnerExamAttemptResultsService(req.params.attemptId, getUserId(req));
+    res.json({ ok: true, data });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+export async function getTeacherExamAttemptResults(req, res) {
+  try {
+    const data = await getTeacherExamAttemptResultsService(req.params.attemptId, getUserId(req));
     res.json({ ok: true, data });
   } catch (error) {
     sendError(res, error);
