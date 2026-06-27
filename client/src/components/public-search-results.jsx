@@ -69,9 +69,9 @@ function getTotalLabel(pagination, noun) {
   return `${total} ${noun}${total === 1 ? "" : "s"}`;
 }
 
-export function PublicSearchResults() {
-  const [queryInput, setQueryInput] = useState("");
-  const [query, setQuery] = useState("");
+export function PublicSearchResults({ initialQuery = "" }) {
+  const [queryInput, setQueryInput] = useState(initialQuery);
+  const [query, setQuery] = useState(initialQuery);
   const [studySetPage, setStudySetPage] = useState(1);
   const [userPage, setUserPage] = useState(1);
   const [studySets, setStudySets] = useState(EMPTY_PAGE);
