@@ -13,7 +13,7 @@ export default function PublicStudySetFlashcardsPage() {
       isGuest={true}
       exitHref={`/study-sets/${id}`}
       quizHref=""
-      showNavbar={true}
+      showNavbar={false}
     />
   );
 }

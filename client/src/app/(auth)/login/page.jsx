@@ -209,7 +209,10 @@ export default function LoginPage() {
 
               <FieldSeparator>or email</FieldSeparator>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="flex flex-col gap-6"
+              >
                 <FieldGroup className="gap-5">
                   <Field data-invalid={Boolean(errors.email)}>
                     <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -243,7 +246,9 @@ export default function LoginPage() {
                         size="icon-sm"
                         className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full"
                         onClick={() => setShowPassword((current) => !current)}
-                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
                       >
                         {showPassword ? <EyeOff /> : <Eye />}
                       </Button>
@@ -288,9 +293,7 @@ export default function LoginPage() {
                   size="lg"
                   className="h-12 w-full rounded-full"
                 >
-                  <Link href="/register">
-                    New to Smart Quiz Platform? Create account
-                  </Link>
+                  <Link href="/register">New to CardIO? Create account</Link>
                 </Button>
               </form>
             </div>

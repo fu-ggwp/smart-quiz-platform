@@ -97,7 +97,10 @@ export async function findPublicStudySets(filters = {}) {
 
   let query = db
     .from(STUDY_SET_TABLE)
-    .select("study_set_id, title, description, topic, tags, question_count, created_at, updated_at", { count: "exact" })
+    .select(
+      "study_set_id, title, description, topic, tags, question_count, created_at, updated_at, teacher:users!teacher_id(full_name, username, avatar_url)",
+      { count: "exact" },
+    )
     .eq("visibility", "public")
     .is("deleted_at", null)
     .eq("is_admin_hidden", false);
