@@ -555,10 +555,15 @@ export async function getExamStatistics(examSessionId, teacherId) {
 
 export async function getExamAttempts(examSessionId, teacherId) {
   const exam = await getExamDetail(examSessionId, teacherId);
-  const { data, error } = await dao.listTeacherExamAttempts(examSessionId);
-  if (error) throw dbError(error, 500);
+  const [attemptsResult, classMembersResult] = await Promise.all([
+    dao.listTeacherExamAttempts(examSessionId),
+    dao.countActiveClassMembers(exam.class_id),
+  ]);
 
-  const attempts = (data ?? []).map(normalizeTeacherAttempt);
+  if (attemptsResult.error) throw dbError(attemptsResult.error, 500);
+  if (classMembersResult.error) throw dbError(classMembersResult.error, 500);
+
+  const attempts = (attemptsResult.data ?? []).map(normalizeTeacherAttempt);
   const uniqueLearners = new Set(attempts.map((attempt) => attempt.learner_id).filter(Boolean));
 
   return {
@@ -568,6 +573,7 @@ export async function getExamAttempts(examSessionId, teacherId) {
       inProgressCount: attempts.filter((attempt) => attempt.status === ExamAttemptStatus.IN_PROGRESS).length,
       submittedCount: attempts.filter((attempt) => attempt.status === ExamAttemptStatus.SUBMITTED).length,
       uniqueLearners: uniqueLearners.size,
+      classLearnersCount: classMembersResult.count ?? 0,
       maxScore: EXAM_MAX_SCORE,
     },
     attempts,

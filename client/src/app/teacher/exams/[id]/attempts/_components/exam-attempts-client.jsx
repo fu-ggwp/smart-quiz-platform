@@ -13,6 +13,7 @@ import {
   FileSpreadsheet,
   Hourglass,
   Search,
+  UserCheck,
   Users,
 } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -34,7 +35,7 @@ const optionalExportColumns = [
 ];
 
 const statusOptions = [
-  { value: "all", label: "All attempts" },
+  { value: "all", label: "All statuses" },
   { value: "submitted", label: "Submitted" },
   { value: "in_progress", label: "In progress" },
 ];
@@ -66,12 +67,12 @@ function formatDateTime(value) {
   if (Number.isNaN(date.getTime())) return "-";
 
   return new Intl.DateTimeFormat("en", {
-    year: "numeric",
     month: "short",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(date);
+    hour12: false,
+  }).format(date).replace(",", "");
 }
 
 function formatDuration(seconds) {
@@ -220,7 +221,7 @@ function exportWorkbook(data, attempts, selectedColumns) {
 function AttemptsToolbar({ filters, onFiltersChange, onApply }) {
   return (
     <section className="rounded-md border border-border bg-card p-4 shadow-sm">
-      <div className="grid gap-3 lg:grid-cols-[minmax(260px,1fr)_180px_220px_auto]">
+      <div className="grid gap-3 md:grid-cols-[minmax(260px,1fr)_150px_190px_80px]">
         <label className="relative block">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -234,6 +235,7 @@ function AttemptsToolbar({ filters, onFiltersChange, onApply }) {
           className="h-10 rounded-md border border-border bg-background px-3 text-sm font-semibold text-foreground outline-none transition focus:border-ring focus:ring-4 focus:ring-ring/20"
           onChange={(event) => onFiltersChange((current) => ({ ...current, status: event.target.value }))}
           value={filters.status}
+          aria-label="Status"
         >
           {statusOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -245,6 +247,7 @@ function AttemptsToolbar({ filters, onFiltersChange, onApply }) {
           className="h-10 rounded-md border border-border bg-background px-3 text-sm font-semibold text-foreground outline-none transition focus:border-ring focus:ring-4 focus:ring-ring/20"
           onChange={(event) => onFiltersChange((current) => ({ ...current, sortBy: event.target.value }))}
           value={filters.sortBy}
+          aria-label="Sort attempts"
         >
           {sortOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -252,7 +255,7 @@ function AttemptsToolbar({ filters, onFiltersChange, onApply }) {
             </option>
           ))}
         </select>
-        <Button className="h-10" onClick={onApply}>
+        <Button className="h-10 w-full" onClick={onApply}>
           Apply
         </Button>
       </div>
@@ -317,49 +320,49 @@ function AttemptsTable({ attempts }) {
   return (
     <section className="overflow-hidden rounded-md border border-border bg-card shadow-sm">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1320px] table-fixed border-collapse text-left text-sm">
+        <table className="w-full min-w-[1060px] table-fixed border-collapse text-left text-sm">
           <thead className="bg-muted text-xs font-bold uppercase text-muted-foreground">
             <tr>
-              <th className="w-[250px] whitespace-nowrap px-4 py-3">Learner</th>
-              <th className="w-[96px] whitespace-nowrap px-4 py-3">Attempt</th>
-              <th className="w-[150px] whitespace-nowrap px-4 py-3">Status</th>
-              <th className="w-[190px] whitespace-nowrap px-4 py-3">Started at</th>
-              <th className="w-[190px] whitespace-nowrap px-4 py-3">Submitted at</th>
-              <th className="w-[130px] whitespace-nowrap px-4 py-3">Time spent</th>
-              <th className="w-[110px] whitespace-nowrap px-4 py-3">Score</th>
-              <th className="w-[120px] whitespace-nowrap px-4 py-3">Warnings</th>
-              <th className="w-[170px] whitespace-nowrap px-4 py-3">Action</th>
+              <th className="w-[210px] whitespace-nowrap px-3 py-3">Learner</th>
+              <th className="w-[78px] whitespace-nowrap px-3 py-3">Attempt</th>
+              <th className="w-[128px] whitespace-nowrap px-3 py-3">Status</th>
+              <th className="w-[126px] whitespace-nowrap px-3 py-3">Started</th>
+              <th className="w-[126px] whitespace-nowrap px-3 py-3">Submitted</th>
+              <th className="w-[96px] whitespace-nowrap px-3 py-3">Time</th>
+              <th className="w-[84px] whitespace-nowrap px-3 py-3">Score</th>
+              <th className="w-[92px] whitespace-nowrap px-3 py-3">Warnings</th>
+              <th className="w-[120px] whitespace-nowrap px-3 py-3">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {attempts.map((attempt) => (
               <tr key={attempt.exam_attempt_id} className="align-middle transition hover:bg-muted/40">
-                <td className="px-4 py-4">
+                <td className="px-3 py-4">
                   <div className="truncate font-bold text-foreground">{learnerName(attempt.learner)}</div>
                   <div className="mt-1 truncate text-xs font-medium text-muted-foreground">{attempt.learner?.email || "No email"}</div>
                 </td>
-                <td className="whitespace-nowrap px-4 py-4 font-bold text-foreground">#{attempt.attempt_number}</td>
-                <td className="whitespace-nowrap px-4 py-4">
+                <td className="whitespace-nowrap px-3 py-4 font-bold text-foreground">#{attempt.attempt_number}</td>
+                <td className="whitespace-nowrap px-3 py-4">
                   <StatusBadge status={attempt.status} />
                 </td>
-                <td className="whitespace-nowrap px-4 py-4 font-medium text-muted-foreground">{formatDateTime(attempt.started_at)}</td>
-                <td className="whitespace-nowrap px-4 py-4 font-medium text-muted-foreground">{formatDateTime(attempt.submitted_at)}</td>
-                <td className="whitespace-nowrap px-4 py-4 font-medium text-muted-foreground">{formatDuration(attempt.duration_seconds)}</td>
-                <td className="whitespace-nowrap px-4 py-4 font-bold text-foreground">{formatScore(attempt)}</td>
-                <td className="whitespace-nowrap px-4 py-4">
+                <td className="whitespace-nowrap px-3 py-4 font-medium text-muted-foreground">{formatDateTime(attempt.started_at)}</td>
+                <td className="whitespace-nowrap px-3 py-4 font-medium text-muted-foreground">{formatDateTime(attempt.submitted_at)}</td>
+                <td className="whitespace-nowrap px-3 py-4 font-medium text-muted-foreground">{formatDuration(attempt.duration_seconds)}</td>
+                <td className="whitespace-nowrap px-3 py-4 font-bold text-foreground">{formatScore(attempt)}</td>
+                <td className="whitespace-nowrap px-3 py-4">
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-bold text-muted-foreground">
                     <AlertTriangle className="size-3.5" />
                     {attempt.warning_count || 0}
                   </span>
                 </td>
-                <td className="whitespace-nowrap px-4 py-4">
+                <td className="whitespace-nowrap px-3 py-4">
                   {attempt.status === "submitted" ? (
-                    <Button disabled size="sm" variant="outline" title="Attempt detail is coming soon">
+                    <Button className="px-2" disabled size="sm" variant="outline" title="Attempt detail is coming soon">
                       <Eye data-icon="inline-start" />
-                      View details
+                      Details
                     </Button>
                   ) : (
-                    <span className="text-xs font-bold text-muted-foreground">Student is taking exam</span>
+                    <span className="text-xs font-bold text-muted-foreground">In progress</span>
                   )}
                 </td>
               </tr>
@@ -459,11 +462,12 @@ export function ExamAttemptsClient({ examId }) {
           </div>
         </header>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <StatCard icon={ClipboardList} label="Total attempts" value={data.summary.totalAttempts} />
           <StatCard icon={Hourglass} label="In progress" value={data.summary.inProgressCount} tone="amber" />
           <StatCard icon={CheckCircle2} label="Submitted" value={data.summary.submittedCount} tone="green" />
-          <StatCard icon={Users} label="Learners" value={data.summary.uniqueLearners} tone="rose" />
+          <StatCard icon={Users} label="Attempted learners" value={data.summary.uniqueLearners} tone="rose" />
+          <StatCard icon={UserCheck} label="Class members" value={data.summary.classLearnersCount ?? 0} />
         </section>
 
         <ExportPanel
