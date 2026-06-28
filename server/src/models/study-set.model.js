@@ -35,15 +35,6 @@ export const StudySetCardOrder = Object.freeze({
  * @property {string} [topic]
  * @property {"public"|"private"|"class_only"|"hidden"|"archived"} visibility
  * @property {boolean} is_admin_hidden
- * @property {"manual"|"import"|"ai_generated"|"from_question_bank"} creation_method
- * @property {number} [target_accuracy]           - 0–100
- * @property {"flashcard"|"quiz"|"flashcard_and_quiz"} practice_mode
- * @property {number} [estimated_study_minutes]
- * @property {"default"|"random"|"difficulty_asc"|"difficulty_desc"} card_order
- * @property {string[]} tags
- * @property {boolean} include_explanations
- * @property {boolean} allow_copy_by_other_teachers
- * @property {boolean} track_learner_progress
  * @property {number} question_count
  * @property {string} created_at
  * @property {string} updated_at

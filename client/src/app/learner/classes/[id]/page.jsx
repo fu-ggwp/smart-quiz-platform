@@ -5,13 +5,6 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useLearnerClassDetail } from "../../../../hooks/use-classes";
 
-const MATERIAL_TYPES = [
-  { value: "all", label: "All materials" },
-  { value: "flashcard", label: "Flashcards" },
-  { value: "quiz", label: "Quiz" },
-  { value: "flashcard_and_quiz", label: "Flashcards & quiz" },
-];
-
 const COMPLETION_STATUSES = [
   { value: "all", label: "All statuses" },
   { value: "not_started", label: "Not started" },
@@ -26,7 +19,6 @@ const SORT_OPTIONS = [
 
 const EMPTY_FILTERS = {
   keyword: "",
-  materialType: "all",
   completion: "all",
   sortBy: "latest",
 };
@@ -87,7 +79,6 @@ export default function LearnerClassDetailPage() {
   const activities = useMemo(() => {
     const keyword = applied.keyword.trim().toLowerCase();
     let list = allActivities.filter((a) => {
-      if (applied.materialType !== "all" && a.practice_mode !== applied.materialType) return false;
       if (applied.completion !== "all" && a.progress?.status !== applied.completion) return false;
       if (keyword) {
         const haystack = `${a.title ?? ""} ${a.topic ?? ""} ${a.description ?? ""}`.toLowerCase();
@@ -176,7 +167,7 @@ export default function LearnerClassDetailPage() {
             </div>
 
             {/* Filter bar */}
-            <div className="mb-6 grid gap-3 rounded-xl border border-neutral-200 p-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="mb-6 grid gap-3 rounded-xl border border-neutral-200 p-4 sm:grid-cols-2 lg:grid-cols-4">
               <input
                 type="text"
                 value={draft.keyword}
@@ -185,15 +176,6 @@ export default function LearnerClassDetailPage() {
                 placeholder="Search class materials"
                 className="rounded-md border border-neutral-200 px-3 py-2 text-sm lg:col-span-2"
               />
-              <select
-                value={draft.materialType}
-                onChange={(e) => setDraft((d) => ({ ...d, materialType: e.target.value }))}
-                className="rounded-md border border-neutral-200 px-3 py-2 text-sm"
-              >
-                {MATERIAL_TYPES.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
               <select
                 value={draft.completion}
                 onChange={(e) => setDraft((d) => ({ ...d, completion: e.target.value }))}
@@ -212,7 +194,7 @@ export default function LearnerClassDetailPage() {
                   <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
               </select>
-              <div className="flex gap-2 lg:col-span-5">
+              <div className="flex gap-2 lg:col-span-4">
                 <button
                   onClick={applyFilters}
                   className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
