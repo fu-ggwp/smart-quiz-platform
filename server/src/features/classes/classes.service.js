@@ -463,7 +463,6 @@ export async function getLearnerClassDetail(classId, learnerId) {
       study_set_id: set.study_set_id,
       title: set.title,
       description: set.description,
-      subject: set.subject,
       topic: set.topic,
       question_count: set.question_count,
       tags: set.tags ?? [],

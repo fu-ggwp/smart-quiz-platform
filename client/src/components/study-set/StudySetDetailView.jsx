@@ -55,7 +55,7 @@ export function StudySetDetailView({
               ? sessionsRes 
               : (Array.isArray(sessionsRes?.data) ? sessionsRes.data : []);
               
-            const mySessions = sessionsList.filter(s => s.study_set_id === studySetId);
+            const mySessions = sessionsList.filter(s => s.study_set_id === studySetId && s.mode === "flashcard");
             
             if (mySessions.length > 0) {
               // Sort by started_at descending to find the latest session

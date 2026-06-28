@@ -126,7 +126,6 @@ CREATE TABLE public.study_sets (
   source_question_bank_id uuid,
   title character varying NOT NULL,
   description text,
-  subject character varying,
   topic character varying,
   visibility character varying NOT NULL DEFAULT 'public'::character varying CHECK (visibility::text = ANY (ARRAY['public'::character varying, 'private'::character varying, 'class_only'::character varying, 'hidden'::character varying, 'archived'::character varying]::text[])),
   is_admin_hidden boolean NOT NULL DEFAULT false,
