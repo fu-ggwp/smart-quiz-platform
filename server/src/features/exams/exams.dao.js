@@ -291,6 +291,14 @@ export function listActiveClassMemberEmails(classId) {
     .eq("status", "active");
 }
 
+export function countActiveClassMembers(classId) {
+  return db
+    .from(CLASS_MEMBER_TABLE)
+    .select("class_member_id", { count: "exact", head: true })
+    .eq("class_id", classId)
+    .eq("status", "active");
+}
+
 export async function listLearnerExamSessions(classIds) {
   if (!classIds.length) return { data: [], error: null };
 
@@ -338,6 +346,14 @@ export function listLearnerExamAttempts(examSessionId, learnerId) {
     .order("attempt_number", { ascending: true });
 }
 
+export function listTeacherExamAttempts(examSessionId) {
+  return db
+    .from(EXAM_ATTEMPT_TABLE)
+    .select(`${EXAM_ATTEMPT_SELECT}, learner:users!learner_id(user_id, email, username, full_name)`)
+    .eq("exam_session_id", examSessionId)
+    .order("started_at", { ascending: true });
+}
+
 export function listExamQuestions(examSessionId) {
   return db
     .from(EXAM_QUESTION_TABLE)
@@ -356,6 +372,14 @@ export function findLearnerExamAttempt(examAttemptId, learnerId) {
     .select(EXAM_ATTEMPT_SELECT)
     .eq("exam_attempt_id", examAttemptId)
     .eq("learner_id", learnerId)
+    .maybeSingle();
+}
+
+export function findExamAttemptById(examAttemptId) {
+  return db
+    .from(EXAM_ATTEMPT_TABLE)
+    .select(`${EXAM_ATTEMPT_SELECT}, learner:users!learner_id(user_id, email, username, full_name)`)
+    .eq("exam_attempt_id", examAttemptId)
     .maybeSingle();
 }
 
@@ -394,3 +418,32 @@ export function upsertExamAttemptAnswer(payload) {
     .select("*")
     .single();
 }
+
+export function listLearnerCompletedAttempts(learnerId) {
+  return db
+    .from(EXAM_ATTEMPT_TABLE)
+    .select(`
+      exam_attempt_id,
+      exam_session_id,
+      learner_id,
+      attempt_number,
+      started_at,
+      expires_at,
+      submitted_at,
+      status,
+      total_score,
+      warning_count,
+      exam_sessions:exam_sessions!exam_session_id (
+        exam_session_id,
+        title,
+        class_id,
+        classes:classes (
+          class_id,
+          class_name
+        )
+      )
+    `)
+    .eq("learner_id", learnerId)
+    .eq("status", "submitted");
+}
+

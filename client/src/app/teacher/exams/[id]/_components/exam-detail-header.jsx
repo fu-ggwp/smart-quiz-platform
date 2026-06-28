@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CalendarClock, Settings } from "lucide-react";
+import { ArrowLeft, ClipboardList, Settings } from "lucide-react";
 
 import { ExamStatusBadge } from "./exam-status-badge";
 
@@ -34,11 +34,11 @@ export function ExamDetailHeader({ exam, examId }) {
           Configure
         </Link>
         <Link
-          href={`/teacher/exams/${examId}/monitor`}
+          href={`/teacher/exams/${examId}/attempts`}
           className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-sm font-bold hover:bg-muted"
         >
-          <CalendarClock className="size-4" />
-          Monitor
+          <ClipboardList className="size-4" />
+          Results
         </Link>
       </div>
     </header>

@@ -1,10 +1,13 @@
 import {
   createExamSession as createExamSessionService,
+  getExamAttempts as getExamAttemptsService,
   getExamDetail as getExamDetailService,
   getLearnerExamAttempt as getLearnerExamAttemptService,
   getLearnerExamAttemptResults as getLearnerExamAttemptResultsService,
   getLearnerExamDetail as getLearnerExamDetailService,
+  getTeacherExamAttemptResults as getTeacherExamAttemptResultsService,
   listLearnerExamSessions,
+  listLearnerCompletedAttempts,
   listTeacherExamSessions,
   recordLearnerExamEvent as recordLearnerExamEventService,
   saveLearnerExamAnswer as saveLearnerExamAnswerService,
@@ -58,6 +61,15 @@ export async function getExamDetail(req, res) {
   try {
     const exam = await getExamDetailService(req.params.id, getUserId(req));
     res.json({ ok: true, data: exam });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
+export async function getExamAttempts(req, res) {
+  try {
+    const data = await getExamAttemptsService(req.params.id, getUserId(req));
+    res.json({ ok: true, data });
   } catch (error) {
     sendError(res, error);
   }
@@ -126,6 +138,15 @@ export async function getLearnerExamAttemptResults(req, res) {
   }
 }
 
+export async function getTeacherExamAttemptResults(req, res) {
+  try {
+    const data = await getTeacherExamAttemptResultsService(req.params.attemptId, getUserId(req));
+    res.json({ ok: true, data });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
 export async function saveLearnerExamAnswer(req, res) {
   try {
     const data = await saveLearnerExamAnswerService(req.params.attemptId, getUserId(req), req.body);
@@ -152,3 +173,13 @@ export async function recordLearnerExamEvent(req, res) {
     sendError(res, error);
   }
 }
+
+export async function getMyExamAttempts(req, res) {
+  try {
+    const data = await listLearnerCompletedAttempts(getUserId(req), req.query);
+    res.json({ ok: true, data });
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+

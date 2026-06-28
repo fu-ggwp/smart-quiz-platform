@@ -1,12 +1,15 @@
 "use client";
 
-import { LockKeyhole, Search, SlidersHorizontal } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { SlidersHorizontal } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AppPagination } from "@/components/common/app-pagination";
-
 import { Button } from "@/components/ui/button";
 import { examsService } from "@/services/exams.service";
+
+import { ExamFilters } from "./_components/exam-filters";
+import { AvailableExamsTable } from "./_components/available-exams-table";
+import { CompletedExamsTable } from "./_components/completed-exams-table";
 
 const PAGE_SIZE = 5;
 const INITIAL_FILTERS = {
@@ -22,17 +25,12 @@ const SORT_OPTIONS = [
   { value: "title_asc", label: "Exam title A-Z" },
 ];
 
-function formatDateTime(value) {
-  if (!value) return "Not scheduled";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Not scheduled";
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
-}
+const COMPLETED_SORT_OPTIONS = [
+  { value: "latest_submitted", label: "Latest submitted" },
+  { value: "oldest_submitted", label: "Oldest submitted" },
+  { value: "score_desc", label: "Score: High to Low" },
+  { value: "title_asc", label: "Exam title A-Z" },
+];
 
 function getErrorMessage(error) {
   return error?.response?.data?.error || error?.message || "Unable to load exams. Please try again.";
@@ -40,8 +38,21 @@ function getErrorMessage(error) {
 
 export default function LearnerExamsPage() {
   const router = useRouter();
-  const [filters, setFilters] = useState(INITIAL_FILTERS);
-  const [appliedFilters, setAppliedFilters] = useState({ ...INITIAL_FILTERS, page: 1, pageSize: PAGE_SIZE });
+  const searchParams = useSearchParams();
+
+  const tabParam = searchParams.get("tab");
+  const activeTab = tabParam === "completed" ? "completed" : "available";
+
+  const [filters, setFilters] = useState(() => {
+    const defaultSort = activeTab === "available" ? "latest" : "latest_submitted";
+    return { ...INITIAL_FILTERS, sortBy: defaultSort };
+  });
+
+  const [appliedFilters, setAppliedFilters] = useState(() => {
+    const defaultSort = activeTab === "available" ? "latest" : "latest_submitted";
+    return { ...INITIAL_FILTERS, sortBy: defaultSort, page: 1, pageSize: PAGE_SIZE };
+  });
+
   const [exams, setExams] = useState([]);
   const [meta, setMeta] = useState({ total: 0, page: 1, pageSize: PAGE_SIZE, totalPages: 1, classes: [] });
   const [loading, setLoading] = useState(true);
@@ -49,13 +60,24 @@ export default function LearnerExamsPage() {
 
   const queryKey = useMemo(() => JSON.stringify(appliedFilters), [appliedFilters]);
 
-  useEffect(() => {
-    let ignore = false;
+  const [prevQueryKey, setPrevQueryKey] = useState(queryKey);
+  const [prevActiveTab, setPrevActiveTab] = useState(activeTab);
+
+  if (queryKey !== prevQueryKey || activeTab !== prevActiveTab) {
+    setPrevQueryKey(queryKey);
+    setPrevActiveTab(activeTab);
     setLoading(true);
     setError("");
+  }
 
-    examsService
-      .listAvailable(JSON.parse(queryKey))
+  useEffect(() => {
+    let ignore = false;
+
+    const fetchPromise = activeTab === "available"
+      ? examsService.listAvailable(JSON.parse(queryKey))
+      : examsService.listMyAttempts(JSON.parse(queryKey));
+
+    fetchPromise
       .then((result) => {
         if (ignore) return;
         const data = result?.data ?? {};
@@ -65,6 +87,7 @@ export default function LearnerExamsPage() {
       .catch((loadError) => {
         if (ignore) return;
         setError(getErrorMessage(loadError));
+        setExams([]);
       })
       .finally(() => {
         if (ignore) return;
@@ -74,7 +97,19 @@ export default function LearnerExamsPage() {
     return () => {
       ignore = true;
     };
-  }, [queryKey]);
+  }, [queryKey, activeTab]);
+
+  function handleTabChange(tab) {
+    router.replace(`/learner/exams?tab=${tab}`);
+    const defaultSort = tab === "available" ? "latest" : "latest_submitted";
+    const newFilters = {
+      search: "",
+      classId: "",
+      sortBy: defaultSort,
+    };
+    setFilters(newFilters);
+    setAppliedFilters({ ...newFilters, page: 1, pageSize: PAGE_SIZE });
+  }
 
   function updateFilter(name, value) {
     setFilters((current) => ({ ...current, [name]: value }));
@@ -85,8 +120,14 @@ export default function LearnerExamsPage() {
   }
 
   function resetFilters() {
-    setFilters(INITIAL_FILTERS);
-    setAppliedFilters({ ...INITIAL_FILTERS, page: 1, pageSize: PAGE_SIZE });
+    const defaultSort = activeTab === "available" ? "latest" : "latest_submitted";
+    const cleared = {
+      search: "",
+      classId: "",
+      sortBy: defaultSort,
+    };
+    setFilters(cleared);
+    setAppliedFilters({ ...cleared, page: 1, pageSize: PAGE_SIZE });
   }
 
   function goToPage(page) {
@@ -97,114 +138,97 @@ export default function LearnerExamsPage() {
     router.push(`/learner/exams/${examId}`);
   }
 
+  function viewAttemptDetail(examSessionId, examAttemptId) {
+    router.push(`/learner/exams/${examSessionId}/result?attempt=${examAttemptId}`);
+  }
+
+  const sortOptions = activeTab === "available" ? SORT_OPTIONS : COMPLETED_SORT_OPTIONS;
+
   return (
     <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 lg:px-8">
       <section className="mx-auto max-w-7xl space-y-6">
         <div className="border-b border-border pb-6">
-          <h1 className="text-3xl font-bold tracking-normal">Available Exams</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Active exams assigned to your classes.</p>
+          <h1 className="text-3xl font-bold tracking-normal">My Exams</h1>
+          <p className="mt-2 text-sm text-muted-foreground">View exams assigned to your classes and review your submitted results.</p>
         </div>
 
-        <section className="rounded-md border border-border bg-card p-4 shadow-sm">
-          <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1fr_auto]">
-            <label className="space-y-2 text-sm font-bold">
-              <span>Search Exams</span>
-              <input
-                value={filters.search}
-                onChange={(event) => updateFilter("search", event.target.value)}
-                placeholder="Search by title or class"
-                className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none"
-              />
-            </label>
-            <label className="space-y-2 text-sm font-bold">
-              <span>Class Filter</span>
-              <select
-                value={filters.classId}
-                onChange={(event) => updateFilter("classId", event.target.value)}
-                className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none"
-              >
-                <option value="">All classes</option>
-                {(meta.classes ?? []).map((item) => (
-                  <option key={item.class_id} value={item.class_id}>{item.class_name}</option>
-                ))}
-              </select>
-            </label>
-            <label className="space-y-2 text-sm font-bold">
-              <span>Sort By</span>
-              <select
-                value={filters.sortBy}
-                onChange={(event) => updateFilter("sortBy", event.target.value)}
-                className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none"
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
-            <div className="flex items-end">
-              <Button type="button" variant="outline" onClick={applyFilters}>
-                <Search className="size-4" />
-                Apply
-              </Button>
-            </div>
-            <div className="flex items-center gap-2 lg:col-span-4">
-              <Button type="button" variant="ghost" onClick={resetFilters}>
-                <SlidersHorizontal className="size-4" />
-                Reset Filters
-              </Button>
-            </div>
-          </div>
-        </section>
+        {/* Custom Tabs Navigation */}
+        <div className="flex gap-2 border-b border-border pb-px">
+          <button
+            type="button"
+            onClick={() => handleTabChange("available")}
+            className={`px-4 py-2 text-sm font-semibold border-b-2 transition ${
+              activeTab === "available"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Available Exams
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange("completed")}
+            className={`px-4 py-2 text-sm font-semibold border-b-2 transition ${
+              activeTab === "completed"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Completed Exams
+          </button>
+        </div>
+
+        <ExamFilters
+          filters={filters}
+          updateFilter={updateFilter}
+          classes={meta.classes}
+          sortOptions={sortOptions}
+          applyFilters={applyFilters}
+        />
+
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="ghost" onClick={resetFilters}>
+            <SlidersHorizontal className="size-4" />
+            Reset Filters
+          </Button>
+        </div>
 
         {error ? <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">{error}</div> : null}
         {loading ? <div className="rounded-md border border-border bg-card px-4 py-6 text-sm text-muted-foreground">Loading exams...</div> : null}
 
         {!loading && !error && exams.length === 0 ? (
           <section className="rounded-md border border-dashed border-border bg-card px-4 py-16 text-center">
-            <h2 className="text-base font-bold">No available exams yet</h2>
+            <h2 className="text-base font-bold">
+              {activeTab === "available" ? "No available exams yet" : "No completed exams yet"}
+            </h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-              You do not have any assigned exams. Join a class first, then exams scheduled by your teacher will appear here.
+              {activeTab === "available"
+                ? "You do not have any assigned exams. Join a class first, then exams scheduled by your teacher will appear here."
+                : "You have not completed any exams yet."}
             </p>
-            <Button className="mt-5" onClick={() => router.push("/learner/classes/join")}>Join a Class</Button>
+            {activeTab === "available" && (
+              <Button className="mt-5" onClick={() => router.push("/learner/classes/join")}>Join a Class</Button>
+            )}
           </section>
         ) : null}
 
         {!loading && !error && exams.length > 0 ? (
           <>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">
+                {activeTab === "available" ? "Available Exams" : "Completed Exams"}
+              </h2>
+              <span className="text-sm font-medium text-muted-foreground">
+                {meta.total ?? exams.length} {meta.total === 1 ? "exam" : "exams"} shown
+              </span>
+            </div>
+
             <section className="overflow-hidden rounded-md border border-border bg-card shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[860px] table-fixed border-collapse text-left text-sm">
-                  <thead className="bg-muted text-xs font-bold uppercase text-muted-foreground">
-                    <tr>
-                      <th className="w-[42%] px-4 py-3">Exam</th>
-                      <th className="w-[24%] px-4 py-3">Class</th>
-                      <th className="w-[18%] px-4 py-3">Start Time</th>
-                      <th className="w-[16%] px-4 py-3 text-center">Tools</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {exams.map((exam) => (
-                      <tr
-                        key={exam.exam_session_id}
-                        className="align-middle transition hover:bg-muted/40"
-                      >
-                        <td className="px-4 py-4">
-                          <div className="truncate font-bold">{exam.title}</div>
-                          <div className="mt-1 text-xs font-medium text-muted-foreground">{exam.duration_minutes} minutes</div>
-                        </td>
-                        <td className="px-4 py-4 font-medium text-muted-foreground">{exam.classes?.class_name ?? "Class"}</td>
-                        <td className="px-4 py-4 font-medium text-muted-foreground">{formatDateTime(exam.start_at)}</td>
-                        <td className="px-4 py-4 text-center">
-                          <Button type="button" variant="outline" size="sm" onClick={() => openExam(exam.exam_session_id)}>
-                            <LockKeyhole className="size-4" />
-                            Enter Code
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {activeTab === "available" ? (
+                <AvailableExamsTable exams={exams} onOpenExam={openExam} />
+              ) : (
+                <CompletedExamsTable exams={exams} onViewDetail={viewAttemptDetail} />
+              )}
             </section>
 
             <AppPagination

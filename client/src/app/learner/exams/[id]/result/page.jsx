@@ -175,9 +175,9 @@ export default function ExamResultPage() {
         <section className="mx-auto max-w-3xl space-y-4 rounded-md border border-border bg-card p-6 shadow-sm">
           <p className="text-sm font-semibold text-destructive">{displayError || "Detailed results are not available."}</p>
           <Button asChild variant="outline">
-            <Link href={`/learner/exams/${examId}`}>
+            <Link href="/learner/exams?tab=completed">
               <ArrowLeft data-icon="inline-start" />
-              Back to exam
+              Back to exams
             </Link>
           </Button>
         </section>
@@ -190,7 +190,7 @@ export default function ExamResultPage() {
       <section className="mx-auto max-w-7xl space-y-5">
         <header className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
           <Button asChild variant="ghost">
-            <Link href="/learner/exams">
+            <Link href="/learner/exams?tab=completed">
               <ArrowLeft data-icon="inline-start" />
               Back to exams
             </Link>

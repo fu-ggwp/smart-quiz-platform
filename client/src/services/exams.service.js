@@ -15,17 +15,20 @@ export const examsService = {
   listAvailable: (params) => axiosClient.get("/api/exams/learner", { params }).then((r) => r.data),
   listForClass: (classId) => axiosClient.get(`/api/exams/class/${classId}`).then((r) => r.data),
   getOne: (id) => axiosClient.get(`/api/exams/${id}`).then((r) => r.data.data),
+  getAttempts: (id) => axiosClient.get(`/api/exams/${id}/attempts`).then((r) => r.data.data),
+  getTeacherAttemptResults: (attemptId) =>
+    axiosClient.get(`/api/exams/teacher/attempts/${attemptId}/results`).then((r) => r.data.data),
   getLearnerExam: (id) => axiosClient.get(`/api/exams/learner/${id}`).then((r) => r.data.data),
   create: (payload) => axiosClient.post("/api/exams", payload).then((r) => r.data),
   updateSettings: (id, changes) =>
     axiosClient.patch(`/api/exams/${id}/settings`, changes).then((r) => r.data),
   remove: (id) => axiosClient.delete(`/api/exams/${id}`).then((r) => r.data),
-  listAttempts: (id) => axiosClient.get(`/api/exams/${id}/attempts`).then((r) => r.data),
+  listAttempts: (id) => axiosClient.get(`/api/exams/${id}/attempts`).then((r) => r.data.data),
 
   // Learner: take exams
   startAttempt: (id, payload) => axiosClient.post(`/api/exams/${id}/attempts`, payload).then((r) => r.data.data),
   getAttempt: (attemptId) => axiosClient.get(`/api/exams/attempts/${attemptId}`).then((r) => r.data.data),
-  listMyAttempts: () => axiosClient.get("/api/exams/attempts/mine").then((r) => r.data),
+  listMyAttempts: (params) => axiosClient.get("/api/exams/attempts/mine", { params }).then((r) => r.data),
   submitAnswer: (attemptId, payload) =>
     axiosClient.post(`/api/exams/attempts/${attemptId}/answers`, payload).then((r) => r.data.data),
   submitAttempt: (attemptId, payload) =>
