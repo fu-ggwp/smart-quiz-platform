@@ -1,4 +1,5 @@
 import { supabaseClient } from "../../config/supabase.js";
+import { env } from "../../config/env.js";
 import { PaymentStatus } from "../../models/payment.model.js";
 import { UserSubscriptionStatus } from "../../models/user-subscription.model.js";
 import * as gateway from "./payment-gateway.service.js";
@@ -121,7 +122,7 @@ export async function getOne(userId, paymentId) {
 }
 
 function buildClientUrl(path) {
-  const base = process.env.CLIENT_URL || process.env.PAYMENT_REDIRECT_BASE_URL || "http://localhost:3000";
+  const base = env.clientUrl || env.paymentRedirectBaseUrl || "http://localhost:3000";
   return new URL(path, base).toString();
 }
 
@@ -163,8 +164,8 @@ export async function startCheckout(user, body = {}) {
   if (paymentError) throw dbError(paymentError);
 
   const orderCode = await generateOrderCode();
-  const returnUrl = process.env.PAYOS_RETURN_URL || buildClientUrl("/upgrade/result");
-  const cancelUrl = process.env.PAYOS_CANCEL_URL || buildClientUrl("/upgrade/result");
+  const returnUrl = env.payosReturnUrl || buildClientUrl("/upgrade/result");
+  const cancelUrl = env.payosCancelUrl || buildClientUrl("/upgrade/result");
 
   try {
     const link = await gateway.createPaymentLink({

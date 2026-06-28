@@ -1,18 +1,17 @@
 import { PayOS } from "@payos/node";
+import { env } from "../../config/env.js";
 
 function getPayOS() {
-  const { PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY } = process.env;
-
-  if (!PAYOS_CLIENT_ID || !PAYOS_API_KEY || !PAYOS_CHECKSUM_KEY) {
+  if (!env.payosClientId || !env.payosApiKey || !env.payosChecksumKey) {
     throw Object.assign(new Error("Missing PayOS environment variables."), {
       status: 500,
     });
   }
 
   return new PayOS({
-    clientId: PAYOS_CLIENT_ID,
-    apiKey: PAYOS_API_KEY,
-    checksumKey: PAYOS_CHECKSUM_KEY,
+    clientId: env.payosClientId,
+    apiKey: env.payosApiKey,
+    checksumKey: env.payosChecksumKey,
   });
 }
 
