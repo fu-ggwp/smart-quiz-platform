@@ -17,6 +17,13 @@ export const env = {
   databaseUrl: process.env.DATABASE_URL,
   paymentProvider: process.env.PAYMENT_PROVIDER || "stripe",
   paymentRedirectBaseUrl: process.env.PAYMENT_REDIRECT_BASE_URL || "",
+  clientUrl: process.env.CLIENT_URL || "",
+  payosClientId: process.env.PAYOS_CLIENT_ID,
+  payosApiKey: process.env.PAYOS_API_KEY,
+  payosChecksumKey: process.env.PAYOS_CHECKSUM_KEY,
+  payosReturnUrl: process.env.PAYOS_RETURN_URL,
+  payosCancelUrl: process.env.PAYOS_CANCEL_URL,
+  payosWebhookUrl: process.env.PAYOS_WEBHOOK_URL,
   geminiApiKey: process.env.GEMINI_API_KEY,
   geminiModel: process.env.GEMINI_MODEL || "gemini-2.5-flash",
 };
