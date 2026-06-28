@@ -25,8 +25,6 @@ export async function listForAdmin(query = {}) {
     keyword: query.q || query.keyword || "",
     role: ROLES.has(query.role) ? query.role : null,
     accountStatus: ACCOUNT_STATUSES.has(query.status) ? query.status : null,
-    isPremium:
-      query.premium === "premium" ? true : query.premium === "free" ? false : undefined,
     sortBy: query.sortBy === "name" ? "name" : "latest",
   };
 

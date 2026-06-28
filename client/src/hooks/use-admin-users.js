@@ -9,7 +9,6 @@ export const DEFAULT_USER_FILTERS = {
   q: "",
   role: "",
   status: "",
-  premium: "",
   sortBy: "latest",
 };
 
@@ -50,7 +49,11 @@ export function useAdminUsers() {
   }, []);
 
   useEffect(() => {
-    load(params);
+    const timeoutId = setTimeout(() => {
+      load(params);
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
   }, [load, params]);
 
   return {

@@ -177,10 +177,6 @@ const swaggerOptions = {
               enum: ["learner", "teacher", "admin"],
               example: "learner",
             },
-            isPremium: {
-              type: "boolean",
-              example: false,
-            },
             createdAt: {
               type: "string",
               format: "date-time",

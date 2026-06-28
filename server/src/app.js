@@ -7,6 +7,7 @@ import studySetsRouter from "./features/study-sets/study-sets.routes.js";
 import classesRouter from "./features/classes/classes.routes.js";
 import questionBanksRouter from "./features/question-banks/question-banks.routes.js";
 import usersRouter from "./features/users/users.routes.js";
+import paymentsRouter from "./features/payments/payments.routes.js";
 import { swaggerSpec, swaggerUi } from "./config/swagger.js";
 
 const app = express();
@@ -26,5 +27,6 @@ app.use("/api/study-sets", studySetsRouter);
 app.use("/api/classes", classesRouter);
 app.use("/api/question-banks", questionBanksRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/payments", paymentsRouter);
 
 export default app;

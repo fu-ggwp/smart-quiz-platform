@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 import { useAdminUsers, DEFAULT_USER_FILTERS } from "@/hooks/use-admin-users";
@@ -21,18 +21,18 @@ const STATUS_OPTIONS = [
   { value: "disabled", label: "Disabled" },
 ];
 
-const PREMIUM_OPTIONS = [
-  { value: "", label: "All plans" },
-  { value: "premium", label: "Premium" },
-  { value: "free", label: "Free" },
-];
-
 const SORT_OPTIONS = [
   { value: "latest", label: "Latest created" },
   { value: "name", label: "Name (A–Z)" },
 ];
 
 const ROWS_PER_PAGE = [10, 20, 50];
+const FILTER_DRAFT_DEFAULTS = {
+  q: "",
+  role: "",
+  status: "",
+  sortBy: "latest",
+};
 
 const STATUS_TONE = {
   active: "bg-emerald-50 text-emerald-700",
@@ -61,23 +61,14 @@ export default function AdminUsersPage() {
     q: params.q,
     role: params.role,
     status: params.status,
-    premium: params.premium,
     sortBy: params.sortBy,
   });
 
-  // Keep the draft in sync when filters are reset elsewhere.
-  useEffect(() => {
-    setDraft({
-      q: params.q,
-      role: params.role,
-      status: params.status,
-      premium: params.premium,
-      sortBy: params.sortBy,
-    });
-  }, [params.q, params.role, params.status, params.premium, params.sortBy]);
-
   const applyFilters = () => setParams((p) => ({ ...p, ...draft, page: 1 }));
-  const resetFilters = () => setParams({ ...DEFAULT_USER_FILTERS });
+  const resetFilters = () => {
+    setDraft(FILTER_DRAFT_DEFAULTS);
+    setParams({ ...DEFAULT_USER_FILTERS });
+  };
   const changePage = (page) => setParams((p) => ({ ...p, page }));
   const changeLimit = (limit) => setParams((p) => ({ ...p, limit, page: 1 }));
 
@@ -98,7 +89,7 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Filter bar */}
-        <div className="mb-6 grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="mb-6 grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-5">
           <input
             type="text"
             value={draft.q}
@@ -126,15 +117,6 @@ export default function AdminUsersPage() {
             ))}
           </select>
           <select
-            value={draft.premium}
-            onChange={(e) => setDraft((d) => ({ ...d, premium: e.target.value }))}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-          >
-            {PREMIUM_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
-          <select
             value={draft.sortBy}
             onChange={(e) => setDraft((d) => ({ ...d, sortBy: e.target.value }))}
             className="rounded-md border border-border bg-background px-3 py-2 text-sm"
@@ -143,7 +125,7 @@ export default function AdminUsersPage() {
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
-          <div className="flex gap-2 lg:col-span-6">
+          <div className="flex gap-2 lg:col-span-5">
             <button
               onClick={applyFilters}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
@@ -190,7 +172,7 @@ export default function AdminUsersPage() {
                 <table className="min-w-full divide-y divide-border text-sm">
                   <thead className="bg-muted text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
                     <tr>
-                      {["User", "Role", "Premium", "Status", "Joined", "Action"].map((h) => (
+                      {["User", "Role", "Status", "Joined", "Action"].map((h) => (
                         <th key={h} className="px-4 py-3">{h}</th>
                       ))}
                     </tr>
@@ -204,13 +186,6 @@ export default function AdminUsersPage() {
                         </td>
                         <td className="px-4 py-3">
                           <Badge className="bg-neutral-100 text-neutral-600">{u.active_role}</Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          {u.is_premium ? (
-                            <Badge className="bg-violet-50 text-violet-700">Premium</Badge>
-                          ) : (
-                            <Badge className="bg-neutral-100 text-neutral-500">Free</Badge>
-                          )}
                         </td>
                         <td className="px-4 py-3">
                           <Badge className={STATUS_TONE[u.account_status] ?? "bg-neutral-100 text-neutral-500"}>

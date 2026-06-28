@@ -14,11 +14,11 @@ function sanitizeSearchKeyword(value) {
 // expose passwords, auth secrets, payment records, or private security data —
 // so those columns are never selected here.
 const ADMIN_USER_COLUMNS =
-  "user_id, full_name, email, username, avatar_url, active_role, account_status, is_premium, created_at";
+  "user_id, full_name, email, username, avatar_url, active_role, account_status, created_at";
 
 /**
  * Admin user list (UC-51 / §3.9.1) — every user, with keyword search and
- * role / account-status / premium filters, paginated.
+ * role / account-status filters, paginated.
  * Uses the service-role client so the admin can read all users' emails
  * (the anon client is RLS-limited and is reserved for the public search).
  */
@@ -40,7 +40,6 @@ export async function findUsersForAdmin(filters = {}) {
 
   if (filters.role) query = query.eq("active_role", filters.role);
   if (filters.accountStatus) query = query.eq("account_status", filters.accountStatus);
-  if (typeof filters.isPremium === "boolean") query = query.eq("is_premium", filters.isPremium);
 
   if (filters.sortBy === "name") {
     query = query.order("full_name", { ascending: true });

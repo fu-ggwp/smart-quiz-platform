@@ -271,3 +271,17 @@ export function insertAnswerOptions(rows) {
     .insert(rows)
     .select("answer_option_id, question_id, option_text, is_correct, display_order, created_at");
 }
+
+export function findActiveSubscriptionForUser(userId) {
+  const now = new Date().toISOString();
+
+  return db
+    .from("user_subscriptions")
+    .select("subscription_id")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .lte("start_at", now)
+    .gte("end_at", now)
+    .limit(1)
+    .maybeSingle();
+}
