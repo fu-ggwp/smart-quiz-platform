@@ -17,7 +17,11 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { authService, clearAuthCookie, getCurrentSession } from "@/services/auth.service";
+import {
+  authService,
+  clearAuthCookie,
+  getCurrentSession,
+} from "@/services/auth.service";
 
 const resetPasswordSchema = z
   .object({
@@ -74,14 +78,14 @@ export default function ResetPasswordPage() {
         setHasRecoverySession(Boolean(session?.access_token));
         if (!session?.access_token) {
           setFormMessage(
-            "This reset link is invalid or has expired. Please request a new link."
+            "This reset link is invalid or has expired. Please request a new link.",
           );
         }
       } catch {
         if (!active) return;
         setHasRecoverySession(false);
         setFormMessage(
-          "This reset link is invalid or has expired. Please request a new link."
+          "This reset link is invalid or has expired. Please request a new link.",
         );
       } finally {
         if (active) setIsCheckingSession(false);
@@ -135,11 +139,14 @@ export default function ResetPasswordPage() {
             <p className="text-sm font-semibold text-primary">SQP</p>
             <h1 className="text-3xl font-bold leading-tight">Reset password</h1>
             <p className="text-sm leading-6 text-muted-foreground">
-              Choose a new password for your Smart Quiz Platform account.
+              Choose a new password for your CardIO account.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-6">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="mt-8 flex flex-col gap-6"
+          >
             <FieldGroup className="gap-5">
               <Field data-invalid={Boolean(errors.password)}>
                 <FieldLabel htmlFor="password">New password</FieldLabel>
@@ -151,7 +158,9 @@ export default function ResetPasswordPage() {
                     autoComplete="new-password"
                     aria-invalid={Boolean(errors.password)}
                     className="h-12 rounded-lg border-border bg-background px-4 pr-11"
-                    disabled={isCheckingSession || !hasRecoverySession || isSubmitting}
+                    disabled={
+                      isCheckingSession || !hasRecoverySession || isSubmitting
+                    }
                     {...register("password")}
                   />
                   <Button
@@ -160,8 +169,12 @@ export default function ResetPasswordPage() {
                     size="icon-sm"
                     className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full"
                     onClick={() => setShowPassword((current) => !current)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    disabled={isCheckingSession || !hasRecoverySession || isSubmitting}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    disabled={
+                      isCheckingSession || !hasRecoverySession || isSubmitting
+                    }
                   >
                     {showPassword ? <EyeOff /> : <Eye />}
                   </Button>
@@ -170,7 +183,9 @@ export default function ResetPasswordPage() {
               </Field>
 
               <Field data-invalid={Boolean(errors.confirmPassword)}>
-                <FieldLabel htmlFor="confirmPassword">Confirm password</FieldLabel>
+                <FieldLabel htmlFor="confirmPassword">
+                  Confirm password
+                </FieldLabel>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -179,7 +194,9 @@ export default function ResetPasswordPage() {
                     autoComplete="new-password"
                     aria-invalid={Boolean(errors.confirmPassword)}
                     className="h-12 rounded-lg border-border bg-background px-4 pr-11"
-                    disabled={isCheckingSession || !hasRecoverySession || isSubmitting}
+                    disabled={
+                      isCheckingSession || !hasRecoverySession || isSubmitting
+                    }
                     {...register("confirmPassword")}
                   />
                   <Button
@@ -187,11 +204,15 @@ export default function ResetPasswordPage() {
                     variant="ghost"
                     size="icon-sm"
                     className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full"
-                    onClick={() => setShowConfirmPassword((current) => !current)}
+                    onClick={() =>
+                      setShowConfirmPassword((current) => !current)
+                    }
                     aria-label={
                       showConfirmPassword ? "Hide password" : "Show password"
                     }
-                    disabled={isCheckingSession || !hasRecoverySession || isSubmitting}
+                    disabled={
+                      isCheckingSession || !hasRecoverySession || isSubmitting
+                    }
                   >
                     {showConfirmPassword ? <EyeOff /> : <Eye />}
                   </Button>
@@ -201,7 +222,8 @@ export default function ResetPasswordPage() {
             </FieldGroup>
 
             <FieldDescription className="text-center text-xs">
-              Use at least 8 characters. After saving, sign in again with the new password.
+              Use at least 8 characters. After saving, sign in again with the
+              new password.
             </FieldDescription>
 
             {formMessage && (
@@ -226,7 +248,9 @@ export default function ResetPasswordPage() {
               type="submit"
               size="lg"
               className="h-14 w-full rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
-              disabled={isCheckingSession || !hasRecoverySession || isSubmitting}
+              disabled={
+                isCheckingSession || !hasRecoverySession || isSubmitting
+              }
             >
               {isCheckingSession
                 ? "Checking link..."

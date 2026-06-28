@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { AlertCircle, BookOpen, Search } from "lucide-react";
 
+import { StudySetCard } from "@/components/study-set/study-set-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { usePublicStudySets } from "@/hooks/use-public-study-sets";
@@ -11,30 +12,19 @@ function getStudySetId(studySet) {
   return studySet.study_set_id ?? studySet.id;
 }
 
-function getQuestionCount(studySet) {
-  return studySet.question_count ?? studySet.questionCount ?? 0;
-}
-
-function getUpdatedLabel(studySet) {
-  const value = studySet.updated_at ?? studySet.created_at;
-
-  if (!value) return "Recently updated";
-
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-  }).format(new Date(value));
-}
-
 function matchesQuery(studySet, query) {
   const keyword = query.trim().toLowerCase();
 
   if (!keyword) return true;
 
+  const teacher = studySet.teacher ?? {};
+
   return [
     studySet.title,
     studySet.description,
     studySet.topic,
+    teacher.full_name,
+    teacher.username,
     studySet.teacher_name,
     studySet.ownerName,
   ]
@@ -114,49 +104,6 @@ export function PublicStudySets({ limit, showSearch = false }) {
         />
       )}
     </section>
-  );
-}
-
-function StudySetCard({ studySet }) {
-  const id = getStudySetId(studySet);
-
-  return (
-    <article className="flex min-h-52 flex-col justify-between rounded-lg border border-border bg-card p-5 shadow-sm">
-      <div className="flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="line-clamp-2 text-lg font-bold text-foreground">
-              {studySet.title || "Untitled study set"}
-            </h3>
-          </div>
-          <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
-            Public
-          </span>
-        </div>
-
-        <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
-          {studySet.description ||
-            "Practice with flashcards and questions shared by the community."}
-        </p>
-      </div>
-
-      <div className="mt-5 flex flex-col gap-4">
-        <div className="flex flex-wrap gap-2 text-xs font-semibold text-muted-foreground">
-          <span>{studySet.topic || "No topic"}</span>
-          <span>-</span>
-          <span>{getQuestionCount(studySet)} questions</span>
-          <span>-</span>
-          <span>{getUpdatedLabel(studySet)}</span>
-        </div>
-
-        <Button asChild variant="outline">
-          <Link href={id ? `/study-sets/${id}` : "/search"}>
-            <BookOpen data-icon="inline-start" />
-            View study set
-          </Link>
-        </Button>
-      </div>
-    </article>
   );
 }
 

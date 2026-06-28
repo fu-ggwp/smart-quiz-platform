@@ -36,7 +36,7 @@ export default function PublicStudySetDetailPage() {
       backLabel="Back to Homepage"
       flashcardHref={`/study-sets/${id}/flashcards`}
       quizHref=""
-      showNavbar={true}
+      showNavbar={false}
     />
   );
 }

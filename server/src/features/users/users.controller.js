@@ -9,6 +9,14 @@ export const listPublic = async (req, res) => {
   }
 };
 
+export const getPublicProfile = async (req, res) => {
+  try {
+    return ok(res, await service.getPublicProfile(req.params.username));
+  } catch (err) {
+    return fail(res, err, err.status || 500);
+  }
+};
+
 /**
  * GET /api/users
  * Admin user list with search + role/status/premium filters (UC-51 / §3.9.1).

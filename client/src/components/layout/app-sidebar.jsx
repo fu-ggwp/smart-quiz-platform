@@ -91,11 +91,13 @@ function SidebarLink({ isCollapsed, item, pathname }) {
 export function AppSidebar({ role }) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(getSavedSidebarCollapsed);
-  const config = roleConfig[role] ?? roleConfig.learner;
+  const config = roleConfig[role];
 
   useEffect(() => {
     return subscribeToSidebarCollapsed(setIsCollapsed);
   }, []);
+
+  if (!config) return null;
 
   return (
     <aside

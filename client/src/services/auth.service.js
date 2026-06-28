@@ -2,6 +2,8 @@ import supabase from "@/lib/supabaseClient";
 import { profileService } from "@/services/profile.service";
 
 const ACCESS_TOKEN_COOKIE = "access_token";
+const ACTIVE_ROLE_COOKIE = "active_role";
+const VALID_ROLES = new Set(["admin", "teacher", "learner"]);
 const ROLE_HOME = {
   admin: "/admin/dashboard",
   teacher: "/teacher",
@@ -49,6 +51,7 @@ function isSafeNextPath(nextPath) {
 
 export function clearAuthCookie() {
   deleteCookie(ACCESS_TOKEN_COOKIE);
+  deleteCookie(ACTIVE_ROLE_COOKIE);
 }
 
 export function syncAuthCookie(session) {
@@ -60,13 +63,24 @@ export function syncAuthCookie(session) {
   setCookie(ACCESS_TOKEN_COOKIE, session.access_token, getCookieMaxAge(session));
 }
 
+export function syncRoleCookie(role) {
+  if (!VALID_ROLES.has(role)) {
+    deleteCookie(ACTIVE_ROLE_COOKIE);
+    return;
+  }
+
+  setCookie(ACTIVE_ROLE_COOKIE, role, 60 * 60 * 24 * 30);
+}
+
 export async function getCurrentSession() {
   const { data } = await supabase.auth.getSession();
   return data?.session ?? null;
 }
 
 export async function getCurrentProfile() {
-  return profileService.getMine();
+  const profile = await profileService.getMine();
+  syncRoleCookie(profile?.activeRole);
+  return profile;
 }
 
 export function getPostLoginRedirect(profile, nextPath) {

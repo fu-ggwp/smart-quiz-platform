@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 
 const ROLE_HOME = {
+  admin: "/admin/dashboard",
   teacher: "/teacher",
   learner: "/learner",
 };
@@ -22,7 +23,7 @@ function getRoleMismatchRedirect(role) {
 export function RoleGuard({ allowedRole, children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, loading, role } = useAuth();
+  const { isAuthenticated, loading, profileVerified, role } = useAuth();
 
   useEffect(() => {
     if (loading) return;
@@ -32,12 +33,14 @@ export function RoleGuard({ allowedRole, children }) {
       return;
     }
 
+    if (!profileVerified) return;
+
     if (role && role !== allowedRole) {
       router.replace(getRoleMismatchRedirect(role));
     }
-  }, [allowedRole, isAuthenticated, loading, pathname, role, router]);
+  }, [allowedRole, isAuthenticated, loading, pathname, profileVerified, role, router]);
 
-  if (loading || !isAuthenticated || role !== allowedRole) {
+  if (loading || !isAuthenticated || !profileVerified || role !== allowedRole) {
     return (
       <section className="flex min-h-full items-center justify-center px-6 py-12">
         <p className="text-sm font-medium text-muted-foreground">Loading workspace...</p>

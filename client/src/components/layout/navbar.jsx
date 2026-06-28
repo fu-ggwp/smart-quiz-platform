@@ -2,10 +2,20 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Menu, Search, User } from "lucide-react";
+import { LogOut, Menu, Repeat2, Search, User } from "lucide-react";
 import { useState } from "react";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { toggleSavedSidebarCollapsed } from "@/components/layout/sidebar-state";
 import { useAuth } from "@/hooks/use-auth";
@@ -19,13 +29,23 @@ const ROLE_HOME = {
 
 export function Navbar() {
   const router = useRouter();
-  const { isAuthenticated, loading, role, refreshProfile } = useAuth();
+  const {
+    clearAuthState,
+    isAuthenticated,
+    loading,
+    profile,
+    role,
+    setProfile,
+  } = useAuth();
   const [searchInput, setSearchInput] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
 
   const targetRole =
     role === "learner" ? "teacher" : role === "teacher" ? "learner" : null;
+  const displayName = profile?.fullName || profile?.username || "User";
+  const avatarUrl = profile?.avatarUrl || profile?.avatar_url || "";
+  const initial = displayName.charAt(0).toUpperCase();
 
   async function handleLogout() {
     setIsLoggingOut(true);
@@ -35,9 +55,10 @@ export function Navbar() {
     } catch (error) {
       console.error("Logout failed after clearing local auth", error);
     } finally {
-      router.replace("/login");
-      router.refresh();
+      clearAuthState();
       setIsLoggingOut(false);
+
+      window.location.replace("/login");
     }
   }
 
@@ -47,10 +68,9 @@ export function Navbar() {
     setIsSwitchingRole(true);
 
     try {
-      await profileService.switchRole(targetRole);
-      await refreshProfile();
+      const profile = await profileService.switchRole(targetRole);
+      setProfile(profile);
       router.replace(ROLE_HOME[targetRole]);
-      router.refresh();
     } catch (error) {
       console.error("Role switch failed", error);
     } finally {
@@ -62,7 +82,9 @@ export function Navbar() {
     event.preventDefault();
 
     const keyword = searchInput.trim();
-    const href = keyword ? `/search?q=${encodeURIComponent(keyword)}` : "/search";
+    const href = keyword
+      ? `/search?q=${encodeURIComponent(keyword)}`
+      : "/search";
 
     router.push(href);
   }
@@ -84,7 +106,7 @@ export function Navbar() {
             </Button>
           ) : null}
           <Link href="/" className="text-lg font-bold text-foreground">
-            Smart Quiz Platform
+            CardIO
           </Link>
         </div>
 
@@ -109,36 +131,64 @@ export function Navbar() {
             <Link href="/plans">Plans</Link>
           </Button>
 
-          {!loading && isAuthenticated ? (
-            <>
-              {targetRole ? (
+          {isAuthenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <Button
+                  aria-label="Open user menu"
+                  className="rounded-full"
+                  disabled={isLoggingOut || isSwitchingRole}
+                  size="icon"
                   type="button"
-                  variant="outline"
-                  onClick={handleSwitchRole}
-                  disabled={isSwitchingRole || isLoggingOut}
+                  variant="ghost"
                 >
-                  {isSwitchingRole
-                    ? "Switching..."
-                    : `Switch to ${targetRole === "teacher" ? "Teacher" : "Learner"}`}
+                  <Avatar>
+                    {avatarUrl ? (
+                      <AvatarImage alt={displayName} src={avatarUrl} />
+                    ) : null}
+                    <AvatarFallback className="font-bold">
+                      {initial}
+                    </AvatarFallback>
+                  </Avatar>
                 </Button>
-              ) : null}
-              <Button asChild variant="ghost">
-                <Link href="/profile">
-                  <User data-icon="inline-start" />
-                  Profile
-                </Link>
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-              >
-                <LogOut data-icon="inline-start" />
-                {isLoggingOut ? "Logging out..." : "Logout"}
-              </Button>
-            </>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <User />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  {targetRole ? (
+                    <DropdownMenuItem
+                      disabled={isSwitchingRole || isLoggingOut}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        handleSwitchRole();
+                      }}
+                    >
+                      <Repeat2 />
+                      {isSwitchingRole
+                        ? "Switching..."
+                        : `Switch to ${targetRole === "teacher" ? "Teacher" : "Learner"}`}
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  disabled={isLoggingOut}
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    handleLogout();
+                  }}
+                  variant="destructive"
+                >
+                  <LogOut />
+                  {isLoggingOut ? "Logging out..." : "Logout"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : null}
 
           {!loading && !isAuthenticated ? (
