@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { AlertCircle, Eye, Layers3, Plus, Search, SlidersHorizontal, Users } from "lucide-react";
 import { AppPagination } from "@/components/common/app-pagination";
-import ToastNotification from "./ToastNotification";
 import axiosClient from "@/services/axiosClient";
 import ClassSelectorModal from "./create/ClassSelectorModal";
 import ConfirmModal from "@/components/common/ConfirmModal";
@@ -44,7 +43,7 @@ function getStudySetId(studySet) {
 }
 
 function getAssignedClasses(studySet) {
-  return studySet.assigned_class_ids ?? studySet.assignedClassIds ?? [];
+  return studySet.assigned_class_names ?? studySet.assignedClassNames ?? [];
 }
 
 function getSourceName(studySet) {
@@ -70,7 +69,6 @@ export default function TeacherStudySetsPage() {
   const [pendingVisibility, setPendingVisibility] = useState("all");
   const [pendingAssignment, setPendingAssignment] = useState("all");
   const [pendingSortBy, setPendingSortBy] = useState("latest");
-  const [toast, setToast] = useState({ message: "", type: "success" });
 
   const [activeAssignSet, setActiveAssignSet] = useState(null);
   const [assignLoadingId, setAssignLoadingId] = useState(null);
@@ -84,18 +82,6 @@ export default function TeacherStudySetsPage() {
     onCancel: null,
   });
 
-  useEffect(() => {
-    const savedToast = localStorage.getItem("study_set_toast");
-    if (savedToast) {
-      try {
-        const parsed = JSON.parse(savedToast);
-        setTimeout(() => setToast(parsed), 0);
-      } catch (e) {
-        console.error(e);
-      }
-      localStorage.removeItem("study_set_toast");
-    }
-  }, []);
 
   // Applied filters (used for query parameters)
   const [appliedQuery, setAppliedQuery] = useState("");
@@ -160,7 +146,6 @@ export default function TeacherStudySetsPage() {
         }
       } catch (err) {
         console.error("Failed to load assignments:", err);
-        setToast({ message: "Failed to load class assignments. Please try again.", type: "error" });
       } finally {
         setAssignLoadingId(null);
       }
@@ -198,20 +183,10 @@ export default function TeacherStudySetsPage() {
       }
 
       await axiosClient.patch(`/api/study-sets/${studySetId}`, payload);
-      setToast({
-        message: isClearingClassOnly
-          ? `Visibility of study set "${activeAssignSet.title}" reverted to Private because no classes were selected.`
-          : `Assigned study set "${activeAssignSet.title}" successfully.`,
-        type: isClearingClassOnly ? "warning" : "success",
-      });
       setActiveAssignSet(null);
       reload();
     } catch (err) {
       console.error("Failed to update assignments:", err);
-      setToast({
-        message: err.response?.data?.error || "Failed to update assignments. Please try again.",
-        type: "error",
-      });
     }
   };
 
@@ -291,11 +266,6 @@ export default function TeacherStudySetsPage() {
           />
         )}
       </section>
-      <ToastNotification
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast({ message: "", type: "success" })}
-      />
       {activeAssignSet && (
         <ClassSelectorModal
           initialSelectedIds={selectedClassIds}
@@ -445,9 +415,9 @@ function StudySetsTable({ studySets, onAssignClick, assignLoadingId }) {
                   key={id}
                   onClick={() => router.push(`/teacher/study-sets/${id}`)}
                 >
-                  <td className="px-4 py-3">
-                    <p className="font-bold text-foreground hover:text-primary transition-colors">{studySet.title}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <td className="px-4 py-3 max-w-[200px] md:max-w-[320px]">
+                    <p className="font-bold text-foreground hover:text-primary transition-colors truncate" title={studySet.title}>{studySet.title}</p>
+                    <p className="text-xs text-muted-foreground truncate">
                       {studySet.topic || "No topic"}
                     </p>
                   </td>

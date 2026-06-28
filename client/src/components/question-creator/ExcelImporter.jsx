@@ -248,9 +248,6 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
             Upload an Excel file to bulk-import multiple choice questions directly.
           </p>
         </div>
-        <Button onClick={onCancel} variant="ghost" size="sm" type="button">
-          Cancel
-        </Button>
       </div>
 
       <div 

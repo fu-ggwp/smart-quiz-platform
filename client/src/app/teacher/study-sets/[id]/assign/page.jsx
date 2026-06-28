@@ -6,7 +6,6 @@ import { ArrowLeft, BookOpen, Save, UserPlus, Users, AlertCircle } from "lucide-
 import axiosClient from "@/services/axiosClient";
 import { Button } from "@/components/ui/button";
 import ClassSelectorModal from "../../create/ClassSelectorModal";
-import ToastNotification from "../../ToastNotification";
 
 export default function AssignStudySetPage() {
   const params = useParams();
@@ -20,7 +19,6 @@ export default function AssignStudySetPage() {
   const [selectedClassNames, setSelectedClassNames] = useState([]);
   const [showClassSelector, setShowClassSelector] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState({ message: "", type: "success" });
 
   useEffect(() => {
     if (!id) return;
@@ -67,21 +65,9 @@ export default function AssignStudySetPage() {
         classId: selectedClassIds,
       });
 
-      localStorage.setItem(
-        "study_set_toast",
-        JSON.stringify({
-          message: `Assigned study set "${studySet.title}" successfully.`,
-          type: "success",
-        })
-      );
       router.push(`/teacher/study-sets/${id}`);
     } catch (err) {
       console.error("Failed to assign study set:", err);
-      const errMsg = err.response?.data?.error || "Failed to update assignments. Please try again.";
-      setToast({
-        message: errMsg,
-        type: "error",
-      });
     } finally {
       setSaving(false);
     }
@@ -207,12 +193,6 @@ export default function AssignStudySetPage() {
         />
       )}
 
-      {/* Toast Notification */}
-      <ToastNotification
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast({ message: "", type: "success" })}
-      />
     </main>
   );
 }

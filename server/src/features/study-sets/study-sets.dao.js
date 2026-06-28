@@ -12,24 +12,15 @@ import { CLASS_TABLE } from "../../models/class.model.js";
 const db = supabase;
 
 // Tìm theo gv sở hữu là teacher_id, hỗ trợ pagination và filters
-export async function findByTeacher(teacherId, filters = {}) {
-  const { page, limit, from, to } = getPagination(filters, { defaultLimit: 10 });
-  const keyword = filters.keyword ? String(filters.keyword).trim() : "";
-  const visibility = filters.visibility && filters.visibility !== "all" ? filters.visibility : null;
-  const assignment = filters.assignment && filters.assignment !== "all" ? filters.assignment : null;
-  const sortBy = filters.sortBy || "latest";
+export function getAssignmentsByTeacher(teacherId) {
+  return db
+    .from("study_set_assignments")
+    .select("study_set_id")
+    .eq("assigned_by", teacherId);
+}
 
-  let assignedIds = [];
-  if (assignment) {
-    const { data: assignments } = await db
-      .from("study_set_assignments")
-      .select("study_set_id")
-      .eq("assigned_by", teacherId);
-
-    assignedIds = [...new Set((assignments || []).map((a) => a.study_set_id))];
-  }
-
-  let query = db
+export function findByTeacher(teacherId) {
+  return db
     .from(STUDY_SET_TABLE)
     .select(`
       *,
@@ -38,63 +29,17 @@ export async function findByTeacher(teacherId, filters = {}) {
         classes (
           class_name
         )
+      ),
+      practice_attempts (
+        learner_id
       )
     `, { count: "exact" })
     .eq("teacher_id", teacherId)
     .is("deleted_at", null);
-
-  if (keyword) {
-    query = query.or(`title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%`);
-  }
-
-  if (visibility) {
-    query = query.eq("visibility", visibility);
-  }
-
-  if (assignment === "assigned") {
-    if (assignedIds.length === 0) {
-      query = query.eq("study_set_id", "00000000-0000-0000-0000-000000000000");
-    } else {
-      query = query.in("study_set_id", assignedIds);
-    }
-  } else if (assignment === "unassigned") {
-    if (assignedIds.length > 0) {
-      query = query.not("study_set_id", "in", `(${assignedIds.join(",")})`);
-    }
-  }
-
-  if (sortBy === "name-asc") {
-    query = query.order("title", { ascending: true });
-  } else if (sortBy === "name-desc") {
-    query = query.order("title", { ascending: false });
-  } else {
-    query = query.order("updated_at", { ascending: false });
-  }
-
-  const { data, error, count } = await query.range(from, to);
-
-  return {
-    data,
-    error,
-    count,
-    page,
-    limit,
-  };
 }
 
-// Tìm kiếm học phần public hoặc được assign cho lớp học cụ thể
-function sanitizeSearchKeyword(value) {
-  return String(value || "")
-    .trim()
-    .replace(/[%,()]/g, " ")
-    .replace(/\s+/g, " ");
-}
-
-export async function findPublicStudySets(filters = {}) {
-  const { page, limit, from, to } = getPagination(filters, { defaultLimit: 10 });
-  const keyword = sanitizeSearchKeyword(filters.keyword);
-
-  let query = db
+export function findPublicStudySets() {
+  return db
     .from(STUDY_SET_TABLE)
     .select(
       "study_set_id, title, description, topic, tags, question_count, created_at, updated_at, teacher:users!teacher_id(full_name, username, avatar_url)",
@@ -103,43 +48,10 @@ export async function findPublicStudySets(filters = {}) {
     .eq("visibility", "public")
     .is("deleted_at", null)
     .eq("is_admin_hidden", false);
-
-  if (keyword) {
-    query = query.or(
-      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%`,
-    );
-  }
-
-  const { data, error, count } = await query
-    .order("updated_at", { ascending: false })
-    .range(from, to);
-
-  return { data, error, count, page, limit };
 }
 
-export async function findPublic({ classId } = {}) {
-  if (!classId) {
-    return db.from(STUDY_SET_TABLE).select("*").eq("visibility", "public");
-  }
-
-  const { data: assignments, error: assignError } = await db
-    .from("study_set_assignments")
-    .select("study_set_id")
-    .eq("class_id", classId);
-
-  if (assignError) {
-    return { data: null, error: assignError };
-  }
-
-  const assignedIds = (assignments || []).map((a) => a.study_set_id);
-
-  let query = db.from(STUDY_SET_TABLE).select("*");
-  if (assignedIds.length > 0) {
-    query = query.or(`visibility.eq.public,study_set_id.in.(${assignedIds.join(",")})`);
-  } else {
-    query = query.eq("visibility", "public");
-  }
-  return query;
+export function findPublic() {
+  return db.from(STUDY_SET_TABLE).select("*");
 }
 
 // Tìm study set theo id
@@ -154,6 +66,10 @@ export function findById(id) {
           class_name,
           teacher_id
         )
+      ),
+      teacher:users!teacher_id (
+        full_name,
+        avatar_url
       )
     `)
     .eq("study_set_id", id)
@@ -208,23 +124,25 @@ export function listAttemptsByLearner(learnerId) {
 }
 
 // Lưu các câu trả lời của học sinh
-export async function recordAnswer(payload) {
-  const { data: existing } = await db
+export function findAttemptAnswer(attemptId, questionId) {
+  return db
     .from(ATTEMPT_ANSWER_TABLE)
     .select("attempt_answer_id")
-    .eq("practice_attempt_id", payload.practice_attempt_id)
-    .eq("question_id", payload.question_id)
+    .eq("practice_attempt_id", attemptId)
+    .eq("question_id", questionId)
     .maybeSingle();
+}
 
-  if (existing) {
-    return db
-      .from(ATTEMPT_ANSWER_TABLE)
-      .update(payload)
-      .eq("attempt_answer_id", existing.attempt_answer_id)
-      .select()
-      .single();
-  }
+export function updateAttemptAnswer(id, payload) {
+  return db
+    .from(ATTEMPT_ANSWER_TABLE)
+    .update(payload)
+    .eq("attempt_answer_id", id)
+    .select()
+    .single();
+}
 
+export function insertAttemptAnswer(payload) {
   return db.from(ATTEMPT_ANSWER_TABLE).insert(payload).select().single();
 }
 
@@ -265,7 +183,9 @@ export function listQuestionByStudySet(studysetId) {
     `)
     .eq("study_set_id", studysetId)
     .is("deleted_at", null)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .order("display_order", { foreignTable: "answer_options", ascending: true })
+    .order("answer_option_id", { foreignTable: "answer_options", ascending: true });
 }
 
 //Lấy dsach lớp của hsinh
@@ -384,60 +304,35 @@ export function getOwnedStudySetIds(teacherId) {
     .is("deleted_at", null);
 }
 
-// ── Admin moderation (UC-53 / §3.9.3) ──────────────────────────────────────
-// `subject` is intentionally omitted so moderation does not depend on the
-// study_sets.subject column (planned for removal).
 const ADMIN_MODERATION_SELECT =
   "study_set_id, title, description, topic, visibility, is_admin_hidden, question_count, created_at, updated_at, " +
   "teacher:users!teacher_id(user_id, full_name, username)";
 
-// List PUBLIC study sets for admin review (visible + admin-hidden), paginated.
-export async function adminListPublicStudySets(filters = {}) {
-  const { page, limit, from, to } = getPagination(filters, { defaultLimit: 10 });
-  const keyword = sanitizeSearchKeyword(filters.keyword);
-
-  let query = db
+export function adminListPublicStudySets() {
+  return db
     .from(STUDY_SET_TABLE)
     .select(ADMIN_MODERATION_SELECT, { count: "exact" })
     .eq("visibility", "public")
     .is("deleted_at", null);
-
-  if (keyword) {
-    query = query.or(
-      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%`,
-    );
-  }
-  if (filters.hidden === true) query = query.eq("is_admin_hidden", true);
-  else if (filters.hidden === false) query = query.eq("is_admin_hidden", false);
-
-  const { data, error, count } = await query
-    .order("updated_at", { ascending: false })
-    .range(from, to);
-
-  return { data, error, count, page, limit };
 }
 
-// Existence check before toggling (clean 404).
-export async function adminFindStudySetById(studySetId) {
-  const { data, error } = await db
+export function adminFindStudySetById(studySetId) {
+  return db
     .from(STUDY_SET_TABLE)
     .select("study_set_id")
     .eq("study_set_id", studySetId)
     .is("deleted_at", null)
     .maybeSingle();
-  return { data, error };
 }
 
-// Hide (true) / restore (false) a study set by flipping is_admin_hidden.
-export async function adminSetHidden(studySetId, hidden) {
-  const { data, error } = await db
+export function adminSetHidden(studySetId, hidden) {
+  return db
     .from(STUDY_SET_TABLE)
     .update({ is_admin_hidden: hidden, updated_at: new Date().toISOString() })
     .eq("study_set_id", studySetId)
     .is("deleted_at", null)
     .select(ADMIN_MODERATION_SELECT)
     .single();
-  return { data, error };
 }
 export function getActiveSubscriptionForUser(userId) {
   const now = new Date().toISOString();

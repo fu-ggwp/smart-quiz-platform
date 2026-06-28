@@ -1,4 +1,4 @@
-export default function QuestionMap({ questions, currentIndex, selectedAnswers }) {
+export default function QuestionMap({ questions, currentIndex, selectedAnswers, checkedQuestions = {} }) {
   return (
     <div className="bg-white border border-neutral-100 rounded-3xl p-6 shadow-sm space-y-6">
       <div>
@@ -10,9 +10,7 @@ export default function QuestionMap({ questions, currentIndex, selectedAnswers }
       <div className="grid grid-cols-5 gap-2.5">
         {questions.map((q, idx) => {
           const isCurrent = idx === currentIndex;
-          const isAnswered = Array.isArray(selectedAnswers[q.question_id])
-            ? selectedAnswers[q.question_id].length > 0
-            : !!selectedAnswers[q.question_id];
+          const isAnswered = !!checkedQuestions[q.question_id];
 
           return (
             <div

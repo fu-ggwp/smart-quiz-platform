@@ -6,7 +6,6 @@ import { ArrowLeft, Edit3, Trash2, Calendar, Layers, Eye, EyeOff, AlertCircle, U
 import axiosClient from "@/services/axiosClient";
 import { Button } from "@/components/ui/button";
 import { QuestionPreviewCard } from "@/components/questions/question-preview-card";
-import ToastNotification from "../ToastNotification";
 import ClassSelectorModal from "../create/ClassSelectorModal";
 import ConfirmModal from "@/components/common/ConfirmModal";
 
@@ -20,7 +19,6 @@ export default function TeacherStudySetDetailPage() {
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [toast, setToast] = useState({ message: "", type: "success" });
   const [showClassSelector, setShowClassSelector] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmData, setConfirmData] = useState({
@@ -30,19 +28,6 @@ export default function TeacherStudySetDetailPage() {
     onConfirm: null,
     onCancel: null,
   });
-
-  useEffect(() => {
-    const savedToast = localStorage.getItem("study_set_toast");
-    if (savedToast) {
-      try {
-        const parsed = JSON.parse(savedToast);
-        setTimeout(() => setToast(parsed), 0);
-      } catch (e) {
-        console.error(e);
-      }
-      localStorage.removeItem("study_set_toast");
-    }
-  }, []);
 
   // Quản lý hiển thị đáp án
   const [revealedQuestions, setRevealedQuestions] = useState(new Set());
@@ -71,17 +56,9 @@ export default function TeacherStudySetDetailPage() {
     setDeleting(true);
     try {
       await axiosClient.delete(`/api/study-sets/${id}`);
-      localStorage.setItem(
-        "study_set_toast",
-        JSON.stringify({ message: `Deleted study set "${studySet.title}" successfully.`, type: "success" })
-      );
       router.push("/teacher/study-sets");
     } catch (err) {
       console.error("Failed to delete study set:", err);
-      setToast({
-        message: err.response?.data?.error || "Failed to delete study set. Please try again.",
-        type: "error"
-      });
       setShowDeleteModal(false);
     } finally {
       setDeleting(false);
@@ -114,12 +91,6 @@ export default function TeacherStudySetDetailPage() {
       }
 
       await axiosClient.patch(`/api/study-sets/${id}`, payload);
-      setToast({
-        message: isClearingClassOnly
-          ? `Visibility of study set "${studySet.title}" reverted to Private because no classes were selected.`
-          : `Assigned study set "${studySet.title}" successfully.`,
-        type: isClearingClassOnly ? "warning" : "success",
-      });
       setShowClassSelector(false);
 
       // Re-fetch details to update UI immediately
@@ -127,10 +98,6 @@ export default function TeacherStudySetDetailPage() {
       setStudySet(res.data?.data || null);
     } catch (err) {
       console.error("Failed to update assignments:", err);
-      setToast({
-        message: err.response?.data?.error || "Failed to update assignments. Please try again.",
-        type: "error",
-      });
     } finally {
       setSaving(false);
     }
@@ -178,7 +145,9 @@ export default function TeacherStudySetDetailPage() {
               <ArrowLeft className="size-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">{studySet.title}</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground truncate max-w-[300px] sm:max-w-[450px] md:max-w-[600px]" title={studySet.title}>
+                {studySet.title}
+              </h1>
               <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
                 <Calendar size={12} />
                 Created on {new Date(studySet.created_at).toLocaleDateString()}
@@ -328,17 +297,16 @@ export default function TeacherStudySetDetailPage() {
           )}
         </div>
       </div>
-      <ToastNotification
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast({ message: "", type: "success" })}
-      />
 
       {/* Delete confirmation modal */}
       <ConfirmModal
         isOpen={showDeleteModal}
         title="Delete Study Set"
-        message={`Are you sure you want to delete "${studySet?.title}"? This action is permanent and cannot be undone.`}
+        message={`Are you sure you want to delete "${
+          studySet?.title && studySet.title.length > 30
+            ? studySet.title.substring(0, 30) + "..."
+            : studySet?.title
+        }"? This action is permanent and cannot be undone.`}
         confirmLabel={deleting ? "Deleting..." : "Delete"}
         cancelLabel="Cancel"
         onConfirm={handleDelete}

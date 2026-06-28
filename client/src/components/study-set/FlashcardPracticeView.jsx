@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ChevronLeft, ChevronRight, BookOpen, PartyPopper } from "lucide-react";
 import { studySetsService } from "@/services/study-sets.service";
@@ -126,6 +126,20 @@ export function FlashcardPracticeView({
     initSession();
   }, [studySetId, isGuest]);
 
+  const handleNext = useCallback(() => {
+    if (currentIndex < questions.length) {
+      setIsFlipped(false);
+      setCurrentIndex((prev) => prev + 1);
+    }
+  }, [currentIndex, questions.length]);
+
+  const handlePrev = useCallback(() => {
+    if (currentIndex > 0) {
+      setIsFlipped(false);
+      setCurrentIndex((prev) => prev - 1);
+    }
+  }, [currentIndex]);
+
   // --- Auto-save card index to localStorage ---
   useEffect(() => {
     if (questions.length > 0 && !isGuest) {
@@ -153,7 +167,7 @@ export function FlashcardPracticeView({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [currentIndex, questions.length]);
+  }, [handlePrev, handleNext]);
 
   // --- Save learning progress via API ---
   const saveProgress = async (qId, status) => {
@@ -221,19 +235,7 @@ export function FlashcardPracticeView({
     setDifficultQuestionIds(newDifficult);
   };
 
-  const handleNext = () => {
-    if (currentIndex < questions.length) {
-      setIsFlipped(false);
-      setCurrentIndex((prev) => prev + 1);
-    }
-  };
 
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setIsFlipped(false);
-      setCurrentIndex((prev) => prev - 1);
-    }
-  };
 
   const handleExit = async () => {
     try {
@@ -312,7 +314,6 @@ export function FlashcardPracticeView({
           <span>Exit</span>
         </Button>
         <div className="flex items-center gap-2">
-          <BookOpen className="size-4 text-primary" />
           <span className="text-xs font-bold text-muted-foreground truncate max-w-[150px] md:max-w-[250px]">{studySet?.title}</span>
         </div>
         <div className="text-xs font-bold text-primary px-3 py-1 bg-primary/10 rounded-full flex items-center">
@@ -327,7 +328,7 @@ export function FlashcardPracticeView({
         <div className="space-y-2">
           <h2 className="text-2xl font-extrabold text-foreground">Congratulations!</h2>
           <p className="text-sm text-muted-foreground">
-            You've completed all {questions.length} flashcards in this study set.
+            You&apos;ve completed all {questions.length} flashcards in this study set.
           </p>
         </div>
 
@@ -353,12 +354,9 @@ export function FlashcardPracticeView({
           <span>Exit</span>
         </Button>
         <div className="flex items-center gap-2">
-          <BookOpen className="size-4 text-primary" />
           <span className="text-xs font-bold text-muted-foreground truncate max-w-[150px] md:max-w-[250px]">{studySet?.title}</span>
         </div>
-        <div className="text-xs font-bold text-primary px-3 py-1 bg-primary/10 rounded-full flex items-center">
-          <span>Card {currentIndex + 1} / {questions.length}</span>
-        </div>
+        <div className="w-20" />
       </header>
 
       <section className="flex-1 max-w-2xl w-full mx-auto flex flex-col justify-center items-center py-2">

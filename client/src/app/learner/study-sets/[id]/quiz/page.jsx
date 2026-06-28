@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, AlertCircle, HelpCircle } from "lucide-react";
 import { studySetsService } from "@/services/study-sets.service";
@@ -33,6 +33,7 @@ export default function LearnerQuizPage() {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [sessionId, setSessionId] = useState(null);
   const [isAnswerChecked, setIsAnswerChecked] = useState(false);
+  const [checkedQuestions, setCheckedQuestions] = useState({});
   
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -40,7 +41,7 @@ export default function LearnerQuizPage() {
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [showConfirmExit, setShowConfirmExit] = useState(false);
 
-  const handleSubmitQuiz = async () => {
+  const handleSubmitQuiz = useCallback(async () => {
     setSubmitting(true);
     try {
       await studySetsService.completeSession(sessionId);
@@ -50,7 +51,7 @@ export default function LearnerQuizPage() {
       alert("Failed to submit quiz. Please try again.");
       setSubmitting(false);
     }
-  };
+  }, [sessionId, studySetId, router]);
 
   const handleSelectOption = async (questionId, optionId) => {
     if (isAnswerChecked) return;
@@ -160,6 +161,9 @@ export default function LearnerQuizPage() {
         if (!isAnswerChecked) {
           if (hasSelection) {
             setIsAnswerChecked(true);
+            if (currentQ) {
+              setCheckedQuestions(prev => ({ ...prev, [currentQ.question_id]: true }));
+            }
           }
         } else {
           if (currentIndex < questions.length - 1) {
@@ -173,7 +177,7 @@ export default function LearnerQuizPage() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isAnswerChecked, selectedAnswers, currentIndex, questions, handleSubmitQuiz]);
+  }, [isAnswerChecked, selectedAnswers, currentIndex, questions, handleSubmitQuiz, setCheckedQuestions]);
 
 
 
@@ -217,10 +221,8 @@ export default function LearnerQuizPage() {
   }
 
   const currentQuestion = questions[currentIndex];
-  const answeredCount = Object.values(selectedAnswers).filter(
-    (ans) => (Array.isArray(ans) ? ans.length > 0 : !!ans)
-  ).length;
-  const progressPercent = (answeredCount / questions.length) * 100;
+  const answeredCount = Object.values(checkedQuestions).filter(Boolean).length;
+  const progressPercent = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0;
 
   return (
     <main className="min-h-screen bg-neutral-50/50 text-neutral-900 px-4 py-8 sm:px-6 lg:px-8">
@@ -262,7 +264,12 @@ export default function LearnerQuizPage() {
             selectedOptionIds={selectedAnswers[currentQuestion?.question_id] || []}
             onSelectOption={(optId) => handleSelectOption(currentQuestion.question_id, optId)}
             isAnswerChecked={isAnswerChecked}
-            onCheckAnswer={() => setIsAnswerChecked(true)}
+            onCheckAnswer={() => {
+              setIsAnswerChecked(true);
+              if (currentQuestion) {
+                setCheckedQuestions(prev => ({ ...prev, [currentQuestion.question_id]: true }));
+              }
+            }}
             onNextQuestion={() => {
               setIsAnswerChecked(false);
               setCurrentIndex(prev => prev + 1);
@@ -278,6 +285,7 @@ export default function LearnerQuizPage() {
             questions={questions}
             currentIndex={currentIndex}
             selectedAnswers={selectedAnswers}
+            checkedQuestions={checkedQuestions}
           />
         </div>
       </div>

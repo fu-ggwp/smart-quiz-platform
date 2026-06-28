@@ -201,9 +201,11 @@ export default function LearnerStudySetsPage() {
                     </div>
                   </div>
                   <div className="border-t border-border mt-4 pt-4 flex justify-between items-center text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <User className="size-3.5" />
-                      Created by <strong className="font-semibold text-foreground">{set.teacher?.full_name || "Teacher"}</strong>
+                    <span className="flex items-center gap-1 max-w-[180px] md:max-w-[220px]">
+                      <User className="size-3.5 shrink-0" />
+                      <span className="truncate">
+                        Created by <strong className="font-semibold text-foreground" title={set.teacher?.full_name || "Teacher"}>{set.teacher?.full_name || "Teacher"}</strong>
+                      </span>
                     </span>
                     {set.is_started && set.last_studied_at ? (
                       set.study_status === "submitted" ? (
