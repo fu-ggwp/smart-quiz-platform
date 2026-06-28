@@ -1,10 +1,5 @@
 import * as dao from "./study-sets.dao.js";
-<<<<<<< Updated upstream
 import { buildPaginatedResponse, getPagination } from "../../utils/pagination.js";
-=======
-import { env } from "../../config/env.js";
-import { buildPaginatedResponse } from "../../utils/pagination.js";
->>>>>>> Stashed changes
 import { notifyStudySetAssigned } from "../../utils/notification.service.js";
 import { logger } from "../../utils/logger.js";
 
@@ -69,7 +64,6 @@ async function requirePremiumLearner(userId) {
   }
 }
 
-<<<<<<< Updated upstream
 function buildQuery(teacherId, filters, assignedIds) {
   let dbQuery = dao.findByTeacher(teacherId);
 
@@ -130,33 +124,6 @@ function formatItems(items) {
       learner_count: learnerCount,
     };
   });
-=======
-async function callGeminiForAnswerExplanation(prompt) {
-  if (!env.geminiApiKey) {
-    throw serviceError(aiUnavailableMessage, 503);
-  }
-
-  try {
-    const ai = new GoogleGenAI({ apiKey: env.geminiApiKey });
-    const response = await ai.models.generateContent({
-      model: env.geminiModel,
-      contents: [{ text: prompt }],
-      config: {
-        temperature: 0.2,
-      },
-    });
-
-    const aiExplanation = String(response.text || "").trim();
-    if (!aiExplanation) {
-      throw serviceError(aiUnavailableMessage, 502);
-    }
-
-    return aiExplanation;
-  } catch (error) {
-    if (error.status || error.statusCode) throw error;
-    throw serviceError(aiUnavailableMessage, 502);
-  }
->>>>>>> Stashed changes
 }
 
 // List toàn bộ study set của giáo viên
