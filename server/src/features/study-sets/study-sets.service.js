@@ -2,14 +2,6 @@ import * as dao from "./study-sets.dao.js";
 import { buildPaginatedResponse, getPagination } from "../../utils/pagination.js";
 import { notifyStudySetAssigned } from "../../utils/notification.service.js";
 import { logger } from "../../utils/logger.js";
-import * as aiService from "../ai/ai.service.js";
-
-function sanitizeSearchKeyword(value) {
-  return String(value || "")
-    .trim()
-    .replace(/[%,()]/g, " ")
-    .replace(/\s+/g, " ");
-}
 
 const premiumRequiredMessage = "AI explanations are available for Premium accounts only. Please upgrade to continue.";
 
