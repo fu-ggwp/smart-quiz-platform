@@ -234,9 +234,9 @@ export default function LearnerClassDetailPage() {
                         </span>
                       </div>
 
-                      {(a.subject || a.topic) && (
+                      {a.topic && (
                         <p className="mt-1 text-sm text-neutral-400">
-                          {[a.subject, a.topic].filter(Boolean).join(" · ")}
+                          {a.topic}
                         </p>
                       )}
 

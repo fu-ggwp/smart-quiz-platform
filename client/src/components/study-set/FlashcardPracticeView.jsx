@@ -181,7 +181,8 @@ export function FlashcardPracticeView({
         review_status: status
       });
     } catch (err) {
-      console.error("Failed to save progress:", err);
+      const serverError = err.response?.data?.error || err.message;
+      console.error("Failed to save progress:", serverError, err);
     } finally {
       setSavingProgress(false);
     }

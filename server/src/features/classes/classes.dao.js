@@ -351,7 +351,7 @@ export async function getAssignmentsByClass(classId) {
     .select(`
       assignment_id, study_set_id, class_id, assigned_by, release_at, due_at, instructions, created_at,
       study_set:study_sets!study_set_id(
-        study_set_id, title, description, subject, topic, visibility,
+        study_set_id, title, description, topic, visibility,
         is_admin_hidden, question_count, tags, deleted_at
       )
     `)

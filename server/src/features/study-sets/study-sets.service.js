@@ -691,7 +691,19 @@ export async function submitAnswer(sessionId, payload) {
     result = data;
   } else {
     const { data, error } = await dao.insertAttemptAnswer(answerPayload);
-    if (error) throw dbError(error);
+    if (error) {
+      // If a concurrent request inserted the row in the meantime, retry by updating it
+      if (error.code === "23505") {
+        const { data: existingRetry, error: retryFetchError } = await dao.findAttemptAnswer(sessionId, payload.question_id);
+        if (!retryFetchError && existingRetry) {
+          const { data: updateData, error: updateError } = await dao.updateAttemptAnswer(existingRetry.attempt_answer_id, answerPayload);
+          if (!updateError) {
+            return updateData;
+          }
+        }
+      }
+      throw dbError(error);
+    }
     result = data;
   }
   return result;

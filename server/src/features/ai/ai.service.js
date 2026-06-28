@@ -130,7 +130,6 @@ function buildAnswerExplanationPrompt({ studySet, question, attemptAnswer }) {
     "Study set context:",
     `Title: ${studySet.title || "Untitled"}`,
     `Description: ${studySet.description || "No description"}`,
-    `Subject: ${studySet.subject || "Not specified"}`,
     `Topic: ${studySet.topic || "Not specified"}`,
     `Tags: ${(studySet.tags || []).join(", ") || "None"}`,
     "",
