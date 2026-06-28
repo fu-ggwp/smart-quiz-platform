@@ -10,7 +10,6 @@ import QuestionCardEditor from "@/components/question-creator/QuestionCardEditor
 import ExcelImporter from "@/components/question-creator/ExcelImporter";
 import QuestionBankSelector from "../../create/QuestionBankSelector";
 import ClassSelectorModal from "../../create/ClassSelectorModal";
-import ToastNotification from "../../ToastNotification";
 import ConfirmModal from "@/components/common/ConfirmModal";
 
 export default function EditStudySetPage() {
@@ -39,7 +38,6 @@ export default function EditStudySetPage() {
   const [errors, setErrors] = useState({});
   const [showQBSelector, setShowQBSelector] = useState(false);
   const [showExcelImporter, setShowExcelImporter] = useState(false);
-  const [toast, setToast] = useState({ message: "", type: "success" });
   const [confirmData, setConfirmData] = useState({
     isOpen: false,
     title: "",
@@ -75,6 +73,7 @@ export default function EditStudySetPage() {
               answer_option_id: opt.answer_option_id,
               option_text: opt.option_text || "",
               is_correct: !!opt.is_correct,
+              display_order: opt.display_order,
             })),
           }));
           setQuestions(formattedQuestions);
@@ -115,14 +114,13 @@ export default function EditStudySetPage() {
       }
     ]);
 
-    // Clear question list validation error and toast
+    // Clear question list validation error
     setErrors((prev) => {
       const next = { ...prev };
       delete next.questions;
       delete next.submit;
       return next;
     });
-    setToast({ message: "", type: "success" });
   };
 
   // Delete a question card
@@ -174,7 +172,6 @@ export default function EditStudySetPage() {
       delete next.submit;
       return next;
     });
-    setToast({ message: "", type: "success" });
   };
 
   // Add a blank option to a specific question
@@ -195,7 +192,6 @@ export default function EditStudySetPage() {
       delete next.submit;
       return next;
     });
-    setToast({ message: "", type: "success" });
   };
 
   // Delete an option from a specific question
@@ -238,7 +234,6 @@ export default function EditStudySetPage() {
       delete next.submit;
       return next;
     });
-    setToast({ message: "", type: "success" });
   };
 
   // --- 6. QUESTION BANK IMPORT CALLBACKS ---
@@ -265,7 +260,6 @@ export default function EditStudySetPage() {
       delete next.submit;
       return next;
     });
-    setToast({ message: "", type: "success" });
   };
 
   const handleResetQuestionBank = () => {
@@ -293,7 +287,6 @@ export default function EditStudySetPage() {
       delete next.submit;
       return next;
     });
-    setToast({ message: "", type: "success" });
   };
 
   // --- 7. CLASS SELECTION CALLBACKS ---
@@ -304,10 +297,6 @@ export default function EditStudySetPage() {
 
     if (visibility === "class_only" && ids.length === 0) {
       setVisibility("private");
-      setToast({
-        message: "Visibility changed to Private because no classes were selected.",
-        type: "warning",
-      });
     }
 
     setErrors((prev) => {
@@ -382,10 +371,6 @@ export default function EditStudySetPage() {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setToast({
-        message: "Please fill out all required fields and correct the errors.",
-        type: "error"
-      });
       return;
     }
 
@@ -401,22 +386,12 @@ export default function EditStudySetPage() {
         questions
       });
 
-      // Save success toast to localStorage to persist across navigation
-      localStorage.setItem(
-        "study_set_toast",
-        JSON.stringify({ message: `Updated study set "${title}" successfully.`, type: "success" })
-      );
-
       router.push(`/teacher/study-sets/${id}`);
     } catch (err) {
       console.error("Failed to update study set:", err);
       const errMsg = err.response?.data?.error || "Failed to update study set. Please try again.";
       setErrors({
         submit: errMsg
-      });
-      setToast({
-        message: errMsg,
-        type: "error"
       });
     } finally {
       setSaving(false);
@@ -476,7 +451,6 @@ export default function EditStudySetPage() {
                       delete next.submit;
                       return next;
                     });
-                    setToast({ message: "", type: "success" });
                   }}
                 />
                 {errors.title && (
@@ -552,7 +526,6 @@ export default function EditStudySetPage() {
                         delete next.submit;
                         return next;
                       });
-                      setToast({ message: "", type: "success" });
                     }
                   }}
                 >
@@ -716,12 +689,7 @@ export default function EditStudySetPage() {
         </div>
       )}
 
-      {/* Toast Notification */}
-      <ToastNotification
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast({ message: "", type: "success" })}
-      />
+
       <ConfirmModal
         isOpen={confirmData.isOpen}
         title={confirmData.title}

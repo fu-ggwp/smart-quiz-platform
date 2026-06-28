@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CheckCircle2, Loader2, Sparkles, XCircle } from "lucide-react";
 import { studySetsService } from "@/services/study-sets.service";
+import Link from "next/link";
 
 function getAiExplanationError(error) {
   const status = error?.response?.status;
@@ -198,9 +199,17 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
                   </button>
 
                   {aiState.status === "error" && (
-                    <p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-                      {aiState.error}
-                    </p>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3.5 text-sm font-medium text-red-700">
+                      <span>{aiState.error}</span>
+                      {aiState.error.includes("Premium") && (
+                        <Link
+                          href="/upgrade"
+                          className="shrink-0 inline-flex items-center justify-center rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2.5 text-xs text-center transition-colors shadow-sm"
+                        >
+                          Upgrade Now
+                        </Link>
+                      )}
+                    </div>
                   )}
 
                   {aiState.status === "success" && aiState.text && (
