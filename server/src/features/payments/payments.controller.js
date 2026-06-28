@@ -34,6 +34,9 @@ export const startCheckout = async (req, res) => {
 };
 
 export const handlePayOSWebhook = async (req, res) => {
-  // Temporarily acknowledge every PayOS webhook while webhook processing is paused.
-  return ok(res, { received: true, temporarilyAccepted: true });
+  try {
+    return ok(res, await service.handlePayOSWebhook(req.body));
+  } catch (err) {
+    return fail(res, err, err.status || 500);
+  }
 };

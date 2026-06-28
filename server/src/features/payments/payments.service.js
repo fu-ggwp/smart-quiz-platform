@@ -244,30 +244,10 @@ async function activateSubscription(payment) {
   return data;
 }
 
-function isPayOSTestWebhook(payload, data) {
-  return (
-    payload?.success === true &&
-    payload?.code === "00" &&
-    data?.code === "00" &&
-    Number(data?.orderCode) === 123 &&
-    Number(data?.amount) === 3000 &&
-    data?.description === "VQRIO123" &&
-    data?.reference === "TF230204212323"
-  );
-}
-
 export async function handlePayOSWebhook(payload) {
   const data = await gateway.verifyWebhook(payload);
   const { data: payment, error } = await dao.findPaymentByOrderCode(data.orderCode);
   if (error) throw dbError(error);
-  if (!payment && isPayOSTestWebhook(payload, data)) {
-    return {
-      received: true,
-      testWebhook: true,
-      paymentStatus: null,
-      subscription: null,
-    };
-  }
   if (!payment) throw serviceError("Payment order not found.", 404);
 
   if (payment.payment_status === PaymentStatus.SUCCESSFUL) {
