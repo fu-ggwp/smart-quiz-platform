@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Edit3, Trash2, Calendar, BookOpen, Layers, Eye, EyeOff, Check, AlertCircle, UserPlus } from "lucide-react";
+import { ArrowLeft, Edit3, Trash2, Calendar, Layers, Eye, EyeOff, AlertCircle, UserPlus } from "lucide-react";
 import axiosClient from "@/services/axiosClient";
 import { Button } from "@/components/ui/button";
-import ToastNotification from "../ToastNotification";
+import { QuestionPreviewCard } from "@/components/questions/question-preview-card";
 import ClassSelectorModal from "../create/ClassSelectorModal";
 import ConfirmModal from "@/components/common/ConfirmModal";
 
@@ -19,7 +19,6 @@ export default function TeacherStudySetDetailPage() {
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [toast, setToast] = useState({ message: "", type: "success" });
   const [showClassSelector, setShowClassSelector] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmData, setConfirmData] = useState({
@@ -29,19 +28,6 @@ export default function TeacherStudySetDetailPage() {
     onConfirm: null,
     onCancel: null,
   });
-
-  useEffect(() => {
-    const savedToast = localStorage.getItem("study_set_toast");
-    if (savedToast) {
-      try {
-        const parsed = JSON.parse(savedToast);
-        setTimeout(() => setToast(parsed), 0);
-      } catch (e) {
-        console.error(e);
-      }
-      localStorage.removeItem("study_set_toast");
-    }
-  }, []);
 
   // Quản lý hiển thị đáp án
   const [revealedQuestions, setRevealedQuestions] = useState(new Set());
@@ -70,17 +56,9 @@ export default function TeacherStudySetDetailPage() {
     setDeleting(true);
     try {
       await axiosClient.delete(`/api/study-sets/${id}`);
-      localStorage.setItem(
-        "study_set_toast",
-        JSON.stringify({ message: `Deleted study set "${studySet.title}" successfully.`, type: "success" })
-      );
       router.push("/teacher/study-sets");
     } catch (err) {
       console.error("Failed to delete study set:", err);
-      setToast({
-        message: err.response?.data?.error || "Failed to delete study set. Please try again.",
-        type: "error"
-      });
       setShowDeleteModal(false);
     } finally {
       setDeleting(false);
@@ -113,12 +91,6 @@ export default function TeacherStudySetDetailPage() {
       }
 
       await axiosClient.patch(`/api/study-sets/${id}`, payload);
-      setToast({
-        message: isClearingClassOnly
-          ? `Visibility of study set "${studySet.title}" reverted to Private because no classes were selected.`
-          : `Assigned study set "${studySet.title}" successfully.`,
-        type: isClearingClassOnly ? "warning" : "success",
-      });
       setShowClassSelector(false);
 
       // Re-fetch details to update UI immediately
@@ -126,10 +98,6 @@ export default function TeacherStudySetDetailPage() {
       setStudySet(res.data?.data || null);
     } catch (err) {
       console.error("Failed to update assignments:", err);
-      setToast({
-        message: err.response?.data?.error || "Failed to update assignments. Please try again.",
-        type: "error",
-      });
     } finally {
       setSaving(false);
     }
@@ -177,7 +145,9 @@ export default function TeacherStudySetDetailPage() {
               <ArrowLeft className="size-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">{studySet.title}</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground truncate max-w-[300px] sm:max-w-[450px] md:max-w-[600px]" title={studySet.title}>
+                {studySet.title}
+              </h1>
               <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5">
                 <Calendar size={12} />
                 Created on {new Date(studySet.created_at).toLocaleDateString()}
@@ -315,84 +285,28 @@ export default function TeacherStudySetDetailPage() {
               const isRevealed = revealedQuestions.has(q.question_id);
 
               return (
-                <div
+                <QuestionPreviewCard
+                  index={index}
+                  isRevealed={isRevealed}
                   key={q.question_id}
-                  className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4 hover:shadow-md transition duration-200"
-                >
-                  {/* Card Header */}
-                  <div className="flex items-center justify-between border-b border-border pb-3">
-                    <span className="text-sm font-bold text-muted-foreground">
-                      Question #{index + 1}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={() => toggleRevealQuestion(q.question_id)}
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                        title={isRevealed ? "Hide Answer" : "Show Answer"}
-                      >
-                        {isRevealed ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Question Text */}
-                  <p className="text-base text-foreground font-medium leading-relaxed">
-                    {q.question_text}
-                  </p>
-
-                  {/* Options List */}
-                  <div className="grid gap-2.5 sm:grid-cols-2">
-                    {q.answer_options?.map((opt) => {
-                      const showSuccessBg = isRevealed && opt.is_correct;
-
-                      return (
-                        <div
-                          key={opt.answer_option_id}
-                          className={`flex items-center gap-3 p-3 rounded-xl border text-sm transition duration-150 ${showSuccessBg
-                              ? "border-emerald-500 bg-emerald-50/50 text-emerald-900 font-semibold"
-                              : "border-border bg-muted/10 text-foreground"
-                            }`}
-                        >
-                          <div
-                            className={`size-5 rounded-full border flex items-center justify-center shrink-0 text-xs ${showSuccessBg
-                                ? "border-emerald-500 bg-emerald-500 text-white"
-                                : "border-border text-muted-foreground bg-muted/40"
-                              }`}
-                          >
-                            {showSuccessBg ? <Check size={12} /> : null}
-                          </div>
-                          <span className="break-words w-full">{opt.option_text}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Explanation (Shown only when revealed and exists) */}
-                  {isRevealed && q.explanation && (
-                    <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 text-xs space-y-1">
-                      <h4 className="font-bold text-primary">Explanation</h4>
-                      <p className="text-muted-foreground leading-relaxed">{q.explanation}</p>
-                    </div>
-                  )}
-                </div>
+                  onToggleReveal={toggleRevealQuestion}
+                  question={q}
+                />
               );
             })
           )}
         </div>
       </div>
-      <ToastNotification
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast({ message: "", type: "success" })}
-      />
 
       {/* Delete confirmation modal */}
       <ConfirmModal
         isOpen={showDeleteModal}
         title="Delete Study Set"
-        message={`Are you sure you want to delete "${studySet?.title}"? This action is permanent and cannot be undone.`}
+        message={`Are you sure you want to delete "${
+          studySet?.title && studySet.title.length > 30
+            ? studySet.title.substring(0, 30) + "..."
+            : studySet?.title
+        }"? This action is permanent and cannot be undone.`}
         confirmLabel={deleting ? "Deleting..." : "Delete"}
         cancelLabel="Cancel"
         onConfirm={handleDelete}

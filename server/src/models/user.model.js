@@ -11,7 +11,6 @@ export const userColumns = {
   bio: "bio",
   accountStatus: "account_status",
   activeRole: "active_role",
-  isPremium: "is_premium",
   createdAt: "created_at",
   updatedAt: "updated_at",
   deletedAt: "deleted_at",
@@ -45,7 +44,6 @@ export function createUserModel(db) {
         bio: row[userColumns.bio],
         accountStatus: row[userColumns.accountStatus],
         activeRole: row[userColumns.activeRole],
-        isPremium: row[userColumns.isPremium],
         createdAt: row[userColumns.createdAt],
         updatedAt: row[userColumns.updatedAt],
       };

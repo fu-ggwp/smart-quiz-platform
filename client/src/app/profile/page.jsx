@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
-  Crown,
   KeyRound,
   Mail,
   Save,
@@ -293,11 +292,6 @@ export default function ProfilePage() {
                   aria-invalid={Boolean(fieldErrors.avatarUrl)}
                 />
               </label>
-
-              <span className="inline-flex items-center gap-1 rounded-lg border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-                <Crown className="size-3.5" />
-                {profile?.isPremium ? "Premium" : "Free"}
-              </span>
 
               {fieldErrors.avatarUrl ? (
                 <p className="text-center text-sm text-destructive">

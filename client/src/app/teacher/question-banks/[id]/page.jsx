@@ -3,14 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { AlertCircle, ArrowLeft, BookOpen, Check, ChevronDown, ChevronRight, Edit3, Eye, EyeOff, ListChecks } from "lucide-react";
+import { AlertCircle, ArrowLeft, BookOpen, ChevronDown, ChevronRight, Edit3, Eye, EyeOff } from "lucide-react";
 
+import { QuestionPreviewCard } from "@/components/questions/question-preview-card";
 import { Button } from "@/components/ui/button";
 import { questionBanksService } from "@/services/question-banks.service";
 
 import { formatBankStatus, formatDate, getStatusTone, QuestionBanksBadge } from "../_components/question-banks-badge";
 import { QuestionBanksStatePanel } from "../_components/question-banks-state-panel";
-import { groupQuestionsByChapter, sortQuestionOptions } from "../_lib/question-bank-editor";
+import { groupQuestionsByChapter } from "../_lib/question-bank-editor";
 
 function normalizeParamId(value) {
   return Array.isArray(value) ? value[0] : value;
@@ -204,7 +205,7 @@ export default function QuestionBankDetailPage() {
                   {isExpanded && (
                     <div className="space-y-4 p-4">
                       {group.questions.map(({ question, index }) => (
-                        <QuestionCard
+                        <QuestionPreviewCard
                           index={index}
                           isRevealed={showAllAnswers || revealedQuestions.has(question.question_id)}
                           key={question.question_id}
@@ -229,94 +230,6 @@ function MetadataItem({ label, value }) {
     <div className="rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
       <p className="text-xs font-bold uppercase text-muted-foreground">{label}</p>
       <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
-    </div>
-  );
-}
-
-function QuestionCard({ index, isRevealed, onToggleReveal, question }) {
-  const options = sortQuestionOptions(question.answer_options);
-
-  return (
-    <article className="grid gap-5 rounded-lg border border-border bg-card p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
-      <div className="min-w-0 space-y-4">
-        <div className="space-y-3">
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-bold text-muted-foreground">
-            <ListChecks className="size-3.5" />
-            Question #{index + 1}
-          </span>
-
-          <p className="break-words text-base font-semibold leading-7 text-foreground">{question.question_text}</p>
-        </div>
-
-        <div className="text-xs text-muted-foreground">
-          <p>Chapter: <span className="font-semibold text-foreground">{question.chapter || "None"}</span></p>
-        </div>
-      </div>
-
-      <div className="min-w-0 rounded-lg border border-border bg-background p-4">
-        <div className="flex flex-col gap-3 border-b border-border pb-3 sm:flex-row sm:items-center sm:justify-between">
-          <h3 className="text-sm font-bold text-foreground">Answer Options</h3>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              aria-label={isRevealed ? "Hide answer" : "Show answer"}
-              onClick={() => onToggleReveal(question.question_id)}
-              size="icon"
-              title={isRevealed ? "Hide answer" : "Show answer"}
-              type="button"
-              variant="ghost"
-            >
-              {isRevealed ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-            </Button>
-          </div>
-        </div>
-
-        {options.length === 0 ? (
-          <p className="mt-4 rounded-lg border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
-            No answer options
-          </p>
-        ) : (
-          <div className="mt-4 space-y-2 text-sm">
-            {options.map((option, optionIndex) => (
-              <AnswerOption isRevealed={isRevealed} key={option.answer_option_id} option={option} optionIndex={optionIndex} />
-            ))}
-          </div>
-        )}
-
-        {isRevealed && question.explanation ? (
-          <div className="mt-4 rounded-lg border border-primary/10 bg-primary/5 p-4">
-            <h3 className="text-xs font-bold uppercase text-primary">Explanation</h3>
-            <p className="mt-1 text-sm leading-6 text-foreground">{question.explanation}</p>
-          </div>
-        ) : null}
-      </div>
-    </article>
-  );
-}
-
-function AnswerOption({ isRevealed, option, optionIndex }) {
-  const isCorrectVisible = isRevealed && option.is_correct;
-
-  return (
-    <div
-      className={`flex items-start gap-3 rounded-lg border p-3 ${
-        isCorrectVisible
-          ? "border-emerald-500 bg-emerald-50 text-emerald-950"
-          : "border-border bg-background text-foreground"
-      }`}
-    >
-      <span
-        className={`flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${
-          isCorrectVisible
-            ? "border-emerald-500 bg-emerald-500 text-white"
-            : "border-border bg-muted text-muted-foreground"
-        }`}
-      >
-        {isCorrectVisible ? <Check className="size-3.5" /> : String.fromCharCode(65 + optionIndex)}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="break-words leading-6">{option.option_text}</p>
-        {isCorrectVisible ? <p className="mt-1 text-xs font-bold text-emerald-700">Correct answer</p> : null}
-      </div>
     </div>
   );
 }

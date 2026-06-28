@@ -4,11 +4,11 @@ import { RoleGuard } from "@/components/layout/role-guard";
 
 export default function TeacherLayout({ children }) {
   return (
-    <main className="flex min-h-screen flex-col bg-background text-foreground">
+    <main className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
       <Navbar />
-      <div className="flex-1 md:flex">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         <AppSidebar role="teacher" />
-        <section className="min-w-0 flex-1">
+        <section className="min-h-0 min-w-0 flex-1 overflow-y-auto">
           <RoleGuard allowedRole="teacher">{children}</RoleGuard>
         </section>
       </div>

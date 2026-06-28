@@ -5,6 +5,10 @@ function dbError(error, status = 400) {
   return Object.assign(new Error(error.message), { status });
 }
 
+function notFound(message = "User not found") {
+  return Object.assign(new Error(message), { status: 404 });
+}
+
 // Allowed filter values, mirroring the DB CHECK constraints.
 const ROLES = new Set(["learner", "teacher", "admin"]);
 const ACCOUNT_STATUSES = new Set(["active", "pending", "locked", "disabled"]);
@@ -21,8 +25,6 @@ export async function listForAdmin(query = {}) {
     keyword: query.q || query.keyword || "",
     role: ROLES.has(query.role) ? query.role : null,
     accountStatus: ACCOUNT_STATUSES.has(query.status) ? query.status : null,
-    isPremium:
-      query.premium === "premium" ? true : query.premium === "free" ? false : undefined,
     sortBy: query.sortBy === "name" ? "name" : "latest",
   };
 
@@ -52,4 +54,39 @@ export async function listPublic(query = {}) {
     page,
     limit,
   });
+}
+
+export async function getPublicProfile(username) {
+  const normalizedUsername = String(username || "").trim();
+
+  if (!normalizedUsername) {
+    throw notFound();
+  }
+
+  const { data: user, error: userError } =
+    await dao.findPublicUserByUsername(normalizedUsername);
+  if (userError) {
+    throw dbError(userError, 500);
+  }
+  if (!user) {
+    throw notFound();
+  }
+
+  const { data: studySets, error: studySetError } =
+    await dao.findPublicStudySetsByTeacher(user.user_id);
+  if (studySetError) {
+    throw dbError(studySetError, 500);
+  }
+
+  return {
+    user: {
+      username: user.username,
+      full_name: user.full_name,
+      avatar_url: user.avatar_url,
+      bio: user.bio,
+      active_role: user.active_role,
+      created_at: user.created_at,
+    },
+    studySets: studySets || [],
+  };
 }

@@ -10,5 +10,6 @@ router.get("/", requireAuth, requireRole("admin"), usersController.listAll);
 
 // Public: guest people search (UC-03) — safe public fields only
 router.get("/public", usersController.listPublic);
+router.get("/public/:username", usersController.getPublicProfile);
 
 export default router;

@@ -39,7 +39,7 @@ export function StudySetHeader({ studySet, onBack, backLabel = "Back", hasAssign
               </span>
             )}
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl truncate max-w-[300px] sm:max-w-[450px] md:max-w-[600px]" title={studySet.title}>
             {studySet.title}
           </h1>
           <p className="text-muted-foreground text-sm leading-relaxed max-w-2xl">
@@ -52,9 +52,9 @@ export function StudySetHeader({ studySet, onBack, backLabel = "Back", hasAssign
           <div className="size-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center font-bold">
             <User size={18} />
           </div>
-          <div className="text-xs">
+          <div className="text-xs max-w-[120px] md:max-w-[180px]">
             <p className="text-muted-foreground">Created by</p>
-            <p className="font-bold text-foreground">{creatorName}</p>
+            <p className="font-bold text-foreground truncate" title={creatorName}>{creatorName}</p>
             <p className="text-[10px] text-muted-foreground">{formattedDate}</p>
           </div>
         </div>

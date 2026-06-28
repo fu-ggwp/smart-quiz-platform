@@ -10,11 +10,11 @@ const publicRoutes = [
   "/plans",
   "/search",
   "/study-sets",
+  "/users",
 ];
 const protectedRoutes = [
   "/profile",
   "/upgrade",
-  "/users",
 ];
 const workspaceRoutes = ["/admin", "/teacher", "/learner"];
 

@@ -9,6 +9,8 @@ Important:
 - Table order and constraints may not be valid for direct execution.
 - Use this file to understand entities, relationships, enum-like checks, and
   expected database fields before changing backend, frontend, or Supabase code.
+- The old premium flag on `users` has intentionally been removed from this
+  context; premium access should be derived from subscription records instead.
 
 ## Domain Overview
 
@@ -22,7 +24,9 @@ Important:
 - `study_set_assignments`, `practice_attempts`, `exam_sessions`,
   `exam_questions`, `exam_attempts`, and `attempt_answers` model learning,
   assigned practice, exams, warning counts, and submitted answers.
-- `premium_plans` and `payments` model premium subscriptions.
+- `premium_plans`, `premium_features`, `premium_plan_features`, `payments`,
+  and `user_subscriptions` model premium plans, purchases, feature mapping,
+  and active subscription periods.
 - `ai_interactions` stores AI usage metadata for explanations and question
   generation.
 
@@ -42,10 +46,10 @@ CREATE TABLE public.users (
   bio text,
   account_status character varying NOT NULL DEFAULT 'active'::character varying CHECK (account_status::text = ANY (ARRAY['active'::character varying, 'pending'::character varying, 'locked'::character varying, 'disabled'::character varying]::text[])),
   active_role character varying NOT NULL DEFAULT 'learner'::character varying CHECK (active_role::text = ANY (ARRAY['learner'::character varying, 'teacher'::character varying, 'admin'::character varying]::text[])),
-  is_premium boolean NOT NULL DEFAULT false,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   deleted_at timestamp with time zone,
+  premium_updated_at timestamp with time zone,
   CONSTRAINT users_pkey PRIMARY KEY (user_id),
   CONSTRAINT users_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
@@ -109,10 +113,10 @@ CREATE TABLE public.question_banks (
   title character varying NOT NULL,
   description text,
   topic character varying,
-  status character varying NOT NULL DEFAULT 'Draft'::character varying CHECK (status::text = ANY (ARRAY['Draft'::character varying, 'Ready'::character varying, 'Deleted'::character varying]::text[])),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   deleted_at timestamp with time zone,
+  status character varying CHECK (status::text = ANY (ARRAY['Draft'::character varying::text, 'Ready'::character varying::text, 'Deleted'::character varying::text])),
   CONSTRAINT question_banks_pkey PRIMARY KEY (question_bank_id),
   CONSTRAINT question_banks_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES public.users(user_id)
 );
@@ -128,13 +132,11 @@ CREATE TABLE public.study_sets (
   is_admin_hidden boolean NOT NULL DEFAULT false,
   creation_method character varying NOT NULL DEFAULT 'manual'::character varying CHECK (creation_method::text = ANY (ARRAY['manual'::character varying, 'import'::character varying, 'ai_generated'::character varying, 'from_question_bank'::character varying]::text[])),
   target_accuracy numeric CHECK (target_accuracy IS NULL OR target_accuracy >= 0::numeric AND target_accuracy <= 100::numeric),
-  practice_mode character varying NOT NULL DEFAULT 'flashcard_and_quiz'::character varying CHECK (practice_mode::text = ANY (ARRAY['flashcard'::character varying, 'quiz'::character varying, 'flashcard_and_quiz'::character varying]::text[])),
   estimated_study_minutes integer CHECK (estimated_study_minutes IS NULL OR estimated_study_minutes > 0),
   card_order character varying NOT NULL DEFAULT 'default'::character varying CHECK (card_order::text = ANY (ARRAY['default'::character varying, 'random'::character varying, 'difficulty_asc'::character varying, 'difficulty_desc'::character varying]::text[])),
   tags ARRAY NOT NULL DEFAULT '{}'::text[],
   include_explanations boolean NOT NULL DEFAULT true,
   allow_copy_by_other_teachers boolean NOT NULL DEFAULT false,
-  track_learner_progress boolean NOT NULL DEFAULT true,
   question_count integer NOT NULL DEFAULT 0 CHECK (question_count >= 0),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
@@ -209,7 +211,7 @@ CREATE TABLE public.exam_sessions (
   question_bank_id uuid NOT NULL,
   title character varying NOT NULL,
   description text,
-  status character varying NOT NULL DEFAULT 'draft'::character varying CHECK (status::text = ANY (ARRAY['draft'::character varying, 'active'::character varying, 'closed'::character varying, 'archived'::character varying]::text[])),
+  status character varying DEFAULT 'draft'::character varying CHECK (status::text = ANY (ARRAY['draft'::character varying::text, 'active'::character varying::text, 'closed'::character varying::text, 'archived'::character varying::text])),
   start_at timestamp with time zone,
   end_at timestamp with time zone,
   duration_minutes integer NOT NULL CHECK (duration_minutes > 0),
@@ -217,7 +219,7 @@ CREATE TABLE public.exam_sessions (
   question_count integer NOT NULL CHECK (question_count > 0),
   randomize_questions boolean NOT NULL DEFAULT true,
   randomize_answers boolean NOT NULL DEFAULT true,
-  result_visibility character varying NOT NULL DEFAULT 'score_only'::character varying CHECK (result_visibility::text = ANY (ARRAY['completion_only'::character varying, 'score_only'::character varying, 'question_answer'::character varying]::text[])),
+  result_visibility character varying NOT NULL DEFAULT 'score_only'::character varying CHECK (result_visibility::text = ANY (ARRAY['completion_only'::character varying::text, 'score_only'::character varying::text, 'question_answer'::character varying::text])),
   access_code character varying UNIQUE,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
@@ -235,9 +237,11 @@ CREATE TABLE public.exam_questions (
   question_type character varying NOT NULL CHECK (question_type::text = ANY (ARRAY['multiple_choice'::character varying, 'true_false'::character varying]::text[])),
   score numeric NOT NULL DEFAULT 1 CHECK (score >= 0::numeric),
   explanation text,
+  subject character varying,
+  topic character varying,
   chapter character varying,
   answer_options_json jsonb NOT NULL,
-  correct_option_indexes integer[] NOT NULL CHECK (array_length(correct_option_indexes, 1) >= 1),
+  correct_option_indexes ARRAY NOT NULL CHECK (array_length(correct_option_indexes, 1) >= 1),
   display_order integer NOT NULL CHECK (display_order > 0),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT exam_questions_pkey PRIMARY KEY (exam_question_id),
@@ -250,16 +254,16 @@ CREATE TABLE public.exam_attempts (
   learner_id uuid NOT NULL,
   attempt_number integer NOT NULL CHECK (attempt_number > 0),
   started_at timestamp with time zone NOT NULL DEFAULT now(),
-  expires_at timestamp with time zone NOT NULL,
   submitted_at timestamp with time zone,
-  status character varying NOT NULL DEFAULT 'in_progress'::character varying CHECK (status::text = ANY (ARRAY['in_progress'::character varying, 'submitted'::character varying]::text[])),
+  status character varying NOT NULL DEFAULT 'in_progress'::character varying CHECK (status::text = ANY (ARRAY['in_progress'::character varying::text, 'submitted'::character varying::text, 'auto_submitted'::character varying::text])),
   is_auto_submitted boolean NOT NULL DEFAULT false,
-  question_order uuid[] NOT NULL DEFAULT '{}'::uuid[],
-  answer_order jsonb NOT NULL DEFAULT '{}'::jsonb,
-  warning_count integer NOT NULL DEFAULT 0 CHECK (warning_count >= 0),
   total_score numeric NOT NULL DEFAULT 0,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  expires_at timestamp with time zone NOT NULL,
+  question_order ARRAY NOT NULL DEFAULT '{}'::uuid[],
+  answer_order jsonb NOT NULL DEFAULT '{}'::jsonb,
+  warning_count integer NOT NULL DEFAULT 0 CHECK (warning_count >= 0),
   CONSTRAINT exam_attempts_pkey PRIMARY KEY (exam_attempt_id),
   CONSTRAINT exam_attempts_exam_session_id_fkey FOREIGN KEY (exam_session_id) REFERENCES public.exam_sessions(exam_session_id),
   CONSTRAINT exam_attempts_learner_id_fkey FOREIGN KEY (learner_id) REFERENCES public.users(user_id)
@@ -270,16 +274,13 @@ CREATE TABLE public.attempt_answers (
   exam_attempt_id uuid,
   question_id uuid,
   exam_question_id uuid,
-  selected_answer_option_ids uuid[] NOT NULL DEFAULT '{}'::uuid[],
-  selected_exam_option_indexes integer[] NOT NULL DEFAULT '{}'::integer[],
+  selected_answer_option_ids ARRAY NOT NULL DEFAULT '{}'::uuid[],
+  selected_exam_option_indexes ARRAY NOT NULL DEFAULT '{}'::integer[],
   is_correct boolean,
   score_awarded numeric NOT NULL DEFAULT 0 CHECK (score_awarded >= 0::numeric),
   review_status character varying NOT NULL DEFAULT 'unreviewed'::character varying CHECK (review_status::text = ANY (ARRAY['unreviewed'::character varying, 'reviewed'::character varying, 'marked_for_retry'::character varying, 'mastered'::character varying]::text[])),
   answered_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT attempt_answers_pkey PRIMARY KEY (attempt_answer_id),
-  CONSTRAINT attempt_answers_exam_attempt_question_unique UNIQUE (exam_attempt_id, exam_question_id),
-  CONSTRAINT attempt_answers_practice_attempt_question_unique UNIQUE (practice_attempt_id, question_id),
-  CONSTRAINT attempt_answers_one_context_check CHECK (((exam_attempt_id IS NOT NULL AND exam_question_id IS NOT NULL AND practice_attempt_id IS NULL AND question_id IS NULL) OR (practice_attempt_id IS NOT NULL AND question_id IS NOT NULL AND exam_attempt_id IS NULL AND exam_question_id IS NULL))),
   CONSTRAINT attempt_answers_practice_attempt_id_fkey FOREIGN KEY (practice_attempt_id) REFERENCES public.practice_attempts(practice_attempt_id),
   CONSTRAINT attempt_answers_exam_attempt_id_fkey FOREIGN KEY (exam_attempt_id) REFERENCES public.exam_attempts(exam_attempt_id),
   CONSTRAINT attempt_answers_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.questions(question_id),
@@ -289,7 +290,6 @@ CREATE TABLE public.premium_plans (
   premium_plan_id uuid NOT NULL DEFAULT gen_random_uuid(),
   plan_name character varying NOT NULL,
   plan_code character varying NOT NULL UNIQUE,
-  plan_type character varying NOT NULL CHECK (plan_type::text = ANY (ARRAY['learner_premium'::character varying, 'teacher_premium'::character varying, 'class_team_pack'::character varying]::text[])),
   price_vnd integer NOT NULL CHECK (price_vnd >= 0),
   billing_period character varying NOT NULL DEFAULT 'monthly'::character varying CHECK (billing_period::text = 'monthly'::text),
   duration_days integer NOT NULL DEFAULT 30 CHECK (duration_days > 0),
@@ -299,6 +299,7 @@ CREATE TABLE public.premium_plans (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   deleted_at timestamp with time zone,
+  display_name character varying,
   CONSTRAINT premium_plans_pkey PRIMARY KEY (premium_plan_id)
 );
 CREATE TABLE public.payments (
@@ -308,13 +309,14 @@ CREATE TABLE public.payments (
   amount_vnd integer NOT NULL CHECK (amount_vnd >= 0),
   currency character NOT NULL DEFAULT 'VND'::bpchar,
   payment_status character varying NOT NULL DEFAULT 'pending'::character varying CHECK (payment_status::text = ANY (ARRAY['pending'::character varying, 'successful'::character varying, 'failed'::character varying, 'cancelled'::character varying]::text[])),
-  subscription_status character varying NOT NULL DEFAULT 'inactive'::character varying CHECK (subscription_status::text = ANY (ARRAY['inactive'::character varying, 'active'::character varying, 'expired'::character varying, 'cancelled'::character varying]::text[])),
   gateway_transaction_id character varying UNIQUE,
   gateway_payload jsonb NOT NULL DEFAULT '{}'::jsonb,
-  premium_start_at timestamp with time zone,
-  premium_end_at timestamp with time zone,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  payment_method character varying,
+  gateway_name character varying,
+  paid_at timestamp with time zone,
+  failure_reason text,
   CONSTRAINT payments_pkey PRIMARY KEY (payment_id),
   CONSTRAINT payments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id),
   CONSTRAINT payments_premium_plan_id_fkey FOREIGN KEY (premium_plan_id) REFERENCES public.premium_plans(premium_plan_id)
@@ -332,5 +334,36 @@ CREATE TABLE public.ai_interactions (
   CONSTRAINT ai_interactions_pkey PRIMARY KEY (ai_interaction_id),
   CONSTRAINT ai_interactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id),
   CONSTRAINT ai_interactions_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.questions(question_id)
+);
+CREATE TABLE public.premium_features (
+  feature_code character varying NOT NULL,
+  feature_name character varying NOT NULL,
+  description text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT premium_features_pkey PRIMARY KEY (feature_code)
+);
+CREATE TABLE public.premium_plan_features (
+  premium_plan_id uuid NOT NULL,
+  feature_code character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT premium_plan_features_pkey PRIMARY KEY (premium_plan_id, feature_code),
+  CONSTRAINT premium_plan_features_premium_plan_id_fkey FOREIGN KEY (premium_plan_id) REFERENCES public.premium_plans(premium_plan_id),
+  CONSTRAINT premium_plan_features_feature_code_fkey FOREIGN KEY (feature_code) REFERENCES public.premium_features(feature_code)
+);
+CREATE TABLE public.user_subscriptions (
+  subscription_id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  premium_plan_id uuid NOT NULL,
+  payment_id uuid,
+  status character varying NOT NULL DEFAULT 'active'::character varying,
+  start_at timestamp with time zone NOT NULL,
+  end_at timestamp with time zone NOT NULL,
+  cancelled_at timestamp with time zone,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT user_subscriptions_pkey PRIMARY KEY (subscription_id),
+  CONSTRAINT user_subscriptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id),
+  CONSTRAINT user_subscriptions_premium_plan_id_fkey FOREIGN KEY (premium_plan_id) REFERENCES public.premium_plans(premium_plan_id),
+  CONSTRAINT user_subscriptions_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES public.payments(payment_id)
 );
 ```

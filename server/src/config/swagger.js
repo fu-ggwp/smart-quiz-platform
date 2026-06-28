@@ -50,9 +50,9 @@ const swaggerOptions = {
   definition: {
     openapi: "3.0.3",
     info: {
-      title: "Smart Quiz Platform API",
+      title: "CardIO API",
       version: "1.0.0",
-      description: "OpenAPI documentation for the Smart Quiz Platform backend.",
+      description: "OpenAPI documentation for the CardIO backend.",
     },
     servers: [
       {
@@ -176,10 +176,6 @@ const swaggerOptions = {
               type: "string",
               enum: ["learner", "teacher", "admin"],
               example: "learner",
-            },
-            isPremium: {
-              type: "boolean",
-              example: false,
             },
             createdAt: {
               type: "string",

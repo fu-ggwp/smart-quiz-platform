@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   BarChart3,
   BookOpen,
@@ -15,6 +16,10 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import {
+  getSavedSidebarCollapsed,
+  subscribeToSidebarCollapsed,
+} from "@/components/layout/sidebar-state";
 
 const roleConfig = {
   admin: {
@@ -59,7 +64,7 @@ const roleConfig = {
   },
 };
 
-function SidebarLink({ item, pathname }) {
+function SidebarLink({ isCollapsed, item, pathname }) {
   const Icon = item.icon;
   const isActive = item.exact
     ? pathname === item.href
@@ -68,45 +73,48 @@ function SidebarLink({ item, pathname }) {
   return (
     <Link
       href={item.href}
+      title={isCollapsed ? item.label : undefined}
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+        isCollapsed && "md:justify-center md:px-2",
         isActive
           ? "bg-primary text-primary-foreground"
           : "text-foreground hover:bg-muted hover:text-foreground",
       )}
     >
       <Icon className="size-4" />
-      <span>{item.label}</span>
+      <span className={cn(isCollapsed && "md:sr-only")}>{item.label}</span>
     </Link>
   );
 }
 
 export function AppSidebar({ role }) {
   const pathname = usePathname();
-  const config = roleConfig[role] ?? roleConfig.learner;
-  const RoleIcon = config.icon;
+  const [isCollapsed, setIsCollapsed] = useState(getSavedSidebarCollapsed);
+  const config = roleConfig[role];
+
+  useEffect(() => {
+    return subscribeToSidebarCollapsed(setIsCollapsed);
+  }, []);
+
+  if (!config) return null;
 
   return (
-    <aside className="w-full shrink-0 border-b border-border bg-background text-foreground md:h-full md:w-72 md:overflow-y-auto md:border-b-0 md:border-r">
+    <aside
+      className={cn(
+        "w-full shrink-0 border-b border-border bg-background text-foreground transition-[width] duration-200 md:h-full md:overflow-y-auto md:border-b-0 md:border-r",
+        isCollapsed ? "md:w-20" : "md:w-72",
+      )}
+    >
       <div className="flex h-full flex-col gap-5 p-4">
-        <Link
-          href={config.homeHref}
-          className="flex items-center gap-3 rounded-xl bg-muted p-3 text-foreground"
-        >
-          <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <RoleIcon className="size-5" />
-          </span>
-          <span className="min-w-0">
-            <span className="block text-sm font-bold">Smart Quiz</span>
-            <span className="block truncate text-xs text-muted-foreground">
-              {config.label}
-            </span>
-          </span>
-        </Link>
-
         <nav className="grid gap-1">
           {config.nav.map((item) => (
-            <SidebarLink item={item} key={item.href} pathname={pathname} />
+            <SidebarLink
+              isCollapsed={isCollapsed}
+              item={item}
+              key={item.href}
+              pathname={pathname}
+            />
           ))}
         </nav>
 
