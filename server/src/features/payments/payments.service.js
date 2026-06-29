@@ -30,26 +30,10 @@ async function resolveOptionalUser(req) {
   return data.user;
 }
 
-function groupFeaturesByPlan(links = [], features = []) {
-  const featureByCode = new Map(
-    features.map((feature) => [feature.feature_code, feature]),
-  );
-  const grouped = new Map();
-
-  links.forEach((link) => {
-    const feature = featureByCode.get(link.feature_code);
-    if (!feature) return;
-
-    const current = grouped.get(link.premium_plan_id) || [];
-    current.push({
-      feature_code: feature.feature_code,
-      feature_name: feature.feature_name,
-      description: feature.description,
-    });
-    grouped.set(link.premium_plan_id, current);
-  });
-
-  return grouped;
+function normalizeFeatures(features) {
+  if (Array.isArray(features)) return features;
+  if (Array.isArray(features?.items)) return features.items;
+  return [];
 }
 
 function formatSubscription(subscription, plan) {
@@ -68,16 +52,6 @@ export async function listPlans(req) {
   const { data: plans, error: plansError } = await dao.findActivePremiumPlans();
   if (plansError) throw dbError(plansError);
 
-  const planIds = (plans || []).map((plan) => plan.premium_plan_id);
-  const { data: links, error: linksError } = await dao.findPlanFeatureLinks(planIds);
-  if (linksError) throw dbError(linksError);
-
-  const featureCodes = [...new Set((links || []).map((link) => link.feature_code))];
-  const { data: features, error: featuresError } =
-    await dao.findPremiumFeatures(featureCodes);
-  if (featuresError) throw dbError(featuresError);
-
-  const featuresByPlan = groupFeaturesByPlan(links || [], features || []);
   const currentUser = await resolveOptionalUser(req);
   let currentSubscription = null;
 
@@ -97,7 +71,7 @@ export async function listPlans(req) {
   return {
     plans: (plans || []).map((plan) => ({
       ...plan,
-      features: featuresByPlan.get(plan.premium_plan_id) || [],
+      features: normalizeFeatures(plan.features),
     })),
     currentSubscription,
   };

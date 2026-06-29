@@ -1,14 +1,10 @@
 import { supabase as db } from "../../config/supabase.js";
 import { PAYMENT_TABLE } from "../../models/payment.model.js";
 import { PREMIUM_PLAN_TABLE } from "../../models/premium-plan.model.js";
-import {
-  PREMIUM_FEATURE_TABLE,
-  PREMIUM_PLAN_FEATURE_TABLE,
-} from "../../models/premium-feature.model.js";
 import { USER_SUBSCRIPTION_TABLE } from "../../models/user-subscription.model.js";
 
 const PLAN_COLUMNS =
-  "premium_plan_id, plan_name, display_name, plan_code, price_vnd, billing_period, duration_days, description";
+  "premium_plan_id, plan_name, display_name, plan_code, price_vnd, billing_period, duration_days, description, features";
 
 export function findActivePremiumPlans() {
   return db
@@ -17,28 +13,6 @@ export function findActivePremiumPlans() {
     .eq("is_active", true)
     .is("deleted_at", null)
     .order("price_vnd", { ascending: true });
-}
-
-export function findPlanFeatureLinks(planIds) {
-  if (!planIds.length) {
-    return Promise.resolve({ data: [], error: null });
-  }
-
-  return db
-    .from(PREMIUM_PLAN_FEATURE_TABLE)
-    .select("premium_plan_id, feature_code")
-    .in("premium_plan_id", planIds);
-}
-
-export function findPremiumFeatures(featureCodes) {
-  if (!featureCodes.length) {
-    return Promise.resolve({ data: [], error: null });
-  }
-
-  return db
-    .from(PREMIUM_FEATURE_TABLE)
-    .select("feature_code, feature_name, description")
-    .in("feature_code", featureCodes);
 }
 
 export function findActiveSubscriptionForUser(userId) {
@@ -68,7 +42,7 @@ export function findActivePremiumPlanById(planId) {
   return db
     .from(PREMIUM_PLAN_TABLE)
     .select(
-      "premium_plan_id, plan_name, display_name, plan_code, price_vnd, duration_days, billing_period, description",
+      "premium_plan_id, plan_name, display_name, plan_code, price_vnd, duration_days, billing_period, description, features",
     )
     .eq("premium_plan_id", planId)
     .eq("is_active", true)

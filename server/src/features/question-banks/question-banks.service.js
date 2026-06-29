@@ -1,5 +1,6 @@
 import { supabase } from "../../config/supabase.js";
 import { createUserModel } from "../../models/user.model.js";
+import { requirePremiumFeature } from "../../utils/premium-access.js";
 import * as aiService from "../ai/ai.service.js";
 import * as questionBanksDao from "./question-banks.dao.js";
 
@@ -7,6 +8,7 @@ const db = supabase;
 const userModel = createUserModel(db);
 
 const allowedStatus = new Set(["Draft", "Ready"]);
+const materialQuestionGenerationFeature = "ai_generate_from_material";
 const premiumRequiredMessage = "This feature is available for Premium accounts only. Please upgrade to continue.";
 
 function serviceError(message, statusCode = 400, fields) {
@@ -46,12 +48,6 @@ async function requireActiveTeacher(userId) {
   }
 
   return profile;
-}
-
-function requireActiveSubscription(subscription) {
-  if (!subscription?.subscription_id) {
-    throw serviceError(premiumRequiredMessage, 403);
-  }
 }
 
 function normalizeText(value) {
@@ -197,15 +193,7 @@ function handleLoadError(error) {
 
 export async function generateQuestionsFromMaterial(userId, { file, questionCount, focus }) {
   await requireActiveTeacher(userId);
-
-  const { data: subscription, error: subscriptionError } =
-    await questionBanksDao.findActiveSubscriptionForUser(userId);
-
-  if (subscriptionError) {
-    throw serviceError(subscriptionError.message || "Failed to load subscription status.", 500);
-  }
-
-  requireActiveSubscription(subscription);
+  await requirePremiumFeature(userId, materialQuestionGenerationFeature, premiumRequiredMessage);
 
   return aiService.generateQuestionsFromMaterial({ file, questionCount, focus });
 }

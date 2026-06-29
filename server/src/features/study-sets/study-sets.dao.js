@@ -334,16 +334,3 @@ export function adminSetHidden(studySetId, hidden) {
     .select(ADMIN_MODERATION_SELECT)
     .single();
 }
-export function getActiveSubscriptionForUser(userId) {
-  const now = new Date().toISOString();
-
-  return db
-    .from("user_subscriptions")
-    .select("subscription_id")
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .lte("start_at", now)
-    .gte("end_at", now)
-    .limit(1)
-    .maybeSingle();
-}

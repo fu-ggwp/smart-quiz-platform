@@ -10,7 +10,7 @@ export const PREMIUM_PLAN_TABLE = "premium_plans";
  * @property {string} billing_period  - currently always "monthly"
  * @property {number} duration_days   - default 30
  * @property {string} [description]
- * @property {Object} features        - jsonb
+ * @property {Array<Object>} features - jsonb array of feature objects
  * @property {boolean} is_active
  * @property {string} [display_name]
  * @property {string} created_at

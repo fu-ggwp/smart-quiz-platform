@@ -2,7 +2,9 @@ import * as dao from "./study-sets.dao.js";
 import { buildPaginatedResponse, getPagination } from "../../utils/pagination.js";
 import { notifyStudySetAssigned } from "../../utils/notification.service.js";
 import { logger } from "../../utils/logger.js";
+import { requirePremiumFeature } from "../../utils/premium-access.js";
 
+const aiStudySetQaFeature = "ai_study_set_qa";
 const premiumRequiredMessage = "AI explanations are available for Premium accounts only. Please upgrade to continue.";
 
 function shouldNotify(payload = {}) {
@@ -54,14 +56,7 @@ function notFound(message = "Study set not found") {
 }
 
 async function requirePremiumLearner(userId) {
-  const { data, error } = await dao.getActiveSubscriptionForUser(userId);
-  if (error) {
-    throw dbError(error, 500);
-  }
-
-  if (!data?.subscription_id) {
-    throw serviceError(premiumRequiredMessage, 403);
-  }
+  await requirePremiumFeature(userId, aiStudySetQaFeature, premiumRequiredMessage);
 }
 
 function buildQuery(teacherId, filters, assignedIds) {

@@ -14,9 +14,8 @@ Important:
 
 ## Domain Overview
 
-- `users` is the application profile table linked to `auth.users`.
-- `user_roles` stores all roles assigned to a user, while `users.active_role`
-  stores the currently selected role.
+- `users` is the application profile table linked to `auth.users`; `active_role`
+  stores the user's current role.
 - `classes`, `class_members`, and `class_join_requests` model teacher classes
   and learner enrollment.
 - `question_banks`, `study_sets`, `questions`, and `answer_options` model
@@ -24,9 +23,8 @@ Important:
 - `study_set_assignments`, `practice_attempts`, `exam_sessions`,
   `exam_questions`, `exam_attempts`, and `attempt_answers` model learning,
   assigned practice, exams, warning counts, and submitted answers.
-- `premium_plans`, `premium_features`, `premium_plan_features`, `payments`,
-  and `user_subscriptions` model premium plans, purchases, feature mapping,
-  and active subscription periods.
+- `premium_plans`, `payments`, and `user_subscriptions` model premium plans,
+  purchases, plan feature JSON, and active subscription periods.
 - `ai_interactions` stores AI usage metadata for explanations and question
   generation.
 
@@ -52,13 +50,6 @@ CREATE TABLE public.users (
   premium_updated_at timestamp with time zone,
   CONSTRAINT users_pkey PRIMARY KEY (user_id),
   CONSTRAINT users_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
-);
-CREATE TABLE public.user_roles (
-  user_id uuid NOT NULL,
-  role character varying NOT NULL CHECK (role::text = ANY (ARRAY['learner'::character varying, 'teacher'::character varying, 'admin'::character varying]::text[])),
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT user_roles_pkey PRIMARY KEY (user_id, role),
-  CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id)
 );
 CREATE TABLE public.classes (
   class_id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -294,7 +285,7 @@ CREATE TABLE public.premium_plans (
   billing_period character varying NOT NULL DEFAULT 'monthly'::character varying CHECK (billing_period::text = 'monthly'::text),
   duration_days integer NOT NULL DEFAULT 30 CHECK (duration_days > 0),
   description text,
-  features jsonb NOT NULL DEFAULT '{}'::jsonb,
+  features jsonb NOT NULL DEFAULT '[]'::jsonb,
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
@@ -334,21 +325,6 @@ CREATE TABLE public.ai_interactions (
   CONSTRAINT ai_interactions_pkey PRIMARY KEY (ai_interaction_id),
   CONSTRAINT ai_interactions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id),
   CONSTRAINT ai_interactions_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.questions(question_id)
-);
-CREATE TABLE public.premium_features (
-  feature_code character varying NOT NULL,
-  feature_name character varying NOT NULL,
-  description text,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT premium_features_pkey PRIMARY KEY (feature_code)
-);
-CREATE TABLE public.premium_plan_features (
-  premium_plan_id uuid NOT NULL,
-  feature_code character varying NOT NULL,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT premium_plan_features_pkey PRIMARY KEY (premium_plan_id, feature_code),
-  CONSTRAINT premium_plan_features_premium_plan_id_fkey FOREIGN KEY (premium_plan_id) REFERENCES public.premium_plans(premium_plan_id),
-  CONSTRAINT premium_plan_features_feature_code_fkey FOREIGN KEY (feature_code) REFERENCES public.premium_features(feature_code)
 );
 CREATE TABLE public.user_subscriptions (
   subscription_id uuid NOT NULL DEFAULT gen_random_uuid(),
