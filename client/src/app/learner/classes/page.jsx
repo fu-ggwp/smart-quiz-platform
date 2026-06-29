@@ -69,30 +69,34 @@ export default function LearnerClassesPage() {
         {!loading && !error && classes.length > 0 && (
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {classes.map((cls) => (
-              <li key={cls.class_id}>
+              <li key={cls.class_id} className="min-w-0">
                 <Link
                   href={`/learner/classes/${cls.class_id}`}
                   className="block rounded-xl border border-neutral-200 p-5 hover:border-neutral-400 transition"
                 >
-                  <h2 className="mb-1 text-lg font-semibold leading-tight">
+                  <h2 className="mb-1 truncate text-lg font-semibold leading-tight">
                     {cls.class_name}
                   </h2>
 
                   {cls.teacher && (
-                    <p className="text-sm text-neutral-400">
+                    <p className="truncate text-sm text-neutral-400">
                       {cls.teacher.full_name || cls.teacher.username}
                     </p>
                   )}
 
-                  {cls.grade_level && (
-                    <p className="mt-1 text-sm text-neutral-500">{cls.grade_level}</p>
+                  {cls.description && (
+                    <p className="mt-1 truncate text-sm text-neutral-500">{cls.description}</p>
                   )}
 
-                  <div className="mt-3 flex items-center justify-between">
-                    <p className="text-sm text-neutral-400">
+                  {cls.grade_level && (
+                    <p className="mt-1 truncate text-sm text-neutral-500">{cls.grade_level}</p>
+                  )}
+
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <p className="truncate text-sm text-neutral-400">
                       {cls.member_count ?? 0} / {cls.learner_capacity ?? "—"} members
                     </p>
-                    <p className="font-mono text-xs text-neutral-300">
+                    <p className="shrink-0 font-mono text-xs text-neutral-300">
                       {cls.class_code}
                     </p>
                   </div>
