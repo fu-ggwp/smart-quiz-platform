@@ -141,7 +141,13 @@ export default function TeacherClassesPage() {
           <>
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {paginated.map((cls) => (
-                <li key={cls.class_id}>
+                <li key={cls.class_id} className="relative">
+                  <Link
+                    href={`/teacher/classes/${cls.class_id}/edit`}
+                    className="absolute right-3 top-3 z-10 rounded-md border border-neutral-200 bg-white px-2.5 py-1 text-xs font-medium text-neutral-600 hover:border-neutral-400"
+                  >
+                    Edit
+                  </Link>
                   <Link
                     href={`/teacher/classes/${cls.class_id}`}
                     className="block rounded-xl border border-neutral-200 p-5 hover:border-neutral-400 transition"

@@ -9,6 +9,7 @@ import {
   listJoinedClasses as listJoinedClassesService,
   removeMember as removeMemberService,
   getLearnerClassDetail as getLearnerClassDetailService,
+  updateClass as updateClassService,
 } from "./classes.service.js";
 import { JoinRequestStatus } from "../../models/join-request.model.js";
 
@@ -100,6 +101,19 @@ export async function getClassDetail(req, res) {
   try {
     const cls = await getClassDetailService(req.params.id, req.user.id);
     res.json({ ok: true, data: cls });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+}
+
+/**
+ * PATCH /api/classes/:id
+ * Update class information (UC-31 / §2.3.5). Teacher-only, owner-gated.
+ */
+export async function updateClass(req, res) {
+  try {
+    const updated = await updateClassService(req.params.id, req.user.id, req.body);
+    res.json({ ok: true, data: updated });
   } catch (err) {
     res.status(err.status || 500).json({ ok: false, error: err.message });
   }

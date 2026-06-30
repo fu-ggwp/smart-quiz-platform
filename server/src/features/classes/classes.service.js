@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 import {
   getClassesByTeacher,
   insertClass,
+  updateClassById,
   findClassByCode,
   getClassById,
   getClassMembers,
@@ -144,6 +145,67 @@ export async function getClassDetail(classId, teacherId) {
     err.status = 403;
     throw err;
   }
+  return data;
+}
+
+/**
+ * Update class information (UC-31 / §2.3.5). Ownership-gated; only metadata
+ * columns are editable. `class_code` / `invitation_token` are intentionally
+ * never touched so existing membership and join links keep working.
+ */
+const VALID_JOIN_POLICIES = new Set(["auto_approve", "teacher_approval"]);
+const VALID_CLASS_STATUSES = new Set(["active", "inactive", "closed", "archived"]);
+
+function invalidInput() {
+  const err = new Error("The information is invalid. Please check and try again.");
+  err.status = 400;
+  return err;
+}
+
+export async function updateClass(classId, teacherId, body = {}) {
+  // Existence (404) + ownership (403 → MSG11 / BR-18).
+  await getClassDetail(classId, teacherId);
+
+  const changes = {};
+
+  if (body.class_name !== undefined) {
+    const name = String(body.class_name).trim();
+    if (!name) {
+      const err = new Error("Please complete all required information.");
+      err.status = 400;
+      throw err;
+    }
+    changes.class_name = name;
+  }
+
+  if (body.subject !== undefined) changes.subject = body.subject ? String(body.subject).trim() : null;
+  if (body.grade_level !== undefined) changes.grade_level = body.grade_level || null;
+  if (body.academic_year !== undefined) changes.academic_year = body.academic_year || null;
+  if (body.description !== undefined) changes.description = body.description ? String(body.description) : null;
+
+  if (body.learner_capacity !== undefined) {
+    const cap = Number(body.learner_capacity);
+    if (!Number.isInteger(cap) || cap <= 0) throw invalidInput();
+    changes.learner_capacity = cap;
+  }
+
+  if (body.join_policy !== undefined) {
+    if (!VALID_JOIN_POLICIES.has(body.join_policy)) throw invalidInput();
+    changes.join_policy = body.join_policy;
+  }
+
+  if (body.status !== undefined) {
+    if (!VALID_CLASS_STATUSES.has(body.status)) throw invalidInput();
+    changes.status = body.status;
+  }
+
+  if (Object.keys(changes).length === 0) {
+    const { data } = await getClassById(classId);
+    return data;
+  }
+
+  const { data, error } = await updateClassById(classId, changes);
+  if (error) throw new Error(error.message);
   return data;
 }
 

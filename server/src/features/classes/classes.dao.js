@@ -67,6 +67,22 @@ export async function insertClass(payload) {
 }
 
 /**
+ * Update a class's metadata (UC-31 / §2.3.5). `class_code` / `invitation_token`
+ * are never updated here so existing join links keep working.
+ */
+export async function updateClassById(classId, changes) {
+  const { data, error } = await db
+    .from(CLASS_TABLE)
+    .update({ ...changes, updated_at: new Date().toISOString() })
+    .eq("class_id", classId)
+    .is("deleted_at", null)
+    .select("*, teacher:users!teacher_id(user_id, full_name, username)")
+    .single();
+
+  return { data, error };
+}
+
+/**
  * Get a single class by ID (not deleted).
  */
 export async function getClassById(classId) {
