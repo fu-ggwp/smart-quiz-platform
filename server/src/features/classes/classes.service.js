@@ -360,12 +360,7 @@ export async function joinClass(learnerId, { classCode, invitationToken }) {
   return { joined: false, class: cls, joinRequest: data };
 }
 
-// Study sets in these visibilities are filtered out of a learner's assigned
-// list even if assigned (BR-23 — hidden/archived are not learner-accessible).
-const HIDDEN_VISIBILITIES = new Set([
-  StudySetVisibility.HIDDEN,
-  StudySetVisibility.ARCHIVED,
-]);
+
 
 /**
  * Derive a learner's progress on one study set from their practice attempts.
@@ -437,7 +432,6 @@ export async function getLearnerClassDetail(classId, learnerId) {
     if (!set) return false;                                         // study set missing
     if (set.deleted_at) return false;                               // soft-deleted (BR-23)
     if (set.is_admin_hidden) return false;                          // admin-hidden (MSG34)
-    if (HIDDEN_VISIBILITIES.has(set.visibility)) return false;      // hidden/archived
     return true;
   });
 

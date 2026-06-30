@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import classesService from "../../../../services/classes.service";
-import ToastNotification from "@/app/teacher/study-sets/ToastNotification";
 
 function InfoRow({ label, value }) {
   if (!value) return null;
@@ -26,7 +25,6 @@ export default function ClassDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [resolving, setResolving] = useState(null); // requestId currently being resolved
-  const [toast, setToast] = useState({ message: "", type: "success" });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -67,10 +65,7 @@ export default function ClassDetailPage() {
       setMembers(membersData);
       setJoinRequests(requestsData);
     } catch (err) {
-      setToast({
-        message: err?.response?.data?.error || err.message || "Failed to resolve request.",
-        type: "error",
-      });
+      alert(err?.response?.data?.error || err.message || "Failed to resolve request.");
     } finally {
       setResolving(null);
     }
@@ -285,12 +280,6 @@ export default function ClassDetailPage() {
           )}
         </div>
       </div>
-
-      <ToastNotification
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast({ message: "", type: "success" })}
-      />
     </main>
   );
 }

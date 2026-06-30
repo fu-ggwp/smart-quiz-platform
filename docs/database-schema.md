@@ -118,7 +118,7 @@ CREATE TABLE public.study_sets (
   title character varying NOT NULL,
   description text,
   topic character varying,
-  visibility character varying NOT NULL DEFAULT 'public'::character varying CHECK (visibility::text = ANY (ARRAY['public'::character varying, 'private'::character varying, 'class_only'::character varying, 'hidden'::character varying, 'archived'::character varying]::text[])),
+  visibility character varying NOT NULL DEFAULT 'public'::character varying CHECK (visibility::text = ANY (ARRAY['public'::character varying, 'private'::character varying, 'class_only'::character varying]::text[])),
   is_admin_hidden boolean NOT NULL DEFAULT false,
   creation_method character varying NOT NULL DEFAULT 'manual'::character varying CHECK (creation_method::text = ANY (ARRAY['manual'::character varying, 'import'::character varying, 'ai_generated'::character varying, 'from_question_bank'::character varying]::text[])),
   target_accuracy numeric CHECK (target_accuracy IS NULL OR target_accuracy >= 0::numeric AND target_accuracy <= 100::numeric),
