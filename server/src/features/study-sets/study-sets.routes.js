@@ -7,8 +7,6 @@ import { USER_TABLE } from "../../models/user.model.js";
 
 const router = Router();
 
-// Optional authentication middleware: resolves req.user if a token is present,
-// but lets unauthenticated requests proceed without error.
 async function optionalAuth(req, res, next) {
   const authHeader = req.headers.authorization || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
@@ -42,7 +40,6 @@ router.get("/mine", requireAuth, studySetsController.listMine);
 router.get("/learner", requireAuth, requireRole("learner"), studySetsController.listLearnerStudySets);
 router.get("/public", studySetsController.listPublic);
 
-// Admin moderation (UC-53 / §3.9.3) — registered before "/:id"
 router.get("/admin/resources", requireAuth, requireRole("admin"), studySetsController.adminListResources);
 router.patch(
   "/admin/resources/:id/visibility",

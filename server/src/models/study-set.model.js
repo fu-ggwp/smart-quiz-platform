@@ -7,8 +7,6 @@ export const StudySetVisibility = Object.freeze({
   PUBLIC: "public",
   PRIVATE: "private",
   CLASS_ONLY: "class_only",
-  HIDDEN: "hidden",
-  ARCHIVED: "archived",
 });
 
 
@@ -33,7 +31,7 @@ export const StudySetCardOrder = Object.freeze({
  * @property {string} title
  * @property {string} [description]
  * @property {string} [topic]
- * @property {"public"|"private"|"class_only"|"hidden"|"archived"} visibility
+ * @property {"public"|"private"|"class_only"} visibility
  * @property {boolean} is_admin_hidden
  * @property {number} question_count
  * @property {string} created_at
