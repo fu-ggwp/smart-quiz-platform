@@ -3,11 +3,11 @@ import { createUserModel } from "../../models/user.model.js";
 import { requirePremiumFeature } from "../../utils/premium-access.js";
 import * as aiService from "../ai/ai.service.js";
 import * as questionBanksDao from "./question-banks.dao.js";
+import { normalizeListFilters } from "./question-banks.validation.js";
 
 const db = supabase;
 const userModel = createUserModel(db);
 
-const allowedStatus = new Set(["Draft", "Ready"]);
 const materialQuestionGenerationFeature = "ai_generate_from_material";
 const premiumRequiredMessage = "This feature is available for Premium accounts only. Please upgrade to continue.";
 
@@ -48,45 +48,6 @@ async function requireActiveTeacher(userId) {
   }
 
   return profile;
-}
-
-function normalizeText(value) {
-  if (value === undefined) return undefined;
-  if (value === null) return null;
-  return String(value).trim();
-}
-
-function validateStatusFilter(value, errors) {
-  if (value === undefined || value === null || value === "") return undefined;
-
-  const normalized = String(value).trim();
-  if (!allowedStatus.has(normalized)) {
-    errors.status = "The information is invalid. Please check and try again.";
-  }
-
-  return normalized;
-}
-
-function normalizeListFilters(query = {}) {
-  const errors = {};
-  const status = validateStatusFilter(query.status, errors);
-
-  if (Object.keys(errors).length > 0) {
-    throw serviceError(
-      "The information is invalid. Please check and try again.",
-      400,
-      errors,
-    );
-  }
-
-  return {
-    keyword: normalizeText(query.keyword) || "",
-    status,
-    page: query.page,
-    limit: query.limit,
-    sortBy: normalizeText(query.sortBy),
-    sortOrder: normalizeText(query.sortOrder) === "asc" ? "asc" : "desc",
-  };
 }
 
 async function attachQuestionCount(questionBank) {

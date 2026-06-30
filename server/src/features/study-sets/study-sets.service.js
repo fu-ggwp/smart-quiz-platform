@@ -3,7 +3,7 @@ import { buildPaginatedResponse, getPagination } from "../../utils/pagination.js
 import { notifyStudySetAssigned } from "../../utils/notification.service.js";
 import { logger } from "../../utils/logger.js";
 import { requirePremiumFeature } from "../../utils/premium-access.js";
-
+import * as aiService from "../ai/ai.service.js";
 const aiStudySetQaFeature = "ai_study_set_qa";
 const premiumRequiredMessage = "AI explanations are available for Premium accounts only. Please upgrade to continue.";
 
