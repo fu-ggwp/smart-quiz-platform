@@ -26,6 +26,8 @@ export default function ClassDetailPage() {
   const [error, setError] = useState("");
   const [resolving, setResolving] = useState(null); // requestId currently being resolved
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const [processing, setProcessing] = useState(false);
 
   const load = useCallback(async () => {
@@ -55,6 +57,16 @@ export default function ClassDetailPage() {
     }, 0);
   }, [load]);
 
+  useEffect(() => {
+    if (!deleteSuccess) return;
+
+    const timer = setTimeout(() => {
+      router.replace("/teacher/classes");
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [deleteSuccess, router]);
+
   async function handleResolve(requestId, status) {
     setResolving(requestId);
     try {
@@ -75,21 +87,14 @@ export default function ClassDetailPage() {
 
   async function handleDelete() {
     setProcessing(true);
+    setDeleteError("");
     try {
-      const res = await classesService.remove(id, "delete");
-      const performed = res?.data?.action;
-      // MSG52 — class deletion success. If the class is linked to records the
-      // server archives it instead of permanently removing it (UC-32 Alt 7.1).
-      const message =
-        performed === "archived"
-          ? "This class has linked records, so it was archived instead of permanently deleted."
-          : "Class deleted successfully.";
+      await classesService.remove(id);
       setConfirmingDelete(false);
-      alert(message);
-      router.push("/teacher/classes");
+      setDeleteSuccess(true);
     } catch (err) {
       setConfirmingDelete(false);
-      alert(err?.response?.data?.error || err.message || "Failed to delete class.");
+      setDeleteError(err?.response?.data?.error || err.message || "Failed to delete class.");
     } finally {
       setProcessing(false);
     }
@@ -308,8 +313,8 @@ export default function ClassDetailPage() {
         <div className="rounded-xl border border-red-200 p-5">
           <h2 className="text-sm font-semibold text-red-700">Manage Class</h2>
           <p className="mt-1 text-xs text-neutral-500">
-            Delete a class you no longer need. Historical records are always
-            preserved.
+            Delete a class you no longer need. It will be removed from class
+            lists.
           </p>
           <div className="mt-4">
             <button
@@ -330,10 +335,8 @@ export default function ClassDetailPage() {
               Delete this class?
             </h3>
             <p className="mt-2 text-sm text-neutral-600">
-              Learners will lose access to future class-only activities.
-              Historical records, exam attempts, and reports are preserved. If the
-              class is linked to existing data, it will be archived instead of
-              permanently removed.
+              This class will be removed from the web class lists. Learners
+              will no longer be able to access it.
             </p>
             <div className="mt-6 flex justify-end gap-2">
               <button
@@ -349,6 +352,47 @@ export default function ClassDetailPage() {
                 className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
               >
                 {processing ? "Deleting..." : "Delete Class"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-neutral-900">
+              Class deleted successfully
+            </h3>
+            <p className="mt-2 text-sm text-neutral-600">
+              The class has been removed from your class list.
+              Redirecting...
+            </p>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => router.replace("/teacher/classes")}
+                className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+              >
+                Back to Classes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-neutral-900">
+              Delete failed
+            </h3>
+            <p className="mt-2 text-sm text-neutral-600">{deleteError}</p>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setDeleteError("")}
+                className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+              >
+                OK
               </button>
             </div>
           </div>

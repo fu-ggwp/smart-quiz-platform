@@ -18,6 +18,7 @@ export async function getClassesByTeacher(teacherId) {
     .from(CLASS_TABLE)
     .select("*")
     .eq("teacher_id", teacherId)
+    .eq("status", "active")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
@@ -48,6 +49,8 @@ export async function findClassByCode(classCode) {
     .from(CLASS_TABLE)
     .select("*, teacher:users!teacher_id(username, full_name)")
     .eq("class_code", classCode)
+    .eq("status", "active")
+    .is("deleted_at", null)
     .maybeSingle();
 
   return { data, error };
@@ -83,20 +86,49 @@ export async function updateClassById(classId, changes) {
 }
 
 /**
- * Soft-delete a class (UC-32). Sets deleted_at so the row — and all historical
- * records that reference it — are preserved, while it drops out of every active
- * listing (which all filter on deleted_at IS NULL).
+ * Mark a class as deleted without touching related FK rows. It disappears from
+ * the web because active reads filter status/deleted_at.
  */
-export async function softDeleteClass(classId) {
-  const { data, error } = await db
+export async function markClassDeleted(classId) {
+  const deletedAt = new Date().toISOString();
+  const updateToDeleted = await db
     .from(CLASS_TABLE)
-    .update({ deleted_at: new Date().toISOString() })
+    .update({
+      status: "deleted",
+      deleted_at: deletedAt,
+      updated_at: deletedAt,
+    })
     .eq("class_id", classId)
+    .eq("status", "active")
     .is("deleted_at", null)
-    .select("class_id")
+    .select("class_id, status, deleted_at")
     .single();
 
-  return { data, error };
+  if (!updateToDeleted.error) {
+    return { data: updateToDeleted.data, error: null };
+  }
+
+  const isStatusConstraintError =
+    updateToDeleted.error.code === "23514" ||
+    updateToDeleted.error.message?.includes("chk_classes_status");
+
+  if (!isStatusConstraintError) {
+    return { data: null, error: updateToDeleted.error };
+  }
+
+  const fallback = await db
+    .from(CLASS_TABLE)
+    .update({
+      deleted_at: deletedAt,
+      updated_at: deletedAt,
+    })
+    .eq("class_id", classId)
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .select("class_id, status, deleted_at")
+    .single();
+
+  return { data: fallback.data, error: fallback.error };
 }
 
 /**
@@ -139,6 +171,7 @@ export async function getClassById(classId) {
     .from(CLASS_TABLE)
     .select("*")
     .eq("class_id", classId)
+    .eq("status", "active")
     .is("deleted_at", null)
     .single();
 
@@ -227,6 +260,7 @@ export async function findClassByInvitationToken(token) {
     .from(CLASS_TABLE)
     .select("*, teacher:users!teacher_id(username, full_name)")
     .eq("invitation_token", token)
+    .eq("status", "active")
     .is("deleted_at", null)
     .maybeSingle();
 
@@ -383,6 +417,7 @@ export async function getClassWithTeacher(classId) {
     .from(CLASS_TABLE)
     .select("*, teacher:users!teacher_id(user_id, full_name, username, avatar_url)")
     .eq("class_id", classId)
+    .eq("status", "active")
     .is("deleted_at", null)
     .maybeSingle();
 

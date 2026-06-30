@@ -61,7 +61,7 @@ CREATE TABLE public.classes (
   invitation_token character varying UNIQUE,
   learner_capacity integer NOT NULL DEFAULT 50 CHECK (learner_capacity > 0),
   join_policy character varying NOT NULL DEFAULT 'teacher_approval'::character varying CHECK (join_policy::text = ANY (ARRAY['auto_approve'::character varying, 'teacher_approval'::character varying]::text[])),
-  status character varying NOT NULL DEFAULT 'active'::character varying CHECK (status::text = ANY (ARRAY['active'::character varying, 'inactive'::character varying, 'closed'::character varying, 'archived'::character varying]::text[])),
+  status character varying NOT NULL DEFAULT 'active'::character varying CHECK (status::text = ANY (ARRAY['active'::character varying, 'deleted'::character varying]::text[])),
   description text,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),

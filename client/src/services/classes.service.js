@@ -6,8 +6,7 @@ const classesService = {
   getOne: (id) => axiosClient.get(`/api/classes/${id}`).then((r) => r.data.data),
   create: (payload) => axiosClient.post("/api/classes", payload).then((r) => r.data.data),
   update: (id, changes) => axiosClient.patch(`/api/classes/${id}`, changes).then((r) => r.data.data),
-  remove: (id, action = "delete") =>
-    axiosClient.delete(`/api/classes/${id}`, { params: { action } }).then((r) => r.data),
+  remove: (id) => axiosClient.delete(`/api/classes/${id}`).then((r) => r.data),
   listMembers: (id) => axiosClient.get(`/api/classes/${id}/members`).then((r) => r.data.data),
   listJoinRequests: (id) => axiosClient.get(`/api/classes/${id}/join-requests`).then((r) => r.data.data),
   removeMember: (classId, memberId) =>

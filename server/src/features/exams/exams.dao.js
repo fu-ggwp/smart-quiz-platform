@@ -48,7 +48,6 @@ const EXAM_SESSION_SELECT = `
     class_id,
     teacher_id,
     class_name,
-    subject,
     status
   ),
   question_bank:question_banks (

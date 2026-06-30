@@ -3,9 +3,7 @@ import {
   getClassesByTeacher,
   insertClass,
   updateClassById,
-  softDeleteClass,
-  getBlockingExamSessionsByClass,
-  countExamSessionsByClass,
+  markClassDeleted,
   findClassByCode,
   getClassById,
   getClassMembers,
@@ -151,7 +149,7 @@ export async function getClassDetail(classId, teacherId) {
  * never touched so existing membership and join links keep working.
  */
 const VALID_JOIN_POLICIES = new Set(["auto_approve", "teacher_approval"]);
-const VALID_CLASS_STATUSES = new Set(["active", "inactive", "closed", "archived"]);
+const VALID_CLASS_STATUSES = new Set(["active", "deleted"]);
 
 function invalidInput() {
   const err = new Error("The information is invalid. Please check and try again.");
@@ -206,63 +204,21 @@ export async function updateClass(classId, teacherId, body = {}) {
 }
 
 /**
- * Delete / archive / disable a class (UC-32 / §2.3.6). Ownership-gated.
- * - archive  → status = "archived"
- * - disable  → status = "inactive"   (enum has no "disabled")
- * - delete   → soft delete (deleted_at) so historical records are preserved,
- *              BUT if the class is linked to members / assigned study sets /
- *              exam sessions it is archived instead of permanently removed
- *              (Alt 7.1), and an active/upcoming exam session blocks it (Alt 7.2).
+ * Delete a class from the web by marking its DB row deleted. Related FK rows
+ * are left untouched.
  */
-const DELETE_ACTIONS = new Set(["delete", "archive", "disable"]);
-
-export async function deleteClass(classId, teacherId, action = "delete") {
-  if (!DELETE_ACTIONS.has(action)) throw invalidInput(); // MSG03
-
-  // Existence (404 / MSG03) + ownership (403 / MSG11, BR-18)
+export async function deleteClass(classId, teacherId) {
   await getClassDetail(classId, teacherId);
 
-  // Explicit archive / disable — straightforward status change.
-  if (action === "archive" || action === "disable") {
-    const status = action === "archive" ? "archived" : "inactive";
-    const { data, error } = await updateClassById(classId, { status });
-    if (error) throw new Error(error.message); // MSG13
-    return { action: action === "archive" ? "archived" : "disabled", class: data };
-  }
-
-  // action === "delete"
-  // Alt 7.2 — active / upcoming exam session blocks permanent deletion.
-  const { data: blocking, error: blockErr } = await getBlockingExamSessionsByClass(classId);
-  if (blockErr) throw new Error(blockErr.message);
-  if ((blocking?.length ?? 0) > 0) {
-    const err = new Error(
-      "This class has an active or upcoming exam session. Please close or resolve it before deleting."
-    );
-    err.status = 409;
-    throw err;
-  }
-
-  // Alt 7.1 — if the class carries integrity-sensitive data, archive instead.
-  const [memberCounts, assignments, examSessions] = await Promise.all([
-    getActiveMemberCounts([classId]),
-    getAssignmentsByClass(classId),
-    countExamSessionsByClass(classId),
-  ]);
-  const integritySensitive =
-    (memberCounts.data?.length ?? 0) > 0 ||
-    (assignments.data?.length ?? 0) > 0 ||
-    (examSessions.count ?? 0) > 0;
-
-  if (integritySensitive) {
-    const { data, error } = await updateClassById(classId, { status: "archived" });
-    if (error) throw new Error(error.message); // MSG13
-    return { action: "archived", forced: true, class: data };
-  }
-
-  // Safe to permanently (soft) delete.
-  const { error } = await softDeleteClass(classId);
+  const { data, error } = await markClassDeleted(classId);
   if (error) throw new Error(error.message); // MSG13
-  return { action: "deleted", class: null };
+
+  return {
+    action: "deleted",
+    class_id: data.class_id,
+    status: data.status,
+    deleted_at: data.deleted_at,
+  };
 }
 
 /**
@@ -352,15 +308,18 @@ export async function listJoinedClasses(learnerId) {
   const { data, error } = await getJoinedClasses(learnerId);
   if (error) throw new Error(error.message);
 
-  const classIds = data.map((row) => row.class?.class_id).filter(Boolean);
+  const visibleRows = data.filter(
+    (row) => row.class && row.class.status === "active" && !row.class.deleted_at
+  );
+  const classIds = visibleRows.map((row) => row.class.class_id);
   const { data: activeRows, error: countError } = await getActiveMemberCounts(classIds);
   if (countError) throw new Error(countError.message);
   const counts = tallyByClassId(activeRows);
 
-  return data.map((row) => ({
+  return visibleRows.map((row) => ({
     ...row.class,
     joined_at: row.joined_at,
-    member_count: counts[row.class?.class_id] ?? 0,
+    member_count: counts[row.class.class_id] ?? 0,
   }));
 }
 

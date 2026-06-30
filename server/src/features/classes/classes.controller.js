@@ -115,13 +115,12 @@ export async function updateClass(req, res) {
 }
 
 /**
- * DELETE /api/classes/:id?action=delete|archive|disable
- * Delete / archive / disable a class (UC-32 / §2.3.6). Teacher-only, owner-gated.
+ * DELETE /api/classes/:id
+ * Mark a class deleted (UC-32 / Section 2.3.6). Teacher-only, owner-gated.
  */
 export async function deleteClass(req, res) {
   try {
-    const action = req.query.action || req.body?.action || "delete";
-    const result = await deleteClassService(req.params.id, req.user.id, action);
+    const result = await deleteClassService(req.params.id, req.user.id);
     res.json({ ok: true, data: result });
   } catch (err) {
     res.status(err.status || 500).json({ ok: false, error: err.message });

@@ -19,6 +19,7 @@ export const ClassJoinPolicy = Object.freeze({
  * @property {number} learner_capacity        - default 50
  * @property {"auto_approve"|"teacher_approval"} join_policy
  * @property {string} [description]
+ * @property {"active"|"deleted"} status
  * @property {string} created_at
  * @property {string} updated_at
  * @property {string} [deleted_at]

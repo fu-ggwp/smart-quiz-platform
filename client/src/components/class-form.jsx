@@ -28,9 +28,7 @@ const GRADE_LEVEL_OPTIONS = [
 
 const STATUS_OPTIONS = [
   { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-  { value: "closed", label: "Closed" },
-  { value: "archived", label: "Archived" },
+  { value: "deleted", label: "Deleted" },
 ];
 
 const DEFAULTS = {
