@@ -2,12 +2,14 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Save, ArrowLeft, Database, FileSpreadsheet } from "lucide-react";
+import { Plus, Save, ArrowLeft, Database, FileSpreadsheet, Sparkles } from "lucide-react";
 import axiosClient from "@/services/axiosClient";
+import { questionBanksService } from "@/services/question-banks.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import QuestionCardEditor from "@/components/question-creator/QuestionCardEditor";
 import ExcelImporter from "@/components/question-creator/ExcelImporter";
+import MaterialQuestionGenerator from "@/components/question-creator/MaterialQuestionGenerator";
 import QuestionBankSelector from "./QuestionBankSelector";
 import ClassSelectorModal from "./ClassSelectorModal";
 import ConfirmModal from "@/components/common/ConfirmModal";
@@ -43,6 +45,7 @@ export default function CreateStudySetPage() {
   // --- 3. UI STATE FOR MODALS/PANELS ---
   const [showQBSelector, setShowQBSelector] = useState(false);
   const [showExcelImporter, setShowExcelImporter] = useState(false);
+  const [showMaterialGenerator, setShowMaterialGenerator] = useState(false);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [confirmData, setConfirmData] = useState({
@@ -242,6 +245,28 @@ export default function CreateStudySetPage() {
 
     setQuestions((prev) => [...prev, ...formattedQs]);
     setShowExcelImporter(false);
+
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.questions;
+      delete next.submit;
+      return next;
+    });
+  };
+
+  const handleGeneratedQuestions = (generatedQs) => {
+    const formattedQs = generatedQs.map((q) => ({
+      question_text: q.question_text || "",
+      explanation: q.explanation || "",
+      chapter: q.chapter || "",
+      options: (q.options || q.answer_options || []).map((opt) => ({
+        option_text: opt.option_text || "",
+        is_correct: Boolean(opt.is_correct)
+      }))
+    }));
+
+    setQuestions((prev) => [...prev, ...formattedQs]);
+    setShowMaterialGenerator(false);
 
     setErrors((prev) => {
       const next = { ...prev };
@@ -545,6 +570,15 @@ export default function CreateStudySetPage() {
                   Import from Excel
                 </Button>
                 <Button
+                  onClick={() => setShowMaterialGenerator(true)}
+                  type="button"
+                  variant="outline"
+                  className="gap-2"
+                >
+                  <Sparkles size={16} />
+                  Generate from Material
+                </Button>
+                <Button
                   onClick={() => setShowQBSelector(true)}
                   type="button"
                   variant="outline"
@@ -640,6 +674,19 @@ export default function CreateStudySetPage() {
             <ExcelImporter
               onQuestionsImported={handleExcelQuestionsImported}
               onCancel={() => setShowExcelImporter(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Material Generator Popup */}
+      {showMaterialGenerator && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-2xl border border-border">
+            <MaterialQuestionGenerator
+              generateQuestions={questionBanksService.generateFromMaterial}
+              onQuestionsGenerated={handleGeneratedQuestions}
+              onCancel={() => setShowMaterialGenerator(false)}
             />
           </div>
         </div>
