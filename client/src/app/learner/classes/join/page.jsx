@@ -28,7 +28,9 @@ export default function JoinClassPage() {
       const result = await classesService.joinClass({ classCode: trimmed });
       setSuccess(result);
     } catch (err) {
-      setError(err?.response?.data?.error || err.message || "Failed to join class.");
+      const message = err?.response?.data?.error || err.message || "Failed to join class.";
+      setError(message);
+      alert(message); // pop-up (e.g. "You already own this class as a teacher...")
     } finally {
       setSubmitting(false);
     }

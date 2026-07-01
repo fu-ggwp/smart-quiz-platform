@@ -405,6 +405,13 @@ export async function joinClass(learnerId, { classCode, invitationToken }) {
     throw err;
   }
 
+  // 1b. The class owner cannot join their own class as a learner.
+  if (cls.teacher_id === learnerId) {
+    const err = new Error("You already own this class as a teacher, so you cannot join it as a learner.");
+    err.status = 409;
+    throw err;
+  }
+
   // 2. Already a member?
   const { data: existingMember } = await findExistingMember(cls.class_id, learnerId);
   if (existingMember) {
