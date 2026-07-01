@@ -315,7 +315,7 @@ export function useQuestionBankEditorSubmit({ editor, fallbackErrorMessage, onSa
         ...fieldErrors,
         submit: Object.keys(fieldErrors).length
           ? "Please review the highlighted fields."
-          : err.response?.data?.message || err.message || fallbackErrorMessage,
+          : err.response?.data?.error || err.message || fallbackErrorMessage,
       });
     } finally {
       setSubmitting(false);

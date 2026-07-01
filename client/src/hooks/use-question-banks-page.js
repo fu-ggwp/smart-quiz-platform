@@ -43,7 +43,7 @@ export function useQuestionBanksPage() {
     } catch (err) {
       setQuestionBanks([]);
       setPagination(defaultPagination(fallbackPage));
-      setError(err.response?.data?.message || err.message || "Failed to load question banks.");
+      setError(err.response?.data?.error || err.message || "Failed to load question banks.");
     } finally {
       setLoading(false);
     }

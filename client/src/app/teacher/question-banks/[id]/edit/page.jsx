@@ -58,11 +58,11 @@ export default function EditQuestionBankPage() {
         questionBanksService.listQuestions(questionBankId),
       ]);
 
-      setForm(toQuestionBankForm(bankResponse?.data));
+      setForm(toQuestionBankForm(bankResponse));
       setQuestions((questionRows || []).map(toQuestionDraft));
       setErrors({});
     } catch (err) {
-      setLoadError(err.response?.data?.message || err.message || "Failed to load question bank.");
+      setLoadError(err.response?.data?.error || err.message || "Failed to load question bank.");
     } finally {
       setLoading(false);
     }
@@ -80,7 +80,7 @@ export default function EditQuestionBankPage() {
       await questionBanksService.remove(questionBankId);
       router.push("/teacher/question-banks");
     } catch (err) {
-      editor.setErrors({ submit: err.response?.data?.message || err.message || "Question bank delete failed." });
+      editor.setErrors({ submit: err.response?.data?.error || err.message || "Question bank delete failed." });
     } finally {
       setArchiving(false);
       setShowDeleteModal(false);

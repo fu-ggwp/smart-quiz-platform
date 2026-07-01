@@ -1,17 +1,11 @@
+import { httpError } from "../../utils/api-response.js";
+
 const editableQuestionBankStatuses = new Set(["Draft", "Ready"]);
 
 const supportedMaterialTypes = new Set([
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
-
-export function createValidationError(message, fields) {
-  const error = new Error(message);
-  error.status = 400;
-  error.statusCode = 400;
-  error.fields = fields;
-  return error;
-}
 
 function normalizeText(value) {
   if (value === undefined) return undefined;
@@ -43,7 +37,7 @@ function throwIfInvalid(errors) {
     ? "Please complete all required information."
     : "The information is invalid. Please check and try again.";
 
-  throw createValidationError(message, errors);
+  throw httpError(message, 400, errors);
 }
 
 function validateStatusFilter(value, errors) {
@@ -187,8 +181,9 @@ export function validateGenerateMaterialPayload(body = {}, file) {
   }
 
   if (Object.keys(errors).length > 0) {
-    throw createValidationError(
+    throw httpError(
       errors.material || errors.questionCount || "The information is invalid. Please check and try again.",
+      400,
       errors,
     );
   }
@@ -227,7 +222,7 @@ export function validateUpdatePayload(body = {}) {
   throwIfInvalid(errors);
 
   if (Object.keys(changes).length === 0) {
-    throw createValidationError("No valid question bank fields were provided.");
+    throw httpError("No valid question bank fields were provided.");
   }
 
   if (title !== undefined || description !== undefined || topic !== undefined || status !== undefined) {
