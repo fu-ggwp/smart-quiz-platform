@@ -138,7 +138,7 @@ export default function MaterialQuestionGenerator({
 
         <div className="grid gap-4 md:grid-cols-[180px_1fr]">
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-foreground">Question Count</label>
+            <label className="text-sm font-semibold text-foreground">Number of Question</label>
             <Input
               min="1"
               max="30"

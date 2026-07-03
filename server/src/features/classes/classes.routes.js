@@ -10,6 +10,8 @@ import {
   getJoinedClasses,
   removeMember,
   getLearnerClassDetail,
+  updateClass,
+  deleteClass,
 } from "./classes.controller.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 import { requireRole } from "../../middlewares/role.middleware.js";
@@ -34,6 +36,8 @@ classesRouter.patch("/join-requests/:requestId", requireAuth, requireRole("teach
 
 // Class detail routes
 classesRouter.get("/:id", requireAuth, requireRole("teacher"), getClassDetail);
+classesRouter.patch("/:id", requireAuth, requireRole("teacher"), updateClass);
+classesRouter.delete("/:id", requireAuth, requireRole("teacher"), deleteClass);
 classesRouter.get("/:id/members", requireAuth, requireRole("teacher"), getClassMembers);
 classesRouter.delete("/:id/members/:memberId", requireAuth, requireRole("teacher"), removeMember);
 classesRouter.get("/:id/join-requests", requireAuth, requireRole("teacher"), getJoinRequests);

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { AlertCircle, BookOpen, Plus } from "lucide-react";
 import { AppPagination } from "@/components/common/app-pagination";
 
@@ -11,21 +12,52 @@ import { QuestionBanksFilterBar } from "./_components/question-banks-filter-bar"
 import { QuestionBanksStatePanel } from "./_components/question-banks-state-panel";
 import { QuestionBanksTable } from "./_components/question-banks-table";
 
+const itemsPerPage = 10;
+
+function buildQuestionBankParams({ keyword, page, status }) {
+  return {
+    keyword: keyword.trim() || undefined,
+    status: status === "all" ? undefined : status,
+    page,
+    limit: itemsPerPage,
+    sortBy: "updated_at",
+    sortOrder: "desc",
+  };
+}
+
 export default function QuestionBanksPage() {
+  const [pendingKeyword, setPendingKeyword] = useState("");
+  const [pendingStatus, setPendingStatus] = useState("all");
+  const [appliedKeyword, setAppliedKeyword] = useState("");
+  const [appliedStatus, setAppliedStatus] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const params = useMemo(
+    () => buildQuestionBankParams({ keyword: appliedKeyword, page: currentPage, status: appliedStatus }),
+    [appliedKeyword, appliedStatus, currentPage]
+  );
+
   const {
-    pendingKeyword,
-    pendingStatus,
     error,
-    handleKeywordChange,
     loading,
     loadQuestionBanks,
-    onApplyFilters,
-    onPageChange,
-    onResetFilters,
-    onStatusChange,
     pagination,
     questionBanks,
-  } = useQuestionBanksPage();
+  } = useQuestionBanksPage({ params });
+
+  function applyFilters() {
+    setAppliedKeyword(pendingKeyword);
+    setAppliedStatus(pendingStatus);
+    setCurrentPage(1);
+  }
+
+  function resetFilters() {
+    setPendingKeyword("");
+    setPendingStatus("all");
+    setAppliedKeyword("");
+    setAppliedStatus("all");
+    setCurrentPage(1);
+  }
 
   return (
     <main className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
@@ -46,10 +78,10 @@ export default function QuestionBanksPage() {
 
         <QuestionBanksFilterBar
           keyword={pendingKeyword}
-          onApply={onApplyFilters}
-          onKeywordChange={handleKeywordChange}
-          onReset={onResetFilters}
-          onStatusChange={onStatusChange}
+          onApply={applyFilters}
+          onKeywordChange={(event) => setPendingKeyword(event.target.value)}
+          onReset={resetFilters}
+          onStatusChange={(event) => setPendingStatus(event.target.value)}
           status={pendingStatus}
         />
 
@@ -72,7 +104,7 @@ export default function QuestionBanksPage() {
             <AppPagination
               currentPage={pagination.page}
               totalPages={pagination.totalPages}
-              onPageChange={onPageChange}
+              onPageChange={setCurrentPage}
             />
           </>
         ) : (

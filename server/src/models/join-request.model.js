@@ -20,7 +20,6 @@ export const ClassMemberStatus = Object.freeze({
  * @property {string} join_request_id
  * @property {string} class_id          - FK -> classes.class_id
  * @property {string} learner_id        - FK -> users.user_id
- * @property {string} [request_message]
  * @property {"pending"|"approved"|"rejected"} status
  * @property {string} [reviewed_by]     - FK -> users.user_id
  * @property {string} [reviewed_at]

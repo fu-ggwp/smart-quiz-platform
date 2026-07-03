@@ -18,6 +18,7 @@ export async function getClassesByTeacher(teacherId) {
     .from(CLASS_TABLE)
     .select("*")
     .eq("teacher_id", teacherId)
+    .eq("status", "active")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
@@ -48,6 +49,8 @@ export async function findClassByCode(classCode) {
     .from(CLASS_TABLE)
     .select("*, teacher:users!teacher_id(username, full_name)")
     .eq("class_code", classCode)
+    .eq("status", "active")
+    .is("deleted_at", null)
     .maybeSingle();
 
   return { data, error };
@@ -67,6 +70,100 @@ export async function insertClass(payload) {
 }
 
 /**
+ * Update a class's metadata (UC-31 / §2.3.5). `class_code` / `invitation_token`
+ * are never updated here so existing join links keep working.
+ */
+export async function updateClassById(classId, changes) {
+  const { data, error } = await db
+    .from(CLASS_TABLE)
+    .update({ ...changes, updated_at: new Date().toISOString() })
+    .eq("class_id", classId)
+    .is("deleted_at", null)
+    .select("*, teacher:users!teacher_id(user_id, full_name, username)")
+    .single();
+
+  return { data, error };
+}
+
+/**
+ * Mark a class as deleted without touching related FK rows. It disappears from
+ * the web because active reads filter status/deleted_at.
+ */
+export async function markClassDeleted(classId) {
+  const deletedAt = new Date().toISOString();
+  const updateToDeleted = await db
+    .from(CLASS_TABLE)
+    .update({
+      status: "deleted",
+      deleted_at: deletedAt,
+      updated_at: deletedAt,
+    })
+    .eq("class_id", classId)
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .select("class_id, status, deleted_at")
+    .single();
+
+  if (!updateToDeleted.error) {
+    return { data: updateToDeleted.data, error: null };
+  }
+
+  const isStatusConstraintError =
+    updateToDeleted.error.code === "23514" ||
+    updateToDeleted.error.message?.includes("chk_classes_status");
+
+  if (!isStatusConstraintError) {
+    return { data: null, error: updateToDeleted.error };
+  }
+
+  const fallback = await db
+    .from(CLASS_TABLE)
+    .update({
+      deleted_at: deletedAt,
+      updated_at: deletedAt,
+    })
+    .eq("class_id", classId)
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .select("class_id, status, deleted_at")
+    .single();
+
+  return { data: fallback.data, error: fallback.error };
+}
+
+/**
+ * Any active or upcoming exam session for the class (UC-32 Alt 7.2). Presence
+ * of one of these blocks permanent deletion until it is closed/resolved.
+ */
+export async function getBlockingExamSessionsByClass(classId) {
+  const nowIso = new Date().toISOString();
+  const { data, error } = await db
+    .from(EXAM_SESSION_TABLE)
+    .select("exam_session_id, status, start_at")
+    .eq("class_id", classId)
+    .is("deleted_at", null)
+    .neq("status", "closed")
+    .or(`status.eq.active,start_at.gte.${nowIso}`)
+    .limit(1);
+
+  return { data, error };
+}
+
+/**
+ * Count of (non-deleted) exam sessions linked to a class — an integrity signal
+ * that the class carries historical data (UC-32 Alt 7.1).
+ */
+export async function countExamSessionsByClass(classId) {
+  const { count, error } = await db
+    .from(EXAM_SESSION_TABLE)
+    .select("exam_session_id", { count: "exact", head: true })
+    .eq("class_id", classId)
+    .is("deleted_at", null);
+
+  return { count: count ?? 0, error };
+}
+
+/**
  * Get a single class by ID (not deleted).
  */
 export async function getClassById(classId) {
@@ -74,6 +171,7 @@ export async function getClassById(classId) {
     .from(CLASS_TABLE)
     .select("*")
     .eq("class_id", classId)
+    .eq("status", "active")
     .is("deleted_at", null)
     .single();
 
@@ -162,6 +260,7 @@ export async function findClassByInvitationToken(token) {
     .from(CLASS_TABLE)
     .select("*, teacher:users!teacher_id(username, full_name)")
     .eq("invitation_token", token)
+    .eq("status", "active")
     .is("deleted_at", null)
     .maybeSingle();
 
@@ -318,6 +417,7 @@ export async function getClassWithTeacher(classId) {
     .from(CLASS_TABLE)
     .select("*, teacher:users!teacher_id(user_id, full_name, username, avatar_url)")
     .eq("class_id", classId)
+    .eq("status", "active")
     .is("deleted_at", null)
     .maybeSingle();
 

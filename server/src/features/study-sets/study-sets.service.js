@@ -3,7 +3,7 @@ import { buildPaginatedResponse, getPagination } from "../../utils/pagination.js
 import { notifyStudySetAssigned } from "../../utils/notification.service.js";
 import { logger } from "../../utils/logger.js";
 import { requirePremiumFeature } from "../../utils/premium-access.js";
-
+import * as aiService from "../ai/ai.service.js";
 const aiStudySetQaFeature = "ai_study_set_qa";
 const premiumRequiredMessage = "AI explanations are available for Premium accounts only. Please upgrade to continue.";
 
@@ -240,8 +240,6 @@ export async function getOne(id, user = null) {
     if (
       studySet.deleted_at ||
       studySet.is_admin_hidden ||
-      studySet.visibility === "hidden" ||
-      studySet.visibility === "archived" ||
       studySet.visibility === "private" ||
       studySet.visibility === "class_only"
     ) {
@@ -955,9 +953,7 @@ export async function validateStudySetAccess(studySet, userId, userRole) {
   }
   if (
     studySet.deleted_at ||
-    studySet.is_admin_hidden ||
-    studySet.visibility === "hidden" ||
-    studySet.visibility === "archived"
+    studySet.is_admin_hidden
   ) {
     throw notAvailable();
   }

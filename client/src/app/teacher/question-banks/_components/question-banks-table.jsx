@@ -51,6 +51,7 @@ export function QuestionBanksTable({ questionBanks }) {
                 <td className="px-4 py-3">
                   <QuestionBanksBadge tone={getStatusTone(bank.status)}>{formatBankStatus(bank.status)}</QuestionBanksBadge>
                 </td>
+                
                 <td className="px-4 py-3 text-muted-foreground">{bank.questionCount ?? 0}</td>
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(bank.updated_at || bank.created_at)}</td>
               </tr>

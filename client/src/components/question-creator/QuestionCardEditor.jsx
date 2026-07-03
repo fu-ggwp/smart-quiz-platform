@@ -77,7 +77,9 @@ export default function QuestionCardEditor({
       {/* Options Editor */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-semibold text-foreground">Answer Options *</label>
+          <label className="text-sm font-semibold text-foreground">
+            Answer Options<span className="text-rose-500"> *</span>
+          </label>
           {!readOnly && (
             <Button
               onClick={onAddOption}

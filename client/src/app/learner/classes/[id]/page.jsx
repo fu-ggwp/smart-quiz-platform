@@ -138,11 +138,7 @@ export default function LearnerClassDetailPage() {
                 </span>
               </div>
 
-              <dl className="mt-5 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
-                <div>
-                  <dt className="text-neutral-400">Subject</dt>
-                  <dd className="font-medium">{cls.subject || "—"}</dd>
-                </div>
+              <dl className="mt-5 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
                 <div>
                   <dt className="text-neutral-400">Class code</dt>
                   <dd className="font-mono">{cls.class_code}</dd>

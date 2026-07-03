@@ -9,6 +9,8 @@ import {
   listJoinedClasses as listJoinedClassesService,
   removeMember as removeMemberService,
   getLearnerClassDetail as getLearnerClassDetailService,
+  updateClass as updateClassService,
+  deleteClass as deleteClassService,
 } from "./classes.service.js";
 import { JoinRequestStatus } from "../../models/join-request.model.js";
 
@@ -60,14 +62,11 @@ export async function getMyClasses(req, res) {
 export async function createClass(req, res) {
   const {
     class_name,
-    subject,
     grade_level,
     academic_year,
     description,
     learner_capacity,
     join_policy,
-    start_date,
-    end_date,
   } = req.body;
 
   if (!class_name?.trim()) {
@@ -78,14 +77,11 @@ export async function createClass(req, res) {
     const newClass = await createClassService({
       teacherId: req.user.id,
       className: class_name.trim(),
-      subject,
       gradeLevel: grade_level,
       academicYear: academic_year,
       description,
       learnerCapacity: learner_capacity,
       joinPolicy: join_policy,
-      startDate: start_date,
-      endDate: end_date,
     });
     res.status(201).json({ ok: true, data: newClass });
   } catch (err) {
@@ -100,6 +96,32 @@ export async function getClassDetail(req, res) {
   try {
     const cls = await getClassDetailService(req.params.id, req.user.id);
     res.json({ ok: true, data: cls });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+}
+
+/**
+ * PATCH /api/classes/:id
+ * Update class information (UC-31 / §2.3.5). Teacher-only, owner-gated.
+ */
+export async function updateClass(req, res) {
+  try {
+    const updated = await updateClassService(req.params.id, req.user.id, req.body);
+    res.json({ ok: true, data: updated });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+}
+
+/**
+ * DELETE /api/classes/:id
+ * Mark a class deleted (UC-32 / Section 2.3.6). Teacher-only, owner-gated.
+ */
+export async function deleteClass(req, res) {
+  try {
+    const result = await deleteClassService(req.params.id, req.user.id);
+    res.json({ ok: true, data: result });
   } catch (err) {
     res.status(err.status || 500).json({ ok: false, error: err.message });
   }

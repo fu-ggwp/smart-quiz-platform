@@ -418,7 +418,7 @@ function ClassCard({ classItem }) {
         <div className="min-w-0">
           <h3 className="truncate text-lg font-bold text-foreground">{classItem.class_name || "Untitled class"}</h3>
           <p className="mt-1 truncate text-sm text-muted-foreground">
-            {classItem.subject || "General"}{classItem.grade_level ? ` - ${classItem.grade_level}` : ""}
+            {classItem.grade_level || "General class"}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 text-sm">

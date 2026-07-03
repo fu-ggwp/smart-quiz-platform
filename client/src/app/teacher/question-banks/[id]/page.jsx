@@ -49,7 +49,7 @@ export default function QuestionBankDetailPage() {
 
         if (ignore) return;
 
-        setQuestionBank(bankResponse?.data || null);
+        setQuestionBank(bankResponse || null);
         setQuestions(questionRows || []);
         setShowAllAnswers(false);
         setRevealedQuestions(new Set());
@@ -59,7 +59,7 @@ export default function QuestionBankDetailPage() {
 
         setQuestionBank(null);
         setQuestions([]);
-        setError(err.response?.data?.message || err.message || "Failed to load question bank details.");
+        setError(err.response?.data?.error || err.message || "Failed to load question bank details.");
       } finally {
         if (!ignore) setLoading(false);
       }

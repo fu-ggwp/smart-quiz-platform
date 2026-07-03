@@ -67,7 +67,6 @@ export const EXAM_SESSION_CONFIG_COLUMNS = Object.freeze(
  * @property {string} exam_session_id        - FK -> exam_sessions.exam_session_id
  * @property {string} [source_question_id]   - FK -> questions.question_id (nullable)
  * @property {string} question_text
- * @property {"multiple_choice"|"true_false"} question_type
  * @property {number} score
  * @property {string} [explanation]
  * @property {string} [chapter]

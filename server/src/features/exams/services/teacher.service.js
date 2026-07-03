@@ -66,7 +66,6 @@ function toExamQuestionRows(examSessionId, questions) {
       exam_session_id: examSessionId,
       source_question_id: question.question_id,
       question_text: question.question_text,
-      question_type: question.question_type || "multiple_choice",
       score: questionScore,
       explanation: question.explanation || null,
       chapter: question.chapter || null,

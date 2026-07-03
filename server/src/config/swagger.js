@@ -431,11 +431,6 @@ const swaggerOptions = {
               type: "string",
               example: "SE1701",
             },
-            subject: {
-              type: "string",
-              nullable: true,
-              example: "Software Engineering",
-            },
             status: {
               type: "string",
               example: "active",

@@ -21,11 +21,6 @@ const visibilityOptions = [
 ];
 
 
-const assignmentOptions = [
-  { value: "all", label: "All assignments" },
-  { value: "assigned", label: "Assigned to class" },
-  { value: "unassigned", label: "Not assigned" },
-];
 
 function normalizeVisibility(value) {
   return value === "class_only" ? "class-only" : value || "private";
@@ -65,10 +60,8 @@ function getLearnerCount(studySet) {
 
 export default function TeacherStudySetsPage() {
   // Pending filters (changed in the UI but not applied yet)
-  const [pendingQuery, setPendingQuery] = useState("");
+  const [pendingKeyword, setPendingKeyword] = useState("");
   const [pendingVisibility, setPendingVisibility] = useState("all");
-  const [pendingAssignment, setPendingAssignment] = useState("all");
-  const [pendingSortBy, setPendingSortBy] = useState("latest");
 
   const [activeAssignSet, setActiveAssignSet] = useState(null);
   const [assignLoadingId, setAssignLoadingId] = useState(null);
@@ -84,21 +77,17 @@ export default function TeacherStudySetsPage() {
 
 
   // Applied filters (used for query parameters)
-  const [appliedQuery, setAppliedQuery] = useState("");
+  const [appliedKeyword, setAppliedKeyword] = useState("");
   const [appliedVisibility, setAppliedVisibility] = useState("all");
-  const [appliedAssignment, setAppliedAssignment] = useState("all");
-  const [appliedSortBy, setAppliedSortBy] = useState("latest");
 
   const [currentPage, setCurrentPage] = useState(1);
 
   const params = useMemo(() => ({
-    keyword: appliedQuery.trim() || undefined,
+    keyword: appliedKeyword.trim() || undefined,
     visibility: appliedVisibility === "all" ? undefined : appliedVisibility,
-    assignment: appliedAssignment === "all" ? undefined : appliedAssignment,
-    sortBy: appliedSortBy,
     page: currentPage,
     limit: 10,
-  }), [appliedQuery, appliedVisibility, appliedAssignment, appliedSortBy, currentPage]);
+  }), [appliedKeyword, appliedVisibility, currentPage]);
 
   const { studySets, pagination, loading, error, reload } = useStudySets({
     mine: true,
@@ -109,23 +98,17 @@ export default function TeacherStudySetsPage() {
   const activePage = pagination?.page ?? 1;
 
   function applyFilters() {
-    setAppliedQuery(pendingQuery);
+    setAppliedKeyword(pendingKeyword);
     setAppliedVisibility(pendingVisibility);
-    setAppliedAssignment(pendingAssignment);
-    setAppliedSortBy(pendingSortBy);
     setCurrentPage(1);
   }
 
   function resetFilters() {
-    setPendingQuery("");
+    setPendingKeyword("");
     setPendingVisibility("all");
-    setPendingAssignment("all");
-    setPendingSortBy("latest");
 
-    setAppliedQuery("");
+    setAppliedKeyword("");
     setAppliedVisibility("all");
-    setAppliedAssignment("all");
-    setAppliedSortBy("latest");
 
     setCurrentPage(1);
   }
@@ -190,7 +173,7 @@ export default function TeacherStudySetsPage() {
     }
   };
 
-  const hasFiltersApplied = appliedQuery || appliedVisibility !== "all" || appliedAssignment !== "all";
+  const hasFiltersApplied = appliedKeyword || appliedVisibility !== "all";
 
   return (
     <main className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
@@ -198,15 +181,11 @@ export default function TeacherStudySetsPage() {
         <PageHeader />
 
         <FilterBar
-          assignment={pendingAssignment}
-          onAssignmentChange={setPendingAssignment}
-          onQueryChange={setPendingQuery}
-          onReset={resetFilters}
+          keyword={pendingKeyword}
           onApply={applyFilters}
-          onSortChange={setPendingSortBy}
+          onKeywordChange={(event) => setPendingKeyword(event.target.value)}
+          onReset={resetFilters}
           onVisibilityChange={setPendingVisibility}
-          query={pendingQuery}
-          sortBy={pendingSortBy}
           visibility={pendingVisibility}
         />
 
@@ -308,75 +287,47 @@ function PageHeader() {
 }
 
 function FilterBar({
-  assignment,
-  onAssignmentChange,
-  onQueryChange,
-  onReset,
+  keyword,
   onApply,
-  onSortChange,
+  onKeywordChange,
+  onReset,
   onVisibilityChange,
-  query,
-  sortBy,
   visibility,
 }) {
   return (
     <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
-      <div className="space-y-4">
-        {/* Row 1: Search and Action Buttons */}
-        <div className="grid gap-4 md:grid-cols-[1fr_auto_auto]">
-          <Field label="Search Study Sets">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="pl-8"
-                onChange={(event) => onQueryChange(event.target.value)}
-                placeholder="Title, topic, owner"
-                value={query}
-              />
-            </div>
-          </Field>
-
-          <div className="flex items-end">
-            <Button onClick={onApply} type="button">
-              <Search className="size-4" />
-              Apply filter
-            </Button>
+      <div className="grid gap-4 md:grid-cols-[minmax(240px,1fr)_minmax(150px,190px)_auto_auto]">
+        <Field label="Search Study Sets">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="pl-8"
+              onChange={onKeywordChange}
+              placeholder="Title, topic, owner"
+              value={keyword}
+            />
           </div>
+        </Field>
 
-          <div className="flex items-end">
-            <Button onClick={onReset} type="button" variant="ghost">
-              <SlidersHorizontal className="size-4" />
-              Reset Filters
-            </Button>
-          </div>
+        <SelectField
+          label="Visibility"
+          onChange={onVisibilityChange}
+          options={visibilityOptions}
+          value={visibility}
+        />
+
+        <div className="flex items-end justify-end">
+          <Button onClick={onApply} type="button">
+            <Search className="size-4" />
+            Apply filter
+          </Button>
         </div>
 
-        {/* Row 2: Visibility, Assignment, and Sorting */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <SelectField
-            label="Visibility"
-            onChange={onVisibilityChange}
-            options={visibilityOptions}
-            value={visibility}
-          />
-
-          <SelectField
-            label="Assignment Filter"
-            onChange={onAssignmentChange}
-            options={assignmentOptions}
-            value={assignment}
-          />
-
-          <SelectField
-            label="Sort By"
-            onChange={onSortChange}
-            options={[
-              { value: "latest", label: "Latest updated" },
-              { value: "name-asc", label: "Name A-Z" },
-              { value: "name-desc", label: "Name Z-A" },
-            ]}
-            value={sortBy}
-          />
+        <div className="flex items-end justify-end">
+          <Button onClick={onReset} type="button" variant="ghost">
+            <SlidersHorizontal className="size-4" />
+            Reset
+          </Button>
         </div>
       </div>
     </div>
@@ -456,9 +407,7 @@ function VisibilityBadge({ visibility }) {
       ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
       : normalized === "class-only"
         ? "bg-amber-50 text-amber-700 ring-amber-100"
-        : normalized === "archived" || normalized === "hidden"
-          ? "bg-rose-50 text-rose-700 ring-rose-100"
-          : "bg-muted text-muted-foreground ring-border";
+        : "bg-muted text-muted-foreground ring-border";
 
   return (
     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${toneClass}`}>

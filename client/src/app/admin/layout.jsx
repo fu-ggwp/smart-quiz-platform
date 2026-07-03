@@ -1,15 +1,17 @@
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { Navbar } from "@/components/layout/navbar";
 import { RoleGuard } from "@/components/layout/role-guard";
 
 export default function AdminLayout({ children }) {
   return (
-    <RoleGuard allowedRole="admin">
-      <main className="flex h-screen flex-col overflow-hidden bg-background text-foreground md:flex-row">
+    <main className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+      <Navbar />
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         <AppSidebar role="admin" />
         <section className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-          {children}
+          <RoleGuard allowedRole="admin">{children}</RoleGuard>
         </section>
-      </main>
-    </RoleGuard>
+      </div>
+    </main>
   );
 }

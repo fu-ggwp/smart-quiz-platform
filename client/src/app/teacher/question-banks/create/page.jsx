@@ -23,7 +23,7 @@ export default function CreateQuestionBankPage() {
     fallbackErrorMessage: "Question bank could not be created.",
     onSave: questionBanksService.create,
     onSuccess: (response) => {
-      const questionBankId = response?.data?.question_bank_id;
+      const questionBankId = response?.question_bank_id;
       router.push(questionBankId ? `/teacher/question-banks/${questionBankId}` : "/teacher/question-banks");
     },
   });
