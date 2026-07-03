@@ -12,12 +12,12 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { toggleSavedSidebarCollapsed } from "@/components/layout/sidebar-state";
+import { NotificationCenter } from "@/components/notifications/notification-center";
 import { useAuth } from "@/hooks/use-auth";
 import { SWITCHABLE_ROLE_HOME } from "@/lib/auth-constants";
 import { authService } from "@/services/auth.service";
@@ -128,63 +128,67 @@ export function Navbar() {
           </Button>
 
           {isAuthenticated ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  aria-label="Open user menu"
-                  className="rounded-full"
-                  disabled={isLoggingOut || isSwitchingRole}
-                  size="icon"
-                  type="button"
-                  variant="ghost"
-                >
-                  <Avatar>
-                    {avatarUrl ? (
-                      <AvatarImage alt={displayName} src={avatarUrl} />
-                    ) : null}
-                    <AvatarFallback className="font-bold">
-                      {initial}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuGroup>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">
-                      <User />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  {targetRole ? (
-                    <DropdownMenuItem
-                      disabled={isSwitchingRole || isLoggingOut}
-                      onSelect={(event) => {
-                        event.preventDefault();
-                        handleSwitchRole();
-                      }}
-                    >
-                      <Repeat2 />
-                      {isSwitchingRole
-                        ? "Switching..."
-                        : `Switch to ${targetRole === "teacher" ? "Teacher" : "Learner"}`}
+            <>
+              <NotificationCenter />
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    aria-label="Open user menu"
+                    className="rounded-full"
+                    disabled={isLoggingOut || isSwitchingRole}
+                    size="icon"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <Avatar>
+                      {avatarUrl ? (
+                        <AvatarImage alt={displayName} src={avatarUrl} />
+                      ) : null}
+                      <AvatarFallback className="font-bold">
+                        {initial}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">
+                        <User />
+                        Profile
+                      </Link>
                     </DropdownMenuItem>
-                  ) : null}
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  disabled={isLoggingOut}
-                  onSelect={(event) => {
-                    event.preventDefault();
-                    handleLogout();
-                  }}
-                  variant="destructive"
-                >
-                  <LogOut />
-                  {isLoggingOut ? "Logging out..." : "Logout"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    {targetRole ? (
+                      <DropdownMenuItem
+                        disabled={isSwitchingRole || isLoggingOut}
+                        onSelect={(event) => {
+                          event.preventDefault();
+                          handleSwitchRole();
+                        }}
+                      >
+                        <Repeat2 />
+                        {isSwitchingRole
+                          ? "Switching..."
+                          : `Switch to ${targetRole === "teacher" ? "Teacher" : "Learner"}`}
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    disabled={isLoggingOut}
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      handleLogout();
+                    }}
+                    variant="destructive"
+                  >
+                    <LogOut />
+                    {isLoggingOut ? "Logging out..." : "Logout"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : null}
 
           {!loading && !isAuthenticated ? (
