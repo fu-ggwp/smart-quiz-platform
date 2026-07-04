@@ -4,6 +4,7 @@ import { PaymentStatus } from "../../models/payment.model.js";
 import { UserSubscriptionStatus } from "../../models/user-subscription.model.js";
 import * as gateway from "./payment-gateway.service.js";
 import * as dao from "./payments.dao.js";
+import { notifyUserOfPaymentResult } from "./payments.notifications.js";
 
 function dbError(error, status = 500) {
   return Object.assign(new Error(error.message || "Failed to load premium plans."), {
@@ -232,6 +233,7 @@ export async function handlePayOSWebhook(payload) {
 
   const isSuccessful = payload.success === true && payload.code === "00" && data.code === "00";
   const nextStatus = isSuccessful ? PaymentStatus.SUCCESSFUL : PaymentStatus.FAILED;
+  const statusChanged = payment.payment_status !== nextStatus;
   const { data: updated, error: updateError } = await dao.updatePayment(payment.payment_id, {
     payment_status: nextStatus,
     gateway_transaction_id: data.reference || data.paymentLinkId,
@@ -246,5 +248,8 @@ export async function handlePayOSWebhook(payload) {
   if (updateError) throw dbError(updateError);
 
   const subscription = isSuccessful ? await activateSubscription(updated) : null;
+  if (statusChanged) {
+    await notifyUserOfPaymentResult({ payment: updated, status: nextStatus });
+  }
   return { received: true, paymentStatus: updated.payment_status, subscription };
 }

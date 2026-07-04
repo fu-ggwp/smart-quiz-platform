@@ -8,6 +8,7 @@ import {
 } from "../../question-banks/question-banks.service.js";
 import * as dao from "../exams.dao.js";
 import { notifyExamPublished } from "../../../utils/notification.service.js";
+import { notifyLearnersOfExamPublished } from "../exams.notifications.js";
 import { logger } from "../../../utils/logger.js";
 import {
   createSavedMessage,
@@ -96,6 +97,12 @@ async function notifyExamSessionPublished(exam) {
       examTitle: exam.title,
       className: exam.classes?.class_name,
       startAt: exam.start_at,
+    });
+    await notifyLearnersOfExamPublished({
+      learners,
+      examId: exam.exam_session_id,
+      examTitle: exam.title,
+      className: exam.classes?.class_name,
     });
   } catch (err) {
     logger.error("Failed to notify learners of exam publish:", err.message);

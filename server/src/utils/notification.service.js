@@ -1,9 +1,9 @@
-// Learner notification dispatch.
+// Learner email notification dispatch.
 //
 // The SRS names "Email Service" as the secondary actor for the three learner
 // notification triggers (UC-31 approve/reject join request, UC-45 assign study
-// set, UC-46 publish exam session). The database has no notifications table, so
-// notifications are delivered over email (Brevo) via the shared email.service.
+// set, UC-46 publish exam session). In-app notifications live under
+// `features/*/*.notifications.js`; this file only delivers email via Brevo.
 //
 // Every function here is NON-THROWING: a notification failure (e.g. Brevo not
 // configured, a bad address, a network drop) must never roll back or break the

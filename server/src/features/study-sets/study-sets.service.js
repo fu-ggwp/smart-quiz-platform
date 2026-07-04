@@ -1,6 +1,7 @@
 import * as dao from "./study-sets.dao.js";
 import { buildPaginatedResponse, getPagination } from "../../utils/pagination.js";
 import { notifyStudySetAssigned } from "../../utils/notification.service.js";
+import { notifyLearnersOfStudySetAssignment } from "./study-sets.notifications.js";
 import { logger } from "../../utils/logger.js";
 import { requirePremiumFeature } from "../../utils/premium-access.js";
 import * as aiService from "../ai/ai.service.js";
@@ -17,7 +18,7 @@ function notAvailable(message = "This study set is not available to you.") {
 function accessDenied(message = "You do not have permission to access or perform this action.") {
   return Object.assign(new Error(message), { status: 403 });
 }
-async function notifyAssignment(targetClassIds, studySetTitle, options = {}) {
+async function notifyAssignment(targetClassIds, studySet, options = {}) {
   try {
     if (!targetClassIds?.length || !options.notify) return;
 
@@ -32,8 +33,13 @@ async function notifyAssignment(targetClassIds, studySetTitle, options = {}) {
     const className = (classes || []).map((c) => c.class_name).filter(Boolean).join(", ");
     await notifyStudySetAssigned({
       learners,
-      studySetTitle,
+      studySetTitle: studySet.title,
       className,
+    });
+    await notifyLearnersOfStudySetAssignment({
+      learners,
+      studySetId: studySet.study_set_id,
+      studySetTitle: studySet.title,
     });
   } catch (err) {
     logger.error("Failed to notify learners of study set assignment:", err.message);
@@ -337,7 +343,7 @@ async function assignAndNotify(studySet, teacherId, classId, payload) {
       throw dbError(assignError);
     }
 
-    notifyAssignment(targetClassIds, studySet.title, {
+    notifyAssignment(targetClassIds, studySet, {
       notify: shouldNotify(payload),
     });
   }
@@ -507,7 +513,7 @@ async function updateAssignments(id, teacherId, classId, changes, currentTitle) 
       const { error: assignError } = await dao.assignToClass(assignments);
       if (assignError) throw dbError(assignError);
 
-      notifyAssignment(targetClassIds, currentTitle, {
+      notifyAssignment(targetClassIds, { study_set_id: id, title: currentTitle }, {
         notify: shouldNotify({ notifyLearners, notify_learners }),
       });
     }

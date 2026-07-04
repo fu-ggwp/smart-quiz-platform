@@ -7,6 +7,7 @@ import classesRouter from "./features/classes/classes.routes.js";
 import questionBanksRouter from "./features/question-banks/question-banks.routes.js";
 import usersRouter from "./features/users/users.routes.js";
 import paymentsRouter from "./features/payments/payments.routes.js";
+import notificationsRouter from "./features/notifications/notifications.routes.js";
 import { swaggerSpec, swaggerUi } from "./config/swagger.js";
 import { corsMiddleware } from "./config/cors.js";
 
@@ -28,5 +29,6 @@ app.use("/api/classes", classesRouter);
 app.use("/api/question-banks", questionBanksRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/payments", paymentsRouter);
+app.use("/api/notifications", notificationsRouter);
 
 export default app;

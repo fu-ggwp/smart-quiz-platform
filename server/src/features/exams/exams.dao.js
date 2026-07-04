@@ -285,7 +285,7 @@ export function listActiveClassMemberships(learnerId) {
 export function listActiveClassMemberEmails(classId) {
   return db
     .from(CLASS_MEMBER_TABLE)
-    .select("learner:users!learner_id(email, full_name)")
+    .select("learner:users!learner_id(user_id, email, full_name)")
     .eq("class_id", classId)
     .eq("status", "active");
 }
