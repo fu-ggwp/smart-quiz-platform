@@ -33,6 +33,10 @@ import { JoinRequestStatus, ClassMemberStatus } from "../../models/join-request.
 import { StudySetVisibility } from "../../models/study-set.model.js";
 import { PracticeAttemptStatus } from "../../models/practice-attempt.model.js";
 import { notifyJoinRequestResolved } from "../../utils/notification.service.js";
+import {
+  notifyLearnerOfJoinRequestResolution,
+  notifyTeacherOfJoinRequest,
+} from "./classes.notifications.js";
 import { logger } from "../../utils/logger.js";
 
 /**
@@ -259,7 +263,7 @@ export async function resolveJoinRequest(requestId, status, reviewerId) {
   }
 
   // Ownership check via class
-  await getClassDetail(request.class_id, reviewerId);
+  const cls = await getClassDetail(request.class_id, reviewerId);
 
   const { data: updated, error: updateError } = await updateJoinRequest(requestId, {
     status,
@@ -275,6 +279,12 @@ export async function resolveJoinRequest(requestId, status, reviewerId) {
   // Notify the learner of the approval/rejection (UC-31). Fire-and-forget:
   // a notification failure must never affect the resolve outcome.
   notifyLearnerOfResolution(request.class_id, request.learner_id, status);
+  notifyLearnerOfJoinRequestResolution({
+    classId: request.class_id,
+    className: cls.class_name,
+    learnerId: request.learner_id,
+    status,
+  });
 
   return updated;
 }
@@ -441,6 +451,7 @@ export async function joinClass(learnerId, { classCode, invitationToken }) {
     status: JoinRequestStatus.PENDING,
   });
   if (error) throw new Error(error.message);
+  notifyTeacherOfJoinRequest(cls);
   return { joined: false, class: cls, joinRequest: data };
 }
 

@@ -200,7 +200,7 @@ async function assignAndNotify(studySet, teacherId, classId, payload) {
       throw dbError(assignError);
     }
 
-    notifyAssignment(targetClassIds, studySet.title, {
+    notifyAssignment(targetClassIds, studySet, {
       notify: shouldNotify(payload),
     });
   }
@@ -260,7 +260,7 @@ async function updateAssignments(id, teacherId, classId, changes, currentTitle) 
       const { error: assignError } = await dao.assignToClass(assignments);
       if (assignError) throw dbError(assignError);
 
-      notifyAssignment(targetClassIds, currentTitle, {
+      notifyAssignment(targetClassIds, { study_set_id: id, title: currentTitle }, {
         notify: shouldNotify({ notifyLearners, notify_learners }),
       });
     }
