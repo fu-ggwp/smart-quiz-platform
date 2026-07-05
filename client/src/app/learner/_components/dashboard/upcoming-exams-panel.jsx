@@ -1,0 +1,62 @@
+import Link from "next/link";
+import { CalendarClock } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { DashboardBadge } from "./dashboard-badge";
+import { DashboardState } from "./dashboard-state";
+
+function formatDateTime(value) {
+  if (!value) return "Not scheduled";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not scheduled";
+
+  return date.toLocaleString(undefined, {
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    month: "short",
+  });
+}
+
+export function UpcomingExamsPanel({ items }) {
+  return (
+    <section className="rounded-md border border-border bg-card p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold text-foreground">Exams</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Next exam sessions from your classes.</p>
+        </div>
+        <Button asChild size="sm" variant="outline">
+          <Link href="/learner/exams">View exams</Link>
+        </Button>
+      </div>
+
+      {items.length === 0 ? (
+        <div className="mt-5">
+          <DashboardState message="No other active exams right now." />
+        </div>
+      ) : (
+        <div className="mt-5 space-y-3">
+          {items.map((exam) => (
+            <article className="rounded-md border border-border bg-background p-4" key={exam.examSessionId}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <DashboardBadge status={exam.status} />
+                  <h3 className="mt-3 truncate text-base font-bold text-foreground">{exam.title}</h3>
+                  <p className="mt-1 truncate text-sm text-muted-foreground">{exam.className}</p>
+                </div>
+                <CalendarClock className="size-5 shrink-0 text-muted-foreground" />
+              </div>
+              <p className="mt-3 text-sm font-medium text-muted-foreground">
+                {formatDateTime(exam.startAt)}{exam.durationMinutes ? ` - ${exam.durationMinutes} minutes` : ""}
+              </p>
+              <Button asChild className="mt-4 w-full" size="sm" variant="outline">
+                <Link href={exam.href}>Open</Link>
+              </Button>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
