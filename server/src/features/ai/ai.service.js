@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { env } from "../../config/env.js";
+import { httpError } from "../../utils/api-response.js";
 
 const aiUnavailableMessage = "AI processing is currently unavailable. Please try again later.";
 
@@ -38,18 +39,11 @@ const generatedQuestionsSchema = {
 };
 
 /**
- * Build service-layer errors with HTTP status codes understood by controllers.
- */
-function serviceError(message, status = 400) {
-  return Object.assign(new Error(message), { status, statusCode: status });
-}
-
-/**
  * Fail fast when Gemini is not configured instead of sending a broken request.
  */
 function requireGeminiApiKey() {
   if (!env.geminiApiKey) {
-    throw serviceError(aiUnavailableMessage, 503);
+    throw httpError(aiUnavailableMessage, 503);
   }
 }
 
@@ -213,13 +207,13 @@ export async function generateQuestionsFromMaterial({ file, questionCount, focus
     const questions = normalizeGeneratedQuestions(parsed, questionCount);
 
     if (!questions.length) {
-      throw serviceError(aiUnavailableMessage, 502);
+      throw httpError(aiUnavailableMessage, 502);
     }
 
     return { questions };
   } catch (error) {
     if (error.statusCode || error.status) throw error;
-    throw serviceError(aiUnavailableMessage, 502);
+    throw httpError(aiUnavailableMessage, 502);
   }
 }
 
@@ -241,12 +235,12 @@ export async function generateAnswerExplanation({ studySet, question, attemptAns
 
     const aiExplanation = String(response.text || "").trim();
     if (!aiExplanation) {
-      throw serviceError(aiUnavailableMessage, 502);
+      throw httpError(aiUnavailableMessage, 502);
     }
 
     return { aiExplanation };
   } catch (error) {
     if (error.status || error.statusCode) throw error;
-    throw serviceError(aiUnavailableMessage, 502);
+    throw httpError(aiUnavailableMessage, 502);
   }
 }
