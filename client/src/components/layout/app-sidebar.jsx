@@ -47,7 +47,6 @@ const roleConfig = {
       },
       { label: "Classes", href: "/teacher/classes", icon: Building2 },
       { label: "Exams", href: "/teacher/exams", icon: GraduationCap },
-      { label: "Analytics", href: "/teacher/analytics", icon: BarChart3 },
     ],
   },
   learner: {
