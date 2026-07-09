@@ -13,7 +13,6 @@ export function ClassesPanel({ items }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-foreground">My Classes</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Classes you are enrolled in.</p>
         </div>
         <Button asChild size="sm" variant="outline">
           <Link href="/learner/classes">View classes</Link>

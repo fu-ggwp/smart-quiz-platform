@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BookOpen, ClipboardList } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Reusable empty/error state row with an optional action button.
@@ -50,12 +51,12 @@ export function LoadingDashboard() {
     <div className="space-y-5">
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.75fr)]">
         <div className="space-y-5">
-          <div className="h-52 animate-pulse rounded-md border border-border bg-card" />
-          <div className="h-80 animate-pulse rounded-md border border-border bg-card" />
+          <Skeleton className="h-52 rounded-md border border-border" />
+          <Skeleton className="h-80 rounded-md border border-border" />
         </div>
         <div className="space-y-5">
-          <div className="h-64 animate-pulse rounded-md border border-border bg-card" />
-          <div className="h-64 animate-pulse rounded-md border border-border bg-card" />
+          <Skeleton className="h-64 rounded-md border border-border" />
+          <Skeleton className="h-64 rounded-md border border-border" />
         </div>
       </div>
     </div>

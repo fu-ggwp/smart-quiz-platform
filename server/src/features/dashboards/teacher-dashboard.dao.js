@@ -5,18 +5,7 @@ import { JOIN_REQUEST_TABLE } from "../../models/join-request.model.js";
 
 const db = supabase;
 
-const EXAM_DASHBOARD_SELECT = `
-  exam_session_id,
-  title,
-  status,
-  start_at,
-  end_at,
-  updated_at,
-  classes:classes (
-    class_id,
-    class_name
-  )
-`;
+
 
 /**
  * Preferred query: read pending join requests and join the class owner in one request.
@@ -49,7 +38,18 @@ export function listPendingJoinRequestsForTeacher(teacherId) {
 export function listTeacherExamWork(teacherId) {
   return db
     .from(EXAM_SESSION_TABLE)
-    .select(EXAM_DASHBOARD_SELECT)
+    .select(`
+      exam_session_id,
+      title,
+      status,
+      start_at,
+      end_at,
+      updated_at,
+      classes:classes (
+        class_id,
+        class_name
+      )
+    `)
     .eq("teacher_id", teacherId)
     .in("status", ["active", "draft"])
     .is("deleted_at", null)

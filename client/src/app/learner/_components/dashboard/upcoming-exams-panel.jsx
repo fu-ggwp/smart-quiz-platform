@@ -30,7 +30,6 @@ export function UpcomingExamsPanel({ items }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-foreground">Exams</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Next exam sessions from your classes.</p>
         </div>
         <Button asChild size="sm" variant="outline">
           <Link href="/learner/exams">View exams</Link>

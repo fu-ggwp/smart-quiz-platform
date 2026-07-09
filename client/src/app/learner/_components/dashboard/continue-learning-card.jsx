@@ -30,13 +30,12 @@ export function ContinueLearningCard({ item }) {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-foreground">Continue Learning</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Return to your latest study set.</p>
         </div>
       </div>
 
       {/* Empty State or Latest Study Set */}
       {!item ? (
-        <div className="mt-5">
+        <div className="mt-2">
           <DashboardState
             actionHref="/learner/classes/join"
             actionLabel="Join Class"
@@ -44,7 +43,7 @@ export function ContinueLearningCard({ item }) {
           />
         </div>
       ) : (
-        <article className="mt-5 rounded-md bg-background p-4">
+        <article className="mt-2 rounded-md bg-background p-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex size-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <PlayCircle className="size-5" />

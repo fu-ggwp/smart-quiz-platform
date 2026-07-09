@@ -13,7 +13,6 @@ export function AssignedStudySetsPanel({ items }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-foreground">Assigned Practice</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Study sets assigned by your teachers.</p>
         </div>
         <Button asChild size="sm" variant="outline">
           <Link href="/learner/study-sets">View all</Link>

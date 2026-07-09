@@ -21,25 +21,21 @@ import { dashboardsService } from "@/services/dashboards.service";
 const QUICK_ACTIONS = [
   {
     label: "Create Exam",
-    description: "Schedule assessment",
     href: "/teacher/exams/create",
     icon: GraduationCap,
   },
   {
     label: "Create Study Set",
-    description: "Build practice material",
     href: "/teacher/study-sets/create",
     icon: BookOpen,
   },
   {
     label: "Create Question Bank",
-    description: "Prepare reusable questions",
     href: "/teacher/question-banks/create",
     icon: LibraryBig,
   },
   {
     label: "Create Class",
-    description: "Start learning space",
     href: "/teacher/classes/create",
     icon: Building2,
   },
@@ -171,7 +167,6 @@ export default function TeacherDashboardPage() {
       <section className="mx-auto max-w-7xl space-y-6">
         <header className="space-y-1">
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Teacher Dashboard</h1>
-          <p className="text-sm font-medium text-muted-foreground">Create work, review requests, and keep exam sessions moving.</p>
         </header>
 
         <QuickActions />
@@ -236,7 +231,6 @@ function QuickActions() {
               <ArrowRight className="size-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />
             </div>
             <h2 className="mt-4 text-sm font-bold text-foreground">{action.label}</h2>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">{action.description}</p>
           </Link>
         );
       })}
@@ -248,6 +242,16 @@ function QuickActions() {
  * Top metric cards for urgent dashboard work.
  */
 function WorkSummary({ actions, loading }) {
+  if (loading) {
+    return (
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {actions.map((item) => (
+          <Skeleton className="h-28 rounded-lg border border-border" key={item.label} />
+        ))}
+      </section>
+    );
+  }
+
   return (
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {actions.map((item) => {
@@ -262,11 +266,7 @@ function WorkSummary({ actions, loading }) {
               <span className="text-xs font-bold uppercase text-muted-foreground">{item.label}</span>
               <Icon className="size-4 shrink-0 text-muted-foreground" />
             </div>
-            {loading ? (
-              <Skeleton className="mt-4 h-8 w-16 rounded-md" />
-            ) : (
-                <p className="mt-3 text-3xl font-bold text-foreground">{item.value}</p>
-            )}
+            <p className="mt-3 text-3xl font-bold text-foreground">{item.value}</p>
           </article>
         );
       })}
@@ -283,12 +283,11 @@ function JoinRequestsPanel({ items, loading }) {
       <PanelHeader
         actionHref="/teacher/classes"
         actionLabel="View classes"
-        description="Classes with learners waiting for approval."
         title="Join Requests"
       />
 
       <div className="mt-5 space-y-3">
-        {loading ? <ListSkeleton rows={3} /> : null}
+        {loading ? <Skeleton className="h-56 rounded-md border border-border" /> : null}
         {!loading && items.length === 0 ? (
           <EmptyState message="No pending join requests" />
         ) : null}
@@ -333,12 +332,11 @@ function ExamWorkPanel({ examWork, loading }) {
       <PanelHeader
         actionHref="/teacher/exams"
         actionLabel="View exams"
-        description="Active, upcoming, and draft exam sessions."
         title="Exam Work"
       />
 
       <div className="mt-5 space-y-5">
-        {loading ? <ListSkeleton rows={4} /> : null}
+        {loading ? <Skeleton className="h-80 rounded-md border border-border" /> : null}
 
         {!loading && empty ? (
           <EmptyState
@@ -438,30 +436,17 @@ function StatusPill({ tone }) {
 /**
  * Shared panel title/action header.
  */
-function PanelHeader({ actionHref, actionLabel, description, title }) {
+function PanelHeader({ actionHref, actionLabel, title }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0">
         <h2 className="text-lg font-bold text-foreground">{title}</h2>
-        <p className="mt-1 text-sm font-medium text-muted-foreground">{description}</p>
       </div>
       <Button asChild className="shrink-0" size="sm" variant="outline">
         <Link href={actionHref}>{actionLabel}</Link>
       </Button>
     </div>
   );
-}
-
-/**
- * Loading rows that preserve list layout while data is fetched.
- */
-function ListSkeleton({ rows }) {
-  return Array.from({ length: rows }).map((_, index) => (
-    <div className="rounded-md border border-border bg-background p-4" key={index}>
-      <Skeleton className="h-4 w-2/3 rounded-md" />
-      <Skeleton className="mt-3 h-3 w-1/2 rounded-md" />
-    </div>
-  ));
 }
 
 /**
