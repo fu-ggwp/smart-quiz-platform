@@ -172,8 +172,6 @@ export function normalizeListFilters(query = {}) {
     status,
     page: query.page,
     limit: query.limit,
-    sortBy: normalizeText(query.sortBy),
-    sortOrder: normalizeText(query.sortOrder) === "asc" ? "asc" : "desc",
   };
 }
 

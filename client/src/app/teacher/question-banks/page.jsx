@@ -23,8 +23,6 @@ function buildQuestionBankParams({ keyword, page, status }) {
     status: status === "all" ? undefined : status,
     page,
     limit: itemsPerPage,
-    sortBy: "updated_at",
-    sortOrder: "desc",
   };
 }
 
