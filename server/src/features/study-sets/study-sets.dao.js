@@ -11,14 +11,6 @@ import { CLASS_TABLE } from "../../models/class.model.js";
 
 const db = supabase;
 
-// Tìm theo gv sở hữu là teacher_id, hỗ trợ pagination và filters
-export function getAssignmentsByTeacher(teacherId) {
-  return db
-    .from("study_set_assignments")
-    .select("study_set_id")
-    .eq("assigned_by", teacherId);
-}
-
 export function findByTeacher(teacherId) {
   return db
     .from(STUDY_SET_TABLE)

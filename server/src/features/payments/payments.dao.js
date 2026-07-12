@@ -2,6 +2,7 @@ import { supabase as db } from "../../config/supabase.js";
 import { PAYMENT_TABLE } from "../../models/payment.model.js";
 import { PREMIUM_PLAN_TABLE } from "../../models/premium-plan.model.js";
 import { USER_SUBSCRIPTION_TABLE } from "../../models/user-subscription.model.js";
+import { USER_TABLE } from "../../models/user.model.js";
 
 const PLAN_COLUMNS =
   "premium_plan_id, plan_name, display_name, plan_code, price_vnd, billing_period, duration_days, description, features";
@@ -82,6 +83,14 @@ export function findSubscriptionByPaymentId(paymentId) {
     .from(USER_SUBSCRIPTION_TABLE)
     .select("*")
     .eq("payment_id", paymentId)
+    .maybeSingle();
+}
+
+export function findPaymentRecipient(userId) {
+  return db
+    .from(USER_TABLE)
+    .select("email, full_name")
+    .eq("user_id", userId)
     .maybeSingle();
 }
 

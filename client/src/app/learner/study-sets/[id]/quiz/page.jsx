@@ -183,9 +183,9 @@ export default function LearnerQuizPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-50/50 flex flex-col items-center justify-center space-y-4">
-        <div className="size-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm font-semibold text-neutral-500">Generating your quiz...</p>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center space-y-4">
+        <div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm font-semibold text-muted-foreground">Generating your quiz...</p>
       </div>
     );
   }
@@ -196,23 +196,23 @@ export default function LearnerQuizPage() {
     const isNoQuestions = error.status === 400;
 
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-6 text-center">
-        <div className="max-w-md bg-white border border-neutral-200 rounded-3xl p-8 shadow-sm space-y-6">
-          <div className="size-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto">
+      <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center">
+        <div className="max-w-md bg-card border border-border rounded-3xl p-8 shadow-sm space-y-6">
+          <div className="size-16 bg-destructive/10 text-destructive rounded-2xl flex items-center justify-center mx-auto">
             <AlertCircle size={32} />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-extrabold text-neutral-900">
+            <h2 className="text-xl font-extrabold text-foreground">
               {isNoPermission && "Access Denied"}
               {isNotAvailable && "Quiz Unavailable"}
               {isNoQuestions && "No Questions Available"}
               {!isNoPermission && !isNotAvailable && !isNoQuestions && "Error Occurred"}
             </h2>
-            <p className="text-sm text-neutral-500 leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               {error.message || "An unexpected error occurred."}
             </p>
           </div>
-          <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 font-semibold" onClick={() => router.push("/learner/study-sets")}>
+          <Button className="w-full rounded-xl py-2.5 font-semibold" onClick={() => router.push("/learner/study-sets")}>
             Back to Study Sets
           </Button>
         </div>
@@ -225,7 +225,7 @@ export default function LearnerQuizPage() {
   const progressPercent = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0;
 
   return (
-    <main className="min-h-screen bg-neutral-50/50 text-neutral-900 px-4 py-8 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-background text-foreground px-4 py-8 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* KHU VỰC LÀM BÀI */}
@@ -234,7 +234,7 @@ export default function LearnerQuizPage() {
             {answeredCount < questions.length ? (
               <button 
                 onClick={() => setShowConfirmExit(true)} 
-                className="flex items-center gap-1.5 text-sm font-semibold text-neutral-500 hover:text-neutral-900 transition-colors"
+                className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ArrowLeft size={16} />
                 <span>Exit Practice</span>
@@ -242,19 +242,19 @@ export default function LearnerQuizPage() {
             ) : (
               <div />
             )}
-            <span className="text-xs font-bold bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full border border-indigo-100/50">
+            <span className="text-xs font-bold bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20">
               Quiz Mode
             </span>
           </div>
 
           {/* Thanh Tiến Độ */}
-          <div className="bg-white border border-neutral-100 rounded-2xl p-5 shadow-sm space-y-3">
-            <div className="flex items-center justify-between text-xs font-bold text-neutral-500">
+          <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-3">
+            <div className="flex items-center justify-between text-xs font-bold text-muted-foreground">
               <span>PROGRESS</span>
               <span>{answeredCount} of {questions.length} answered</span>
             </div>
-            <div className="h-2 w-full bg-neutral-100 rounded-full overflow-hidden">
-              <div className="h-full bg-indigo-600 transition-all duration-300 rounded-full" style={{ width: `${progressPercent}%` }} ></div>
+            <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+              <div className="h-full bg-primary transition-all duration-300 rounded-full" style={{ width: `${progressPercent}%` }} ></div>
             </div>
           </div>
 

@@ -1,9 +1,9 @@
 export default function QuestionMap({ questions, currentIndex, selectedAnswers, checkedQuestions = {} }) {
   return (
-    <div className="bg-white border border-neutral-100 rounded-3xl p-6 shadow-sm space-y-6">
+    <div className="bg-card border border-border rounded-3xl p-6 shadow-sm space-y-6">
       <div>
-        <h3 className="font-extrabold text-neutral-900 text-base">Question Progress</h3>
-        <p className="text-xs text-neutral-400 mt-1">Quiz question navigation is sequential</p>
+        <h3 className="font-extrabold text-foreground text-base">Question Progress</h3>
+        <p className="text-xs text-muted-foreground mt-1">Quiz question navigation is sequential</p>
       </div>
 
       {/* Grid chỉ mục các câu hỏi */}
@@ -12,31 +12,30 @@ export default function QuestionMap({ questions, currentIndex, selectedAnswers, 
           const isCurrent = idx === currentIndex;
           const isAnswered = !!checkedQuestions[q.question_id];
 
+          let cellClass = "bg-background text-muted-foreground border-border";
+          if (isAnswered) {
+            const userSelected = selectedAnswers[q.question_id] || [];
+            const correctOptionIds = (q.answer_options || []).filter(opt => opt.is_correct).map(opt => opt.answer_option_id);
+            const isCorrect = correctOptionIds.length === userSelected.length && 
+                              correctOptionIds.every(id => userSelected.includes(id));
+            if (isCorrect) {
+              cellClass = "bg-emerald-500 text-white border-emerald-500 shadow-sm";
+            } else {
+              cellClass = "bg-red-500 text-white border-red-500 shadow-sm";
+            }
+          } else if (isCurrent) {
+            cellClass = "bg-primary text-primary-foreground border-primary shadow-sm";
+          }
+
           return (
             <div
               key={q.question_id}
-              className={`h-10 rounded-xl font-bold text-sm border flex items-center justify-center transition-all duration-200 select-none ${
-                isCurrent ? "bg-indigo-600 text-white border-indigo-600 shadow-sm" :
-                isAnswered ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                "bg-white text-neutral-400 border-neutral-200"
-              }`}
+              className={`h-10 rounded-xl font-bold text-sm border flex items-center justify-center transition-all duration-200 select-none ${cellClass}`}
             >
               {idx + 1}
             </div>
           );
         })}
-      </div>
-
-      {/* Chú thích màu sắc */}
-      <div className="pt-4 border-t border-neutral-100 flex items-center justify-between text-xs text-neutral-400 font-semibold">
-        <div className="flex items-center gap-1">
-          <span className="size-2 rounded-full bg-emerald-500"></span>
-          <span>Answered</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span className="size-2 rounded-full bg-neutral-200"></span>
-          <span>Unanswered</span>
-        </div>
       </div>
     </div>
   );

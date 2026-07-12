@@ -16,7 +16,6 @@ import {
   syncQuestions
 } from "./study-sets-questions.service.js";
 
-// Re-export methods from practice service to preserve complete backward compatibility
 export {
   startSession,
   listMySessions,
@@ -27,13 +26,11 @@ export {
   listLearnerStudySets
 } from "./study-sets-practice.service.js";
 
-// Re-export methods from admin service
 export {
   adminListPublicStudySets,
   adminSetVisibility
 } from "./study-sets-admin.service.js";
 
-// Re-export helper methods
 export {
   validateStudySetAccess
 } from "./study-sets.helpers.js";
@@ -45,20 +42,10 @@ export async function listMine(teacherId, query = {}) {
     limit: parseInt(query.limit, 10) || 10,
     keyword: query.keyword || "",
     visibility: query.visibility || "all",
-    assignment: query.assignment || "all",
     sortBy: query.sortBy || "latest",
   };
 
-  let assignedIds = [];
-  if (filters.assignment && filters.assignment !== "all") {
-    const { data: assignments, error: assignError } = await dao.getAssignmentsByTeacher(teacherId);
-    if (assignError) {
-      throw dbError(assignError, 500);
-    }
-    assignedIds = [...new Set((assignments || []).map((a) => a.study_set_id))];
-  }
-
-  const dbQuery = buildQuery(teacherId, filters, assignedIds);
+  const dbQuery = buildQuery(teacherId, filters);
 
   const { from, to } = getPagination(filters, { defaultLimit: 10 });
   const { data, error, count } = await dbQuery.range(from, to);

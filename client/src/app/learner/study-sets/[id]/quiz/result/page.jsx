@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { studySetsService } from "@/services/study-sets.service";
+import { Button } from "@/components/ui/button";
 
 import ResultDashboard from "./_components/ResultDashboard";
 import AnswersReviewList from "./_components/AnswersReviewList";
@@ -62,30 +63,30 @@ export default function LearnerQuizResultPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-50/50 flex flex-col items-center justify-center space-y-4">
-        <div className="size-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm font-semibold text-neutral-500">Loading your results...</p>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center space-y-4">
+        <div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm font-semibold text-muted-foreground">Loading your results...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-6 text-center space-y-4">
-        <h2 className="text-xl font-bold text-red-500">Error Loading Results</h2>
-        <p className="text-sm text-neutral-500">{error}</p>
-        <button 
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <h2 className="text-xl font-bold text-destructive">Error Loading Results</h2>
+        <p className="text-sm text-muted-foreground">{error}</p>
+        <Button 
           onClick={() => router.push(`/learner/study-sets/${studySetId}`)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl px-5 py-2.5"
+          className="font-semibold rounded-xl px-5 py-2.5"
         >
           Back to Study Set
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-neutral-50/50 text-neutral-900 px-4 py-8 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-background text-foreground px-4 py-8 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
         
         {/* Thống kê điểm số */}
