@@ -1,4 +1,4 @@
-import supabase from "@/lib/supabaseClient";
+import supabase from "@/lib/supabase-client";
 import {
   ACCESS_TOKEN_COOKIE,
   ACTIVE_ROLE_COOKIE,

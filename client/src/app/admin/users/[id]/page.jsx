@@ -10,8 +10,8 @@ import { useAuth } from "@/hooks/use-auth";
 // Action verbs (§3.9.2) mapped to the DB account_status enum: Ban → disabled,
 // Restore → active.
 const ACTIONS = {
-  restore: { label: "Restore", status: "active", tone: "bg-emerald-600" },
-  ban: { label: "Ban", status: "disabled", tone: "bg-red-600" },
+  restore: { label: "Restore", status: "active", tone: "bg-success" },
+  ban: { label: "Ban", status: "disabled", tone: "bg-error" },
 };
 
 function availableActions(current) {
@@ -22,10 +22,10 @@ function availableActions(current) {
 }
 
 const STATUS_TONE = {
-  active: "bg-emerald-50 text-emerald-700",
-  pending: "bg-amber-50 text-amber-700",
-  locked: "bg-red-50 text-red-700",
-  disabled: "bg-neutral-100 text-neutral-500",
+  active: "bg-success/10 text-success",
+  pending: "bg-warning/10 text-warning",
+  locked: "bg-error/10 text-error",
+  disabled: "bg-muted text-muted-foreground",
 };
 
 function formatDateTime(value) {
@@ -118,7 +118,7 @@ export default function AdminUserDetailPage() {
         {loading && <p className="text-sm text-muted-foreground">Loading user...</p>}
 
         {!loading && error && (
-          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div className="rounded-lg bg-error/10 px-4 py-3 text-sm text-error">
             {error}{" "}
             <button onClick={load} className="underline">
               Try again
@@ -129,7 +129,7 @@ export default function AdminUserDetailPage() {
         {!loading && !error && user && (
           <>
             {notice && (
-              <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              <div className="mb-4 rounded-lg bg-success/10 px-4 py-3 text-sm text-success">
                 {notice}
               </div>
             )}
@@ -143,7 +143,7 @@ export default function AdminUserDetailPage() {
                 </div>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${
-                    STATUS_TONE[user.account_status] ?? "bg-neutral-100 text-neutral-500"
+                    STATUS_TONE[user.account_status] ?? "bg-muted text-muted-foreground"
                   }`}
                 >
                   {user.account_status}
@@ -174,7 +174,7 @@ export default function AdminUserDetailPage() {
               </p>
 
               {isSelf ? (
-                <p className="mt-4 rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                <p className="mt-4 rounded-md bg-warning/10 px-4 py-3 text-sm text-warning">
                   You cannot change your own account status.
                 </p>
               ) : (
@@ -183,7 +183,7 @@ export default function AdminUserDetailPage() {
                     <button
                       key={key}
                       onClick={() => openConfirm(key)}
-                      className={`rounded-md px-4 py-2 text-sm font-medium text-white hover:opacity-90 ${ACTIONS[key].tone}`}
+                      className={`rounded-md px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 ${ACTIONS[key].tone}`}
                     >
                       {ACTIONS[key].label}
                     </button>
@@ -197,7 +197,7 @@ export default function AdminUserDetailPage() {
 
       {/* Confirmation modal */}
       {pending && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 px-4">
           <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
             <h3 className="text-lg font-semibold">{pending.label} this user?</h3>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -205,7 +205,7 @@ export default function AdminUserDetailPage() {
               <span className="font-medium capitalize">{pending.status}</span>.
             </p>
 
-            {modalError && <p className="mt-3 text-sm text-red-600">{modalError}</p>}
+            {modalError && <p className="mt-3 text-sm text-error">{modalError}</p>}
 
             <div className="mt-5 flex justify-end gap-2">
               <button

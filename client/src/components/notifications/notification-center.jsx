@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Bell, MoreHorizontal } from "lucide-react";
 import { useCallback, useState } from "react";
 
-import ConfirmModal from "@/components/common/ConfirmModal";
+import ConfirmModal from "@/components/common/confirm-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

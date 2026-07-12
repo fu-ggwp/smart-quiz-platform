@@ -6,14 +6,14 @@ function statusConfig(status) {
   if (status === "submitted") {
     return {
       label: "Submitted",
-      className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      className: "border-success/30 bg-success/10 text-success",
       icon: CheckCircle2,
     };
   }
 
   return {
     label: "In progress",
-    className: "border-amber-200 bg-amber-50 text-amber-700",
+    className: "border-warning/30 bg-warning/10 text-warning",
     icon: Hourglass,
   };
 }

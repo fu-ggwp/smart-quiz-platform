@@ -137,7 +137,7 @@ export default function LearnerExamDetailPage() {
     return (
       <main className="min-h-screen bg-background px-4 py-5 sm:px-6 lg:px-8">
         <section className="mx-auto max-w-5xl space-y-4 rounded-md border border-border bg-card p-6">
-          <p className="text-sm font-medium text-red-600">{error || "Exam not found."}</p>
+          <p className="text-sm font-medium text-error">{error || "Exam not found."}</p>
           <Button asChild variant="outline"><Link href="/learner/exams">Back to exams</Link></Button>
         </section>
       </main>
@@ -169,7 +169,7 @@ export default function LearnerExamDetailPage() {
           </div>
 
           {availabilityNotice ? (
-            <div className="mt-4 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
+            <div className="mt-4 flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm font-medium text-warning">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" />
               <p>{availabilityNotice}</p>
             </div>

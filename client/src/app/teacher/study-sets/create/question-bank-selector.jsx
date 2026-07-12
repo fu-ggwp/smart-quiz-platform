@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight, BookOpen, AlertTriangle } from "lucide-react";
 import { questionBanksService } from "@/services/question-banks.service";
 import { Button } from "@/components/ui/button";
-import ConfirmModal from "@/components/common/ConfirmModal";
+import ConfirmModal from "@/components/common/confirm-modal";
 
 export default function QuestionBankSelector({ 
   onQuestionsSelected, 
@@ -183,7 +183,7 @@ export default function QuestionBankSelector({
             <button
               type="button"
               onClick={() => setShowConfirmSwitch(true)}
-              className="text-xs text-rose-600 hover:text-rose-700 hover:underline font-bold"
+              className="text-xs text-error hover:text-error hover:underline font-bold"
             >
               Switch Bank
             </button>
@@ -241,7 +241,7 @@ export default function QuestionBankSelector({
                         }}
                         onChange={(e) => handleSelectChapter(chapter, e.target.checked)}
                       />
-                      <BookOpen className="size-4 text-blue-500 fill-blue-500/10" />
+                      <BookOpen className="size-4 text-info fill-info/10" />
                       <span className="text-sm font-bold text-foreground cursor-pointer" onClick={() => toggleChapter(chapter)}>
                         Chapter: {chapter}
                       </span>
@@ -264,7 +264,7 @@ export default function QuestionBankSelector({
                               <div className="flex items-start gap-2">
                                 <p className="text-foreground leading-relaxed font-normal">{q.question_text}</p>
                                 {importedSet.has(q.question_id) && (
-                                  <span className="shrink-0 text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-md font-semibold border border-emerald-100">
+                                  <span className="shrink-0 text-[10px] bg-success/10 text-success px-1.5 py-0.5 rounded-md font-semibold border border-success/20">
                                     Added
                                   </span>
                                 )}

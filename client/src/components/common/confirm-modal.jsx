@@ -30,27 +30,27 @@ export default function ConfirmModal({
   // Variant themes
   const themes = {
     danger: {
-      text: "text-rose-600 dark:text-rose-400",
-      bg: "bg-rose-50 dark:bg-rose-950/30",
-      border: "border-rose-100 dark:border-rose-900/50",
-      button: "bg-rose-600 hover:bg-rose-700 text-white focus:ring-rose-500",
+      text: "text-error dark:text-error",
+      bg: "bg-error/10 dark:bg-error/10",
+      border: "border-error/20 dark:border-error/30",
+      button: "bg-error hover:bg-error/90 text-primary-foreground focus:ring-error",
     },
     warning: {
-      text: "text-amber-600 dark:text-amber-400",
-      bg: "bg-amber-50 dark:bg-amber-950/30",
-      border: "border-amber-100 dark:border-amber-900/50",
-      button: "bg-amber-600 hover:bg-amber-700 text-white focus:ring-amber-500",
+      text: "text-warning dark:text-warning",
+      bg: "bg-warning/10 dark:bg-warning/10",
+      border: "border-warning/20 dark:border-warning/30",
+      button: "bg-warning hover:bg-warning/90 text-primary-foreground focus:ring-warning",
     },
     success: {
-      text: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-50 dark:bg-emerald-950/30",
-      border: "border-emerald-100 dark:border-emerald-900/50",
-      button: "bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-emerald-500",
+      text: "text-success dark:text-success",
+      bg: "bg-success/10 dark:bg-success/10",
+      border: "border-success/20 dark:border-success/30",
+      button: "bg-success hover:bg-success/90 text-primary-foreground focus:ring-success",
     },
     info: {
-      text: "text-blue-600 dark:text-blue-400",
-      bg: "bg-blue-50 dark:bg-blue-950/30",
-      border: "border-blue-100 dark:border-blue-900/50",
+      text: "text-info dark:text-info",
+      bg: "bg-info/10 dark:bg-info/10",
+      border: "border-info/20 dark:border-info/30",
       button: "bg-primary hover:bg-primary/90 text-primary-foreground focus:ring-ring",
     },
   };
@@ -58,7 +58,7 @@ export default function ConfirmModal({
   const currentTheme = themes[resolvedVariant] || themes.info;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-primary/60 backdrop-blur-sm px-4">
       <div className="relative w-full max-w-xl rounded-2xl bg-card border border-border p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 space-y-6">
         {/* Close Button */}
         <button

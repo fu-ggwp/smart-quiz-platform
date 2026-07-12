@@ -114,7 +114,7 @@ export function Navbar() {
             aria-label="Search study sets"
             className="h-8 flex-1 border-0 bg-transparent px-0 py-0 focus-visible:ring-0"
             onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="Search study sets"
+            placeholder="Search public study sets and users"
             value={searchInput}
           />
           <Button aria-label="Search" size="icon" type="submit" variant="ghost">
@@ -191,13 +191,13 @@ export function Navbar() {
             </>
           ) : null}
 
-          {!loading && !isAuthenticated ? (
+          {!isAuthenticated ? (
             <>
               <Button asChild variant="secondary">
                 <Link href="/login">Login</Link>
               </Button>
               <Button asChild>
-                <Link href="/register">Get started</Link>
+                <Link href="/register">Register</Link>
               </Button>
             </>
           ) : null}

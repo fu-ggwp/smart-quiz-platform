@@ -246,13 +246,13 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
   
   if (file) {
     if (hasErrors) {
-      uploadIcon = <FileX className="size-6 text-rose-600" />;
-      iconBgClass = "bg-rose-100";
-      uploadBorderClass = "border-rose-300 hover:border-rose-400 bg-rose-50/10";
+      uploadIcon = <FileX className="size-6 text-error" />;
+      iconBgClass = "bg-error/20";
+      uploadBorderClass = "border-error/40 hover:border-error/50 bg-error/10";
     } else {
-      uploadIcon = <FileCheck className="size-6 text-emerald-600" />;
-      iconBgClass = "bg-emerald-100";
-      uploadBorderClass = "border-emerald-300 hover:border-emerald-400 bg-emerald-50/10";
+      uploadIcon = <FileCheck className="size-6 text-success" />;
+      iconBgClass = "bg-success/20";
+      uploadBorderClass = "border-success/40 hover:border-success/50 bg-success/10";
     }
   }
 
@@ -295,7 +295,7 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
 
       <div className="flex items-center justify-between bg-muted/40 p-4 rounded-xl border border-border mb-6">
         <div className="flex items-center gap-3">
-          <FileSpreadsheet className="size-5 text-emerald-600" />
+          <FileSpreadsheet className="size-5 text-success" />
           <div className="text-xs">
             <p className="font-semibold text-foreground">Excel Import Template</p>
             <p className="text-muted-foreground">Download the correct format sheet template.</p>
@@ -314,23 +314,23 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
               <p className="text-xs text-muted-foreground font-semibold">Total Rows</p>
               <p className="text-lg font-bold text-foreground mt-1">{stats.total}</p>
             </div>
-            <div className="bg-emerald-50 text-emerald-900 p-3 rounded-xl text-center border border-emerald-100">
-              <p className="text-xs text-emerald-700 font-semibold">Valid Rows</p>
-              <p className="text-lg font-bold text-emerald-800 mt-1">{stats.valid}</p>
+            <div className="bg-success/10 text-success p-3 rounded-xl text-center border border-success/20">
+              <p className="text-xs text-success font-semibold">Valid Rows</p>
+              <p className="text-lg font-bold text-success mt-1">{stats.valid}</p>
             </div>
-            <div className="bg-rose-50 text-rose-900 p-3 rounded-xl text-center border border-rose-100">
-              <p className="text-xs text-rose-700 font-semibold">Error Rows</p>
-              <p className="text-lg font-bold text-rose-800 mt-1">{stats.invalid}</p>
+            <div className="bg-error/10 text-error p-3 rounded-xl text-center border border-error/20">
+              <p className="text-xs text-error font-semibold">Error Rows</p>
+              <p className="text-lg font-bold text-error mt-1">{stats.invalid}</p>
             </div>
           </div>
 
           {errors.length > 0 && (
-            <div className="border border-rose-100 bg-rose-50/50 p-4 rounded-xl max-h-[180px] overflow-y-auto">
-              <div className="flex items-center gap-2 text-rose-800 font-bold text-sm mb-2">
+            <div className="border border-error/20 bg-error/10 p-4 rounded-xl max-h-[180px] overflow-y-auto">
+              <div className="flex items-center gap-2 text-error font-bold text-sm mb-2">
                 <AlertTriangle size={16} />
                 <span>Import Errors Detected:</span>
               </div>
-              <ul className="space-y-1.5 text-xs text-rose-700 list-disc pl-4">
+              <ul className="space-y-1.5 text-xs text-error list-disc pl-4">
                 {errors.map((err, idx) => (
                   <li key={idx}>
                     {typeof err === "string"
@@ -343,8 +343,8 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
           )}
 
           {stats.valid > 0 && errors.length === 0 && (
-            <div className="flex items-center gap-2 bg-emerald-50 text-emerald-800 p-4 rounded-xl border border-emerald-100 text-sm">
-              <CheckCircle size={18} className="text-emerald-600" />
+            <div className="flex items-center gap-2 bg-success/10 text-success p-4 rounded-xl border border-success/20 text-sm">
+              <CheckCircle size={18} className="text-success" />
               <span>All rows look healthy and ready to import!</span>
             </div>
           )}

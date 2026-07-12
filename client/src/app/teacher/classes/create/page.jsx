@@ -31,7 +31,7 @@ export default function CreateClassPage() {
           <h1 className="text-3xl font-semibold">Create Class</h1>
           <Link
             href="/teacher/classes"
-            className="text-sm text-neutral-500 hover:text-neutral-800"
+            className="text-sm text-muted-foreground hover:text-foreground"
           >
             ← Back
           </Link>

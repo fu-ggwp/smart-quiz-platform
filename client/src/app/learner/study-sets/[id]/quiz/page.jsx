@@ -7,9 +7,9 @@ import { studySetsService } from "@/services/study-sets.service";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
-import QuizCard from "./_components/QuizCard";
-import QuestionMap from "./_components/QuestionMap";
-import ConfirmExitModal from "./_components/ConfirmExitModal";
+import QuizCard from "./_components/quiz-card";
+import QuestionMap from "./_components/question-map";
+import ConfirmExitModal from "./_components/confirm-exit-modal";
 
 function shuffleArray(array) {
   const newArr = [...array];

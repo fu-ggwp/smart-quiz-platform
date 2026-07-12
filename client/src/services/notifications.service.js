@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "./axios-client";
 
 export const notificationsService = {
   list: ({ limit = 20, offset = 0 } = {}) =>

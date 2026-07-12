@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "./axios-client";
 
 export const profileService = {
   getMine: () => axiosClient.get("/api/auth/me").then((r) => r.data.data),

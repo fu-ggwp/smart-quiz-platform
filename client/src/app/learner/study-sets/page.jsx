@@ -209,7 +209,7 @@ export default function LearnerStudySetsPage() {
                     </span>
                     {set.is_started && set.last_studied_at ? (
                       set.study_status === "submitted" ? (
-                        <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                        <span className="flex items-center gap-1 text-success font-medium">
                           <CheckCircle className="size-3.5" />
                           Completed
                         </span>

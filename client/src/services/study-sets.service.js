@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "./axios-client";
 
 export const studySetsService = {
   listMine: (params) => axiosClient.get("/api/study-sets/mine", { params }).then((r) => r.data),

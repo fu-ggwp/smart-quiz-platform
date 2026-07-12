@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { StudySetDetailView } from "@/components/study-set/StudySetDetailView";
+import { StudySetDetailView } from "@/components/study-set/study-set-detail-view";
 
 export default function LearnerStudySetDetailPage() {
   const params = useParams();

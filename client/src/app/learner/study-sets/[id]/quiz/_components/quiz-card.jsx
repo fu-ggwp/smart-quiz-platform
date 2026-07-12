@@ -25,7 +25,7 @@ export default function QuizCard({
             Question {questionNumber}
           </span>
           {isMultiSelect && (
-            <span className="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-0.5 rounded-md animate-pulse">
+            <span className="text-xs font-bold text-warning bg-warning/10 border border-warning/20 px-2.5 py-0.5 rounded-md animate-pulse">
               Multiple Correct Answers
             </span>
           )}
@@ -52,11 +52,11 @@ export default function QuizCard({
 
           if (isAnswerChecked) {
             if (isCorrectOption) {
-              itemStyle = "border-emerald-500 bg-emerald-50/10 cursor-not-allowed";
-              badgeStyle = "bg-emerald-500 text-white border-emerald-500";
+              itemStyle = "border-success bg-success/10 cursor-not-allowed";
+              badgeStyle = "bg-success text-primary-foreground border-success";
             } else if (isSelected && !isCorrectOption) {
-              itemStyle = "border-red-500 bg-red-50/10 cursor-not-allowed";
-              badgeStyle = "bg-red-500 text-white border-red-500";
+              itemStyle = "border-error bg-error/10 cursor-not-allowed";
+              badgeStyle = "bg-error text-primary-foreground border-error";
             } else {
               itemStyle = "border-muted bg-muted/20 cursor-not-allowed opacity-60";
               badgeStyle = "bg-muted text-muted-foreground border-border";
@@ -88,12 +88,12 @@ export default function QuizCard({
               {isAnswerChecked ? (
                 <div className="flex items-center gap-2">
                   {isCorrectOption && (
-                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-md">
+                    <span className="text-[10px] font-bold bg-success/20 text-success px-2.5 py-0.5 rounded-md">
                       Correct Answer {isSelected && "• Your Choice"}
                     </span>
                   )}
                   {isSelected && !isCorrectOption && (
-                    <span className="text-[10px] font-bold bg-red-100 text-red-800 px-2.5 py-0.5 rounded-md">
+                    <span className="text-[10px] font-bold bg-error/20 text-error px-2.5 py-0.5 rounded-md">
                       Your Choice
                     </span>
                   )}
@@ -141,7 +141,7 @@ export default function QuizCard({
           ) : (
             <Button 
               onClick={onSubmit} 
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl px-5 py-2.5 gap-1.5 shadow-sm"
+              className="bg-success hover:bg-success/90 text-primary-foreground font-bold rounded-xl px-5 py-2.5 gap-1.5 shadow-sm"
             >
               <Send size={14} />
               <span>Finish & View Results</span>

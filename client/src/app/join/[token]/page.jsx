@@ -34,13 +34,13 @@ export default function JoinByTokenPage() {
           <h1 className="mb-2 text-2xl font-semibold">
             {success.joined ? "You've joined the class!" : "Request sent!"}
           </h1>
-          <p className="mb-6 text-sm text-neutral-500">
+          <p className="mb-6 text-sm text-muted-foreground">
             {success.joined ? (
               <>
                 You are now a member of{" "}
                 <span className="font-medium text-black">{success.class.class_name}</span>
                 {success.class.teacher && (
-                  <> by <span className="font-medium text-blue-600">{success.class.teacher.username || success.class.teacher.full_name}</span></>
+                  <> by <span className="font-medium text-info">{success.class.teacher.username || success.class.teacher.full_name}</span></>
                 )}.
               </>
             ) : (
@@ -48,7 +48,7 @@ export default function JoinByTokenPage() {
                 Your join request for{" "}
                 <span className="font-medium text-black">{success.class.class_name}</span>
                 {success.class.teacher && (
-                  <> by <span className="font-medium text-blue-600">{success.class.teacher.username || success.class.teacher.full_name}</span></>
+                  <> by <span className="font-medium text-info">{success.class.teacher.username || success.class.teacher.full_name}</span></>
                 )}{" "}
                 has been sent. The teacher will review it shortly.
               </>
@@ -57,7 +57,7 @@ export default function JoinByTokenPage() {
           {success.joined && (
             <Link
               href="/learner/classes"
-              className="rounded-lg bg-black px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800"
+              className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/80"
             >
               View My Classes
             </Link>
@@ -71,12 +71,12 @@ export default function JoinByTokenPage() {
     <main className="flex min-h-screen items-center justify-center px-6">
       <section className="w-full max-w-md text-center">
         <h1 className="mb-2 text-2xl font-semibold">You've been invited!</h1>
-        <p className="mb-8 text-sm text-neutral-500">
+        <p className="mb-8 text-sm text-muted-foreground">
           Click the button below to join the class.
         </p>
 
         {error && (
-          <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          <p className="mb-4 rounded-lg bg-error/10 px-4 py-3 text-sm text-error">
             {error}
           </p>
         )}
@@ -85,13 +85,13 @@ export default function JoinByTokenPage() {
           <button
             onClick={handleJoin}
             disabled={submitting}
-            className="rounded-lg bg-black px-6 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? "Joining..." : "Join Class"}
           </button>
           <Link
             href="/learner/classes"
-            className="rounded-lg border border-neutral-200 px-6 py-3 text-sm hover:bg-neutral-50"
+            className="rounded-lg border border-border px-6 py-3 text-sm hover:bg-muted"
           >
             Cancel
           </Link>

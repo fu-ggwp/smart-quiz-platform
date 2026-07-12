@@ -27,7 +27,7 @@ export function ExamSessionsEmptyState() {
       </p>
       <Button
         asChild
-        className="mt-6 h-11 rounded-md bg-primary px-5 text-sm font-bold text-primary-foreground hover:bg-[color-mix(in_oklch,var(--color-primary),var(--color-foreground)_10%)]"
+        className="mt-6 h-11 rounded-md bg-primary px-5 text-sm font-bold text-primary-foreground hover:bg-primary/90"
       >
         <Link href="/teacher/exams/create">Create Exam Session</Link>
       </Button>

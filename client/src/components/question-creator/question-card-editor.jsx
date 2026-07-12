@@ -40,7 +40,7 @@ export default function QuestionCardEditor({
           type="button"
           variant="ghost"
           size="icon"
-          className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+          className="text-error hover:text-error hover:bg-error/10"
         >
           <Trash2 className="size-4" />
         </Button>
@@ -49,7 +49,7 @@ export default function QuestionCardEditor({
       {/* Question text */}
       <div className="space-y-1.5">
         <label className="text-sm font-semibold text-foreground">Question
-          <span className="text-rose-500"> *</span></label>
+          <span className="text-error"> *</span></label>
         <textarea
           className="min-h-[60px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
           placeholder="Enter the question text"
@@ -57,7 +57,7 @@ export default function QuestionCardEditor({
           onChange={(e) => onFieldChange("question_text", e.target.value)}
         />
         {errors[`q_${qIndex}_text`] && (
-          <p className="text-xs font-semibold text-rose-500 mt-0.5">{errors[`q_${qIndex}_text`]}</p>
+          <p className="text-xs font-semibold text-error mt-0.5">{errors[`q_${qIndex}_text`]}</p>
         )}
       </div>
 
@@ -76,7 +76,7 @@ export default function QuestionCardEditor({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-sm font-semibold text-foreground">
-            Answer Options<span className="text-rose-500"> *</span>
+            Answer Options<span className="text-error"> *</span>
           </label>
           <Button
             onClick={onAddOption}
@@ -113,7 +113,7 @@ export default function QuestionCardEditor({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 text-muted-foreground hover:text-rose-600"
+                  className="h-9 w-9 text-muted-foreground hover:text-error"
                 >
                   <Trash2 className="size-4" />
                 </Button>
@@ -122,7 +122,7 @@ export default function QuestionCardEditor({
           ))}
         </div>
         {errors[`q_${qIndex}_options`] && (
-          <p className="text-xs font-semibold text-rose-500 mt-1">{errors[`q_${qIndex}_options`]}</p>
+          <p className="text-xs font-semibold text-error mt-1">{errors[`q_${qIndex}_options`]}</p>
         )}
       </div>
 

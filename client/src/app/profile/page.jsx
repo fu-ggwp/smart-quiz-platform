@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import supabase from "@/lib/supabaseClient";
+import supabase from "@/lib/supabase-client";
 import { profileService } from "@/services/profile.service";
 
 const AVATAR_BUCKET = "avatars";

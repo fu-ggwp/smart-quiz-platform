@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import supabase from "@/lib/supabaseClient";
+import supabase from "@/lib/supabase-client";
 import { useAuthStore } from "@/stores/auth-store";
 
 export function AuthProvider({ children, initialIsAuthenticated = false, initialRole = null }) {

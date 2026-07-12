@@ -94,8 +94,8 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
                 key={q.question_id}
                 className={`bg-card border rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 transition-all duration-200 ${
                   isCorrect 
-                    ? "border-emerald-100 hover:border-emerald-200" 
-                    : "border-red-100 hover:border-red-200"
+                    ? "border-success/20 hover:border-success/30" 
+                    : "border-error/20 hover:border-error/30"
                 }`}
               >
                 {/* Trạng thái và Tiêu đề câu hỏi */}
@@ -112,12 +112,12 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
                   {/* Icon Check / X */}
                   <div className="shrink-0 pt-1">
                     {isCorrect ? (
-                      <span className="flex items-center gap-1 text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full text-xs font-bold">
+                      <span className="flex items-center gap-1 text-success bg-success/10 border border-success/20 px-3 py-1 rounded-full text-xs font-bold">
                         <CheckCircle2 size={14} />
                         <span>Correct</span>
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-red-600 bg-red-50 border border-red-100 px-3 py-1 rounded-full text-xs font-bold animate-shake">
+                      <span className="flex items-center gap-1 text-error bg-error/10 border border-error/20 px-3 py-1 rounded-full text-xs font-bold animate-shake">
                         <XCircle size={14} />
                         <span>Incorrect</span>
                       </span>
@@ -137,11 +137,11 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
                     let badgeStyle = "bg-muted text-muted-foreground border-border";
 
                     if (isCorrectOption) {
-                      itemStyle = "border-emerald-500 bg-emerald-50/10";
-                      badgeStyle = "bg-emerald-500 text-white border-emerald-500";
+                      itemStyle = "border-success bg-success/10";
+                      badgeStyle = "bg-success text-primary-foreground border-success";
                     } else if (isUserSelection && !isCorrectOption) {
-                      itemStyle = "border-red-500 bg-red-50/10";
-                      badgeStyle = "bg-red-500 text-white border-red-500";
+                      itemStyle = "border-error bg-error/10";
+                      badgeStyle = "bg-error text-primary-foreground border-error";
                     }
 
                     return (
@@ -158,12 +158,12 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
 
                         {/* Nhãn hiển thị trạng thái đáp án */}
                         {isCorrectOption && (
-                          <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold bg-success/20 text-success px-2 py-0.5 rounded-md">
                             Correct Answer {isUserSelection && "• Your Choice"}
                           </span>
                         )}
                         {isUserSelection && !isCorrectOption && (
-                          <span className="text-[10px] font-bold bg-red-100 text-red-800 px-2 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold bg-error/20 text-error px-2 py-0.5 rounded-md">
                             Your Choice
                           </span>
                         )}
@@ -201,12 +201,12 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
                   </Button>
 
                   {aiState.status === "error" && (
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3.5 text-sm font-medium text-red-700">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-error/20 bg-error/10 px-4 py-3.5 text-sm font-medium text-error">
                       <span>{aiState.error}</span>
                       {aiState.error.includes("Premium") && (
                         <Link
                           href="/upgrade"
-                          className="shrink-0 inline-flex items-center justify-center rounded-xl bg-destructive text-white hover:bg-destructive/90 font-bold px-4 py-2.5 text-xs text-center transition-colors shadow-sm"
+                          className="shrink-0 inline-flex items-center justify-center rounded-xl bg-destructive text-primary-foreground hover:bg-destructive/90 font-bold px-4 py-2.5 text-xs text-center transition-colors shadow-sm"
                         >
                           Upgrade Now
                         </Link>

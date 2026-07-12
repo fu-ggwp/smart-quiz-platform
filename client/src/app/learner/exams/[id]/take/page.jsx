@@ -270,15 +270,15 @@ export default function TakeExamPage() {
   }
 
   return (
-    <main className="fixed inset-0 z-50 overflow-auto bg-[#eeeeee] text-slate-700">
+    <main className="fixed inset-0 z-50 overflow-auto bg-background text-foreground">
       <TakeHeader onChangeFontScale={changeFontScale} />
 
-      <section className="border-b border-slate-200 bg-[#f7f7f7] px-4 py-3 text-sm font-semibold text-slate-600">
+      <section className="border-b border-border bg-muted px-4 py-3 text-sm font-semibold text-muted-foreground">
         Individual exam - {examData.exam?.classes?.class_name || "Class"} - {examData.exam?.title}
       </section>
 
       {warning ? (
-        <div className="mx-4 mt-3 flex items-center gap-2 border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
+        <div className="mx-4 mt-3 flex items-center gap-2 border border-warning/40 bg-warning/10 px-3 py-2 text-sm font-medium text-warning">
           <span>{warning} Warnings: {examData.attempt?.warning_count ?? 0}</span>
         </div>
       ) : null}
@@ -305,7 +305,7 @@ export default function TakeExamPage() {
         />
       </section>
 
-      <footer className="pointer-events-none fixed bottom-0 right-0 px-4 pb-2 text-xs text-slate-500">
+      <footer className="pointer-events-none fixed bottom-0 right-0 px-4 pb-2 text-xs text-muted-foreground">
         Answered {answeredCount}/{questions.length}
       </footer>
 

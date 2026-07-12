@@ -6,7 +6,7 @@ import { AlertCircle, Loader2, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { questionBanksService } from "@/services/question-banks.service";
-import ConfirmModal from "@/components/common/ConfirmModal";
+import ConfirmModal from "@/components/common/confirm-modal";
 
 import {
   QuestionBankEditorForm,

@@ -5,11 +5,11 @@ export function ExportMenu({ open, options, onChange, onClose, onExport }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4 py-6">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-primary/40 px-4 py-6">
       <section className="w-full max-w-xl rounded-md border border-border bg-card shadow-xl">
         <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-4">
           <h2 className="inline-flex items-center gap-2 text-base font-bold text-foreground">
-            <FileSpreadsheet className="size-4 text-emerald-600" />
+            <FileSpreadsheet className="size-4 text-success" />
             Export results
           </h2>
           <Button size="sm" variant="ghost" onClick={onClose}>
@@ -21,7 +21,7 @@ export function ExportMenu({ open, options, onChange, onClose, onExport }) {
             <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <input
                 checked={options.mode === "current"}
-                className="size-4 accent-blue-700"
+                className="size-4 accent-info"
                 name="export-mode"
                 onChange={() => onChange((current) => ({ ...current, mode: "current" }))}
                 type="radio"
@@ -31,7 +31,7 @@ export function ExportMenu({ open, options, onChange, onClose, onExport }) {
             <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <input
                 checked={options.mode === "all"}
-                className="size-4 accent-blue-700"
+                className="size-4 accent-info"
                 name="export-mode"
                 onChange={() => onChange((current) => ({ ...current, mode: "all" }))}
                 type="radio"
@@ -43,7 +43,7 @@ export function ExportMenu({ open, options, onChange, onClose, onExport }) {
             <label className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <input
                 checked={options.includeTime}
-                className="size-4 accent-blue-700"
+                className="size-4 accent-info"
                 onChange={(event) => onChange((current) => ({ ...current, includeTime: event.target.checked }))}
                 type="checkbox"
               />
@@ -52,7 +52,7 @@ export function ExportMenu({ open, options, onChange, onClose, onExport }) {
             <label className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <input
                 checked={options.includeWarnings}
-                className="size-4 accent-blue-700"
+                className="size-4 accent-info"
                 onChange={(event) => onChange((current) => ({ ...current, includeWarnings: event.target.checked }))}
                 type="checkbox"
               />

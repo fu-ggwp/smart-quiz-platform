@@ -3,9 +3,9 @@
 import { useMemo, useState } from "react";
 import { ArrowLeft, ChevronDown, ChevronRight, FileSpreadsheet, Loader2, Plus, Save, Sparkles } from "lucide-react";
 
-import ExcelImporter from "@/components/question-creator/ExcelImporter";
-import MaterialQuestionGenerator from "@/components/question-creator/MaterialQuestionGenerator";
-import QuestionCardEditor from "@/components/question-creator/QuestionCardEditor";
+import ExcelImporter from "@/components/question-creator/excel-importer";
+import MaterialQuestionGenerator from "@/components/question-creator/material-question-generator";
+import QuestionCardEditor from "@/components/question-creator/question-card-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -97,9 +97,9 @@ export function QuestionBankEditorForm({
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-sm font-semibold text-foreground">Title <span className="text-rose-500">*</span></label>
+                <label className="text-sm font-semibold text-foreground">Title <span className="text-error">*</span></label>
                 <Input name="title" placeholder="e.g. Grade 10 Algebra" value={form.title} onChange={onMetadataChange} />
-                {errors.title && <p className="text-xs font-semibold text-rose-500">{errors.title}</p>}
+                {errors.title && <p className="text-xs font-semibold text-error">{errors.title}</p>}
               </div>
 
               <div className="space-y-1.5 md:col-span-2">
@@ -232,7 +232,7 @@ export function QuestionBankEditorForm({
  */
 export function QuestionBankExcelImportModal({ onCancel, onQuestionsImported }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-primary/60 p-4 backdrop-blur-sm">
       <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-border bg-card shadow-2xl">
         <ExcelImporter
           onCancel={onCancel}
@@ -248,7 +248,7 @@ export function QuestionBankExcelImportModal({ onCancel, onQuestionsImported }) 
  */
 export function QuestionBankMaterialGenerateModal({ generateQuestions, onCancel, onQuestionsGenerated }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-primary/60 p-4 backdrop-blur-sm">
       <div className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-border bg-card shadow-2xl">
         <MaterialQuestionGenerator
           generateQuestions={generateQuestions}

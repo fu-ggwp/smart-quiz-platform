@@ -7,10 +7,10 @@ const STATUS_LABELS = {
 };
 
 const STATUS_TONES = {
-  active_now: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  upcoming: "bg-blue-50 text-blue-700 ring-blue-200",
+  active_now: "bg-success/10 text-success ring-success/30",
+  upcoming: "bg-info/10 text-info ring-info/30",
   in_progress: "bg-primary/10 text-primary ring-primary/20",
-  not_started: "bg-amber-50 text-amber-700 ring-amber-200",
+  not_started: "bg-warning/10 text-warning ring-warning/30",
   completed: "bg-muted text-muted-foreground ring-border",
 };
 

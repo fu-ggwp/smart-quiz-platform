@@ -76,7 +76,7 @@ export default function TeacherClassesPage() {
           <h1 className="text-3xl font-semibold">My Classes</h1>
           <Link
             href="/teacher/classes/create"
-            className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80"
           >
             + Create Class
           </Link>
@@ -89,12 +89,12 @@ export default function TeacherClassesPage() {
             value={search}
             onChange={handleSearch}
             placeholder="Search by class name..."
-            className="flex-1 rounded-lg border border-neutral-200 px-4 py-2 text-sm outline-none focus:border-neutral-400"
+            className="flex-1 rounded-lg border border-border px-4 py-2 text-sm outline-none focus:border-ring"
           />
           <select
             value={sort}
             onChange={handleSort}
-            className="rounded-lg border border-neutral-200 px-4 py-2 text-sm outline-none focus:border-neutral-400"
+            className="rounded-lg border border-border px-4 py-2 text-sm outline-none focus:border-ring"
           >
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -106,12 +106,12 @@ export default function TeacherClassesPage() {
 
         {/* Loading */}
         {loading && (
-          <p className="text-neutral-500">Loading classes...</p>
+          <p className="text-muted-foreground">Loading classes...</p>
         )}
 
         {/* Error */}
         {error && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-600">
+          <div className="rounded-md bg-error/10 p-4 text-sm text-error">
             {error}{" "}
             <button onClick={reload} className="underline">
               Try again
@@ -121,7 +121,7 @@ export default function TeacherClassesPage() {
 
         {/* Empty state — no classes at all */}
         {!loading && !error && classes.length === 0 && (
-          <p className="text-neutral-500">
+          <p className="text-muted-foreground">
             You haven&apos;t created any classes yet.{" "}
             <Link href="/teacher/classes/create" className="underline">
               Create your first class
@@ -131,7 +131,7 @@ export default function TeacherClassesPage() {
 
         {/* Empty state — search returned nothing */}
         {!loading && !error && classes.length > 0 && filtered.length === 0 && (
-          <p className="text-neutral-500">
+          <p className="text-muted-foreground">
             No classes match &quot;{search}&quot;.
           </p>
         )}
@@ -144,13 +144,13 @@ export default function TeacherClassesPage() {
                 <li key={cls.class_id} className="relative">
                   <Link
                     href={`/teacher/classes/${cls.class_id}/edit`}
-                    className="absolute right-3 top-3 z-10 rounded-md border border-neutral-200 bg-white px-2.5 py-1 text-xs font-medium text-neutral-600 hover:border-neutral-400"
+                    className="absolute right-3 top-3 z-10 rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-ring"
                   >
                     Edit
                   </Link>
                   <Link
                     href={`/teacher/classes/${cls.class_id}`}
-                    className="block rounded-xl border border-neutral-200 p-5 hover:border-neutral-400 transition"
+                    className="block rounded-xl border border-border p-5 hover:border-ring transition"
                   >
                     <div className="mb-2 flex items-start justify-between gap-2">
                       <h2 className="font-semibold text-lg leading-tight">
@@ -160,15 +160,15 @@ export default function TeacherClassesPage() {
                     </div>
 
                     {cls.grade_level && (
-                      <p className="text-sm text-neutral-500">{cls.grade_level}</p>
+                      <p className="text-sm text-muted-foreground">{cls.grade_level}</p>
                     )}
 
-                    <p className="mt-3 text-sm text-neutral-400">
+                    <p className="mt-3 text-sm text-muted-foreground/70">
                       {cls.member_count ?? 0} /{" "}
                       {cls.learner_capacity ?? "—"} members
                     </p>
 
-                    <p className="mt-1 text-xs text-neutral-400">
+                    <p className="mt-1 text-xs text-muted-foreground/70">
                       Code: <span className="font-mono">{cls.class_code}</span>
                     </p>
                   </Link>

@@ -9,11 +9,11 @@ import {
 } from "lucide-react";
 import { studySetsService } from "@/services/study-sets.service";
 import { Button } from "@/components/ui/button";
-import ConfirmModal from "@/components/common/ConfirmModal";
+import ConfirmModal from "@/components/common/confirm-modal";
 import { Navbar } from "@/components/layout/navbar";
-import { StudySetHeader } from "./StudySetHeader";
-import { StudyModeCard } from "./StudyModeCard";
-import { QuestionCard } from "./QuestionCard";
+import { StudySetHeader } from "./study-set-header";
+import { StudyModeCard } from "./study-mode-card";
+import { QuestionCard } from "./question-card";
 
 export function StudySetDetailView({
   studySetId,
@@ -292,8 +292,8 @@ export function StudySetDetailView({
               onClick={handleQuizClick}
               isLocked={isGuest}
               lockLabel="Login Required"
-              hoverBorderClass="hover:border-emerald-500/50"
-              bgCircleClass="bg-emerald-50/40 group-hover:bg-emerald-100/10"
+              hoverBorderClass="hover:border-success/50"
+            bgCircleClass="bg-success/10 group-hover:bg-success/20"
             />
           </div>
         </div>
@@ -307,12 +307,12 @@ export function StudySetDetailView({
 
             {/* Segment control tabs (All / Starred) - Only for logged-in learner with difficult questions */}
             {!isGuest && difficultQuestionIds.size > 0 && (
-              <div className="flex bg-neutral-100 p-1 rounded-2xl w-fit border border-neutral-200">
+              <div className="flex bg-muted p-1 rounded-2xl w-fit border border-border">
                 <button
                   onClick={() => setActiveTab("all")}
                   className={`px-6 py-1.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
                     activeTab === "all"
-                      ? "bg-white text-foreground shadow-sm"
+                      ? "bg-card text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -322,7 +322,7 @@ export function StudySetDetailView({
                   onClick={() => setActiveTab("starred")}
                   className={`px-6 py-1.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
                     activeTab === "starred"
-                      ? "bg-white text-foreground shadow-sm"
+                      ? "bg-card text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >

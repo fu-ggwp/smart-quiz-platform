@@ -62,7 +62,7 @@ export function QuestionPreviewCard({ className, index, isRevealed, onToggleReve
                 className={cn(
                   "flex items-center gap-3 rounded-xl border p-3 text-sm transition duration-150",
                   showCorrectAnswer
-                    ? "border-emerald-500 bg-emerald-50/50 font-semibold text-emerald-900"
+                    ? "border-success bg-success/10 font-semibold text-success"
                     : "border-border bg-muted/10 text-foreground"
                 )}
                 key={optionKey}
@@ -71,7 +71,7 @@ export function QuestionPreviewCard({ className, index, isRevealed, onToggleReve
                   className={cn(
                     "flex size-5 shrink-0 items-center justify-center rounded-full border text-xs",
                     showCorrectAnswer
-                      ? "border-emerald-500 bg-emerald-500 text-white"
+                      ? "border-success bg-success text-primary-foreground"
                       : "border-border bg-muted/40 text-muted-foreground"
                   )}
                 >

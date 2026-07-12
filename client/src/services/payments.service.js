@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "./axios-client";
 
 export const paymentsService = {
   listPlans: () => axiosClient.get("/api/payments/plans").then((r) => r.data),

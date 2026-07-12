@@ -35,10 +35,10 @@ const FILTER_DRAFT_DEFAULTS = {
 };
 
 const STATUS_TONE = {
-  active: "bg-emerald-50 text-emerald-700",
-  pending: "bg-amber-50 text-amber-700",
-  locked: "bg-red-50 text-red-700",
-  disabled: "bg-neutral-100 text-neutral-500",
+  active: "bg-success/10 text-success",
+  pending: "bg-warning/10 text-warning",
+  locked: "bg-error/10 text-error",
+  disabled: "bg-muted text-muted-foreground",
 };
 
 function Badge({ children, className = "" }) {
@@ -146,7 +146,7 @@ export default function AdminUsersPage() {
 
         {/* Error (MSG13 / MSG11) */}
         {!loading && error && (
-          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div className="rounded-lg bg-error/10 px-4 py-3 text-sm text-error">
             {error}{" "}
             <button onClick={reload} className="underline">
               Try again
@@ -185,10 +185,10 @@ export default function AdminUsersPage() {
                           <p className="text-xs text-muted-foreground">{u.email}</p>
                         </td>
                         <td className="px-4 py-3">
-                          <Badge className="bg-neutral-100 text-neutral-600">{u.active_role}</Badge>
+                          <Badge className="bg-muted text-muted-foreground">{u.active_role}</Badge>
                         </td>
                         <td className="px-4 py-3">
-                          <Badge className={STATUS_TONE[u.account_status] ?? "bg-neutral-100 text-neutral-500"}>
+                          <Badge className={STATUS_TONE[u.account_status] ?? "bg-muted text-muted-foreground"}>
                             {u.account_status}
                           </Badge>
                         </td>

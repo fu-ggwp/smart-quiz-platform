@@ -5,7 +5,7 @@ import { AlertTriangle, FileCheck, FileText, FileUp, Loader2, Plus, RotateCcw, S
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import QuestionCardEditor from "@/components/question-creator/QuestionCardEditor";
+import QuestionCardEditor from "@/components/question-creator/question-card-editor";
 
 const acceptedTypes = [
   "application/pdf",
@@ -177,7 +177,7 @@ export default function MaterialQuestionGenerator({
         </div>
 
         {error && (
-          <div className="flex items-start gap-2 rounded-xl border border-rose-100 bg-rose-50/60 p-4 text-sm text-rose-700">
+          <div className="flex items-start gap-2 rounded-xl border border-error/20 bg-error/10 p-4 text-sm text-error">
             <AlertTriangle className="mt-0.5 size-4 shrink-0" />
             <span>{error}</span>
           </div>

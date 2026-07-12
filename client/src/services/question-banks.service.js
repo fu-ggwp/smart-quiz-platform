@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "./axios-client";
 
 // Teacher question-bank API wrapper. Each method returns the backend `data` payload.
 export const questionBanksService = {

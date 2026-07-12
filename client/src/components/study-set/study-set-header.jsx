@@ -33,7 +33,7 @@ export function StudySetHeader({ studySet, onBack, backLabel = "Back", hasAssign
               </span>
             )}
             {hasAssigned && (
-              <span className="text-xs font-bold bg-amber-50 text-amber-600 border border-amber-100 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+              <span className="text-xs font-bold bg-warning/10 text-warning border border-warning/20 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                 <GraduationCap size={10} />
                 Assigned
               </span>

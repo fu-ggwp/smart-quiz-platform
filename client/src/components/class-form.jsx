@@ -86,14 +86,14 @@ export default function ClassForm({
       {/* Class Name */}
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium">
-          Class Name <span className="text-red-500">*</span>
+          Class Name <span className="text-error">*</span>
         </label>
         <input
           name="class_name"
           value={form.class_name}
           onChange={handleChange}
           placeholder="e.g. Math Grade 10 - 2024"
-          className="rounded-lg border border-neutral-200 px-4 py-2.5 text-sm outline-none focus:border-neutral-400"
+          className="rounded-lg border border-border px-4 py-2.5 text-sm outline-none focus:border-ring"
         />
       </div>
 
@@ -104,7 +104,7 @@ export default function ClassForm({
           name="grade_level"
           value={form.grade_level}
           onChange={handleChange}
-          className="rounded-lg border border-neutral-200 px-4 py-2.5 text-sm outline-none focus:border-neutral-400"
+          className="rounded-lg border border-border px-4 py-2.5 text-sm outline-none focus:border-ring"
         >
           {GRADE_LEVEL_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -122,7 +122,7 @@ export default function ClassForm({
           value={form.academic_year}
           onChange={handleChange}
           placeholder="e.g. 2024-2025"
-          className="rounded-lg border border-neutral-200 px-4 py-2.5 text-sm outline-none focus:border-neutral-400"
+          className="rounded-lg border border-border px-4 py-2.5 text-sm outline-none focus:border-ring"
         />
       </div>
 
@@ -135,7 +135,7 @@ export default function ClassForm({
           onChange={handleChange}
           placeholder="Optional description for your class..."
           rows={3}
-          className="resize-none rounded-lg border border-neutral-200 px-4 py-2.5 text-sm outline-none focus:border-neutral-400"
+          className="resize-none rounded-lg border border-border px-4 py-2.5 text-sm outline-none focus:border-ring"
         />
       </div>
 
@@ -149,7 +149,7 @@ export default function ClassForm({
           max={500}
           value={form.learner_capacity}
           onChange={handleChange}
-          className="rounded-lg border border-neutral-200 px-4 py-2.5 text-sm outline-none focus:border-neutral-400"
+          className="rounded-lg border border-border px-4 py-2.5 text-sm outline-none focus:border-ring"
         />
       </div>
 
@@ -160,7 +160,7 @@ export default function ClassForm({
           name="join_policy"
           value={form.join_policy}
           onChange={handleChange}
-          className="rounded-lg border border-neutral-200 px-4 py-2.5 text-sm outline-none focus:border-neutral-400"
+          className="rounded-lg border border-border px-4 py-2.5 text-sm outline-none focus:border-ring"
         >
           {JOIN_POLICY_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -178,7 +178,7 @@ export default function ClassForm({
             name="status"
             value={form.status}
             onChange={handleChange}
-            className="rounded-lg border border-neutral-200 px-4 py-2.5 text-sm outline-none focus:border-neutral-400"
+            className="rounded-lg border border-border px-4 py-2.5 text-sm outline-none focus:border-ring"
           >
             {STATUS_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -191,7 +191,7 @@ export default function ClassForm({
 
       {/* Error (MSG02 / MSG03 / MSG11 / MSG13) */}
       {(localError || error) && (
-        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+        <p className="rounded-lg bg-error/10 px-4 py-3 text-sm text-error">
           {localError || error}
         </p>
       )}
@@ -200,7 +200,7 @@ export default function ClassForm({
       <button
         type="submit"
         disabled={submitting}
-        className="mt-2 rounded-lg bg-black py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-2 rounded-lg bg-primary py-3 text-sm font-medium text-primary-foreground hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {submitting ? submittingLabel : submitLabel}
       </button>

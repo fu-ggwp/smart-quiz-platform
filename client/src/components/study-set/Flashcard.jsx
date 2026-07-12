@@ -61,14 +61,14 @@ export default function Flashcard({
                 className={`p-2 hover:bg-muted rounded-full transition-colors`}
                 title={isDifficult ? "Marked as Difficult" : "Mark as Difficult"}
               >
-                <Star className={`size-5 ${isDifficult ? "fill-amber-400 text-amber-500" : "text-neutral-300"}`} />
+                <Star className={`size-5 ${isDifficult ? "fill-warning text-warning" : "text-muted-foreground/50"}`} />
               </button>
               <button 
                 onClick={() => onMarkMastered(question.question_id)}
                 className={`p-2 hover:bg-muted rounded-full transition-colors`}
                 title={isMastered ? "Marked as Mastered" : "Mark as Mastered"}
               >
-                <CheckCircle className={`size-5 ${isMastered ? "fill-emerald-500 text-emerald-600" : "text-neutral-300"}`} />
+                <CheckCircle className={`size-5 ${isMastered ? "fill-success text-success" : "text-muted-foreground/50"}`} />
               </button>
             </div>
           </div>
@@ -94,14 +94,14 @@ export default function Flashcard({
                 className={`p-2 hover:bg-muted rounded-full transition-colors`}
                 title={isDifficult ? "Marked as Difficult" : "Mark as Difficult"}
               >
-                <Star className={`size-5 ${isDifficult ? "fill-amber-400 text-amber-500" : "text-neutral-300"}`} />
+                <Star className={`size-5 ${isDifficult ? "fill-warning text-warning" : "text-muted-foreground/50"}`} />
               </button>
               <button 
                 onClick={() => onMarkMastered(question.question_id)}
                 className={`p-2 hover:bg-muted rounded-full transition-colors`}
                 title={isMastered ? "Marked as Mastered" : "Mark as Mastered"}
               >
-                <CheckCircle className={`size-5 ${isMastered ? "fill-emerald-500 text-emerald-600" : "text-neutral-300"}`} />
+                <CheckCircle className={`size-5 ${isMastered ? "fill-success text-success" : "text-muted-foreground/50"}`} />
               </button>
             </div>
           </div>
@@ -112,7 +112,7 @@ export default function Flashcard({
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Correct Answer(s):</span>
               <div className="space-y-1">
                 {options.filter(opt => opt.is_correct).map((opt, i) => (
-                  <p key={i} className="text-lg md:text-xl font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl">
+                  <p key={i} className="text-lg md:text-xl font-bold text-success bg-success/10 border border-success/20 px-4 py-2 rounded-xl">
                     ✓ {opt.option_text}
                   </p>
                 ))}

@@ -68,7 +68,7 @@ function QuestionReview({ question, index }) {
           <p className="text-sm font-bold text-primary">Question {index + 1}</p>
           <h2 className="mt-2 text-base font-bold leading-7 text-foreground">{question.question_text}</h2>
         </div>
-        <span className={`inline-flex w-fit items-center gap-1 rounded-full border px-3 py-1 text-xs font-bold ${question.is_correct ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-red-300 bg-red-50 text-red-700"}`}>
+        <span className={`inline-flex w-fit items-center gap-1 rounded-full border px-3 py-1 text-xs font-bold ${question.is_correct ? "border-success/40 bg-success/10 text-success" : "border-error/40 bg-error/10 text-error"}`}>
           {question.is_correct ? <CheckCircle2 className="size-3.5" /> : <XCircle className="size-3.5" />}
           {question.is_correct ? "Correct" : "Incorrect"}
         </span>
@@ -80,16 +80,16 @@ function QuestionReview({ question, index }) {
             key={`${question.exam_question_id}-${option.index}`}
             className={`flex items-start gap-3 rounded-md border px-3 py-2 text-sm ${
               option.is_correct
-                ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                ? "border-success/40 bg-success/10 text-success"
                 : option.is_selected
-                  ? "border-red-300 bg-red-50 text-red-900"
+                  ? "border-error/40 bg-error/10 text-error"
                   : "border-border bg-background text-foreground"
             }`}
           >
             {option.is_correct ? (
-              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" />
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" />
             ) : option.is_selected ? (
-              <XCircle className="mt-0.5 size-4 shrink-0 text-red-600" />
+              <XCircle className="mt-0.5 size-4 shrink-0 text-error" />
             ) : (
               <Circle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
             )}
@@ -100,12 +100,12 @@ function QuestionReview({ question, index }) {
       </div>
 
       {question.explanation ? (
-        <details className="group mt-4 rounded-md border border-amber-200 bg-amber-50 text-sm text-amber-900">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 font-bold outline-none transition hover:bg-amber-100/70 [&::-webkit-details-marker]:hidden">
+        <details className="group mt-4 rounded-md border border-warning/30 bg-warning/10 text-sm text-warning">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 font-bold outline-none transition hover:bg-warning/20 [&::-webkit-details-marker]:hidden">
             <span>Explanation</span>
             <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" />
           </summary>
-          <div className="border-t border-amber-200 px-3 py-2 leading-6">
+          <div className="border-t border-warning/30 px-3 py-2 leading-6">
             {question.explanation}
           </div>
         </details>

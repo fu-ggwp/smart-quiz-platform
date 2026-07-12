@@ -4,11 +4,11 @@
 export function QuestionBanksBadge({ children, tone }) {
   const toneClass =
     tone === "green"
-      ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
+      ? "bg-success/10 text-success ring-success/20"
       : tone === "amber"
-        ? "bg-amber-50 text-amber-700 ring-amber-100"
+        ? "bg-warning/10 text-warning ring-warning/20"
         : tone === "red"
-          ? "bg-rose-50 text-rose-700 ring-rose-100"
+          ? "bg-error/10 text-error ring-error/20"
           : "bg-muted text-muted-foreground ring-border";
 
   return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${toneClass}`}>{children}</span>;

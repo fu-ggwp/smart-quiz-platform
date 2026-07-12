@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "./axios-client";
 
 // Role-specific dashboard endpoints return card-ready payloads for each dashboard page.
 export const dashboardsService = {

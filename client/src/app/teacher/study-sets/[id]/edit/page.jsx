@@ -7,12 +7,12 @@ import { studySetsService } from "@/services/study-sets.service";
 import { questionBanksService } from "@/services/question-banks.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import QuestionCardEditor from "@/components/question-creator/QuestionCardEditor";
-import ExcelImporter from "@/components/question-creator/ExcelImporter";
-import MaterialQuestionGenerator from "@/components/question-creator/MaterialQuestionGenerator";
-import QuestionBankSelector from "../../create/QuestionBankSelector";
-import ClassSelectorModal from "../../create/ClassSelectorModal";
-import ConfirmModal from "@/components/common/ConfirmModal";
+import QuestionCardEditor from "@/components/question-creator/question-card-editor";
+import ExcelImporter from "@/components/question-creator/excel-importer";
+import MaterialQuestionGenerator from "@/components/question-creator/material-question-generator";
+import QuestionBankSelector from "../../create/question-bank-selector";
+import ClassSelectorModal from "../../create/class-selector-modal";
+import ConfirmModal from "@/components/common/confirm-modal";
 
 export default function EditStudySetPage() {
   const params = useParams();
@@ -452,7 +452,7 @@ export default function EditStudySetPage() {
         </div>
 
         {errors.submit && (
-          <div className="bg-rose-50 text-rose-800 p-4 rounded-xl border border-rose-100 text-sm font-semibold">
+          <div className="bg-error/10 text-error p-4 rounded-xl border border-error/20 text-sm font-semibold">
             {errors.submit}
           </div>
         )}
@@ -464,7 +464,7 @@ export default function EditStudySetPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-sm font-semibold text-foreground">Title <span className="text-rose-500"> *</span></label>
+                <label className="text-sm font-semibold text-foreground">Title <span className="text-error"> *</span></label>
                 <Input
                   placeholder="e.g. Midterm Physics Review"
                   value={title}
@@ -479,7 +479,7 @@ export default function EditStudySetPage() {
                   }}
                 />
                 {errors.title && (
-                  <p className="text-xs font-semibold text-rose-500 mt-1">{errors.title}</p>
+                  <p className="text-xs font-semibold text-error mt-1">{errors.title}</p>
                 )}
               </div>
 
@@ -563,7 +563,7 @@ export default function EditStudySetPage() {
               {/* Class Selection */}
               <div className="space-y-1.5 md:col-span-2 animate-in fade-in slide-in-from-top-2 duration-200">
                 <label className="text-sm font-semibold text-foreground flex items-center gap-1">
-                  Assigned Classes {visibility === "class_only" && <span className="text-rose-500"> *</span>}
+                  Assigned Classes {visibility === "class_only" && <span className="text-error"> *</span>}
                 </label>
                 <div
                   onClick={handleClassSelectorClick}
@@ -572,7 +572,7 @@ export default function EditStudySetPage() {
                 >
                   {selectedClassIds.length === 0 ? (
                     visibility === "class_only" ? (
-                      <p className="text-xs text-rose-600 font-semibold bg-rose-50 p-3 rounded-xl border border-rose-200 hover:bg-rose-100/70 hover:border-rose-300">
+                    <p className="text-xs text-error font-semibold bg-error/10 p-3 rounded-xl border border-error/30 hover:bg-error/20 hover:border-error/40">
                         No classes selected. Click here to select at least one class.
                       </p>
                     ) : (
@@ -586,7 +586,7 @@ export default function EditStudySetPage() {
                       {selectedClassNames.map((name, index) => (
                         <span
                           key={index}
-                          className="inline-flex items-center rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-white shadow-sm"
+                          className="inline-flex items-center rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground shadow-sm"
                         >
                           {name}
                         </span>
@@ -595,7 +595,7 @@ export default function EditStudySetPage() {
                   )}
                 </div>
                 {errors.classIds && (
-                  <p className="text-xs font-semibold text-rose-500 mt-1">{errors.classIds}</p>
+                  <p className="text-xs font-semibold text-error mt-1">{errors.classIds}</p>
                 )}
               </div>
             </div>
@@ -637,7 +637,7 @@ export default function EditStudySetPage() {
             </div>
 
             {errors.questions && (
-              <div className="bg-rose-50/50 text-rose-600 border border-rose-100 px-4 py-3 rounded-xl text-sm font-semibold">
+              <div className="bg-error/10 text-error border border-error/20 px-4 py-3 rounded-xl text-sm font-semibold">
                 {errors.questions}
               </div>
             )}
@@ -698,7 +698,7 @@ export default function EditStudySetPage() {
 
       {/* Question Bank Selector Popup */}
       {showQBSelector && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-2xl border border-border">
             <QuestionBankSelector
               onQuestionsSelected={handleQBQuestionsImported}
@@ -713,7 +713,7 @@ export default function EditStudySetPage() {
 
       {/* Excel Importer Popup */}
       {showExcelImporter && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-2xl border border-border">
             <ExcelImporter
               onQuestionsImported={handleExcelQuestionsImported}
@@ -725,7 +725,7 @@ export default function EditStudySetPage() {
 
       {/* Material Generator Popup */}
       {showMaterialGenerator && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-2xl border border-border">
             <MaterialQuestionGenerator
               generateQuestions={questionBanksService.generateFromMaterial}

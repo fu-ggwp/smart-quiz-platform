@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import axiosClient from "@/services/axiosClient";
+import axiosClient from "@/services/axios-client";
 import { AppPagination } from "@/components/common/app-pagination";
 
 const STATUS_OPTIONS = [
@@ -149,7 +149,7 @@ export default function AdminResourcesPage() {
 
         {/* Success notice (MSG47) */}
         {notice && (
-          <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="mb-4 rounded-lg bg-success/10 px-4 py-3 text-sm text-success">
             {notice}
           </div>
         )}
@@ -159,7 +159,7 @@ export default function AdminResourcesPage() {
 
         {/* Error (MSG13 / MSG11) */}
         {!loading && error && (
-          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div className="rounded-lg bg-error/10 px-4 py-3 text-sm text-error">
             {error}{" "}
             <button onClick={() => load(params)} className="underline">
               Try again
@@ -204,11 +204,11 @@ export default function AdminResourcesPage() {
                         </td>
                         <td className="px-4 py-3">
                           {r.is_admin_hidden ? (
-                            <span className="inline-flex rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+                            <span className="inline-flex rounded-full bg-error/10 px-2 py-0.5 text-xs font-medium text-error">
                               Hidden
                             </span>
                           ) : (
-                            <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                            <span className="inline-flex rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
                               Visible
                             </span>
                           )}
@@ -230,7 +230,7 @@ export default function AdminResourcesPage() {
                             <button
                               onClick={() => openConfirm(r, true)}
                               disabled={updatingId === r.study_set_id}
-                              className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+                              className="rounded-md bg-error px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
                             >
                               Hide
                             </button>
@@ -269,7 +269,7 @@ export default function AdminResourcesPage() {
 
       {/* Confirmation modal (no reason input) */}
       {pending && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 px-4">
           <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
             <h3 className="text-lg font-semibold">
               {pending.hidden ? "Hide this resource?" : "Restore this resource?"}
@@ -280,7 +280,7 @@ export default function AdminResourcesPage() {
                 : `"${pending.title}" will become publicly visible again.`}
             </p>
 
-            {modalError && <p className="mt-3 text-sm text-red-600">{modalError}</p>}
+            {modalError && <p className="mt-3 text-sm text-error">{modalError}</p>}
 
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -293,8 +293,8 @@ export default function AdminResourcesPage() {
               <button
                 onClick={confirm}
                 disabled={updatingId === pending.id}
-                className={`rounded-md px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 ${
-                  pending.hidden ? "bg-red-600" : "bg-primary"
+                className={`rounded-md px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50 ${
+                  pending.hidden ? "bg-error" : "bg-primary"
                 }`}
               >
                 {updatingId === pending.id

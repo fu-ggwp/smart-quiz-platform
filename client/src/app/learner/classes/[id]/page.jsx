@@ -30,8 +30,8 @@ const STATUS_LABELS = {
 };
 
 const EXAM_STATUS_TONE = {
-  active: "bg-emerald-50 text-emerald-700",
-  closed: "bg-neutral-100 text-neutral-500",
+  active: "bg-success/10 text-success",
+  closed: "bg-muted text-muted-foreground",
 };
 
 function formatDateTime(value) {
@@ -42,13 +42,13 @@ function ProgressBar({ progress }) {
   const pct = progress?.accuracy ?? 0;
   return (
     <div className="mt-3">
-      <div className="mb-1 flex items-center justify-between text-xs text-neutral-500">
+      <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
         <span>{STATUS_LABELS[progress?.status] ?? "Not started"}</span>
         <span>{progress?.accuracy != null ? `${progress.accuracy}%` : "—"}</span>
       </div>
-      <div className="h-2 w-full rounded-full bg-neutral-100">
+      <div className="h-2 w-full rounded-full bg-muted">
         <div
-          className="h-2 rounded-full bg-emerald-500 transition-all"
+          className="h-2 rounded-full bg-success transition-all"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -58,8 +58,8 @@ function ProgressBar({ progress }) {
 
 function EmptyState({ children }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-neutral-200 py-12 text-center">
-      <p className="text-neutral-500">{children}</p>
+    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border py-12 text-center">
+      <p className="text-muted-foreground">{children}</p>
     </div>
   );
 }
@@ -104,15 +104,15 @@ export default function LearnerClassDetailPage() {
         {/* Back to Classes */}
         <Link
           href="/learner/classes"
-          className="mb-6 inline-flex items-center text-sm text-neutral-500 hover:text-neutral-800"
+          className="mb-6 inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
         >
           ← Back to Classes
         </Link>
 
-        {loading && <p className="text-sm text-neutral-400">Loading class details...</p>}
+        {loading && <p className="text-sm text-muted-foreground/70">Loading class details...</p>}
 
         {!loading && error && (
-          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div className="rounded-lg bg-error/10 px-4 py-3 text-sm text-error">
             {error}{" "}
             <button onClick={reload} className="underline">
               Try again
@@ -123,32 +123,32 @@ export default function LearnerClassDetailPage() {
         {!loading && !error && cls && (
           <>
             {/* Class Information */}
-            <header className="mb-8 rounded-xl border border-neutral-200 p-6">
+            <header className="mb-8 rounded-xl border border-border p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h1 className="text-3xl font-semibold leading-tight">{cls.class_name}</h1>
                   {cls.teacher && (
-                    <p className="mt-1 text-sm text-neutral-500">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       {cls.teacher.full_name || cls.teacher.username}
                     </p>
                   )}
                 </div>
-                <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium capitalize text-neutral-600">
+                <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium capitalize text-muted-foreground">
                   {cls.status}
                 </span>
               </div>
 
               <dl className="mt-5 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
                 <div>
-                  <dt className="text-neutral-400">Class code</dt>
+                  <dt className="text-muted-foreground/70">Class code</dt>
                   <dd className="font-mono">{cls.class_code}</dd>
                 </div>
                 <div>
-                  <dt className="text-neutral-400">Members</dt>
+                  <dt className="text-muted-foreground/70">Members</dt>
                   <dd className="font-medium">{cls.member_count ?? 0}</dd>
                 </div>
                 <div>
-                  <dt className="text-neutral-400">Grade / level</dt>
+                  <dt className="text-muted-foreground/70">Grade / level</dt>
                   <dd className="font-medium">{cls.grade_level || "—"}</dd>
                 </div>
               </dl>
@@ -157,25 +157,25 @@ export default function LearnerClassDetailPage() {
             {/* ── Assigned study sets ───────────────────────────── */}
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold">Assigned study sets</h2>
-              <p className="text-sm text-neutral-400">
+              <p className="text-sm text-muted-foreground/70">
                 {activities.length} of {allActivities.length}
               </p>
             </div>
 
             {/* Filter bar */}
-            <div className="mb-6 grid gap-3 rounded-xl border border-neutral-200 p-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mb-6 grid gap-3 rounded-xl border border-border p-4 sm:grid-cols-2 lg:grid-cols-4">
               <input
                 type="text"
                 value={draft.keyword}
                 onChange={(e) => setDraft((d) => ({ ...d, keyword: e.target.value }))}
                 onKeyDown={(e) => e.key === "Enter" && applyFilters()}
                 placeholder="Search class materials"
-                className="rounded-md border border-neutral-200 px-3 py-2 text-sm lg:col-span-2"
+                className="rounded-md border border-border px-3 py-2 text-sm lg:col-span-2"
               />
               <select
                 value={draft.completion}
                 onChange={(e) => setDraft((d) => ({ ...d, completion: e.target.value }))}
-                className="rounded-md border border-neutral-200 px-3 py-2 text-sm"
+                className="rounded-md border border-border px-3 py-2 text-sm"
               >
                 {COMPLETION_STATUSES.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -184,7 +184,7 @@ export default function LearnerClassDetailPage() {
               <select
                 value={draft.sortBy}
                 onChange={(e) => setDraft((d) => ({ ...d, sortBy: e.target.value }))}
-                className="rounded-md border border-neutral-200 px-3 py-2 text-sm"
+                className="rounded-md border border-border px-3 py-2 text-sm"
               >
                 {SORT_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -193,13 +193,13 @@ export default function LearnerClassDetailPage() {
               <div className="flex gap-2 lg:col-span-4">
                 <button
                   onClick={applyFilters}
-                  className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80"
                 >
                   Apply
                 </button>
                 <button
                   onClick={resetFilters}
-                  className="rounded-md border border-neutral-200 px-4 py-2 text-sm hover:bg-neutral-50"
+                  className="rounded-md border border-border px-4 py-2 text-sm hover:bg-muted"
                 >
                   Reset Filters
                 </button>
@@ -210,7 +210,7 @@ export default function LearnerClassDetailPage() {
               <EmptyState>No study sets assigned yet.</EmptyState>
             ) : activities.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-12 text-center">
-                <p className="text-neutral-500">No matching data was found.</p>
+                <p className="text-muted-foreground">No matching data was found.</p>
                 <button onClick={resetFilters} className="text-sm underline">
                   Clear filters
                 </button>
@@ -221,24 +221,24 @@ export default function LearnerClassDetailPage() {
                   <li key={a.assignment_id}>
                     <Link
                       href={`/learner/study-sets/${a.study_set_id}`}
-                      className="block h-full rounded-xl border border-neutral-200 p-5 transition hover:border-neutral-400"
+                      className="block h-full rounded-xl border border-border p-5 transition hover:border-ring"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <h3 className="text-lg font-semibold leading-tight">{a.title}</h3>
-                        <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500">
+                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                           {a.question_count ?? 0} Qs
                         </span>
                       </div>
 
                       {a.topic && (
-                        <p className="mt-1 text-sm text-neutral-400">
+                        <p className="mt-1 text-sm text-muted-foreground/70">
                           {a.topic}
                         </p>
                       )}
 
                       <ProgressBar progress={a.progress} />
 
-                      <span className="mt-4 inline-block text-sm font-medium text-neutral-700">
+                      <span className="mt-4 inline-block text-sm font-medium text-foreground">
                         Open study set →
                       </span>
                     </Link>
@@ -250,7 +250,7 @@ export default function LearnerClassDetailPage() {
             {/* ── Assigned exams ────────────────────────────────── */}
             <div className="mb-4 mt-10 flex items-center justify-between">
               <h2 className="text-xl font-semibold">Available exams</h2>
-              <p className="text-sm text-neutral-400">{exams.length}</p>
+              <p className="text-sm text-muted-foreground/70">{exams.length}</p>
             </div>
 
             {exams.length === 0 ? (
@@ -261,39 +261,39 @@ export default function LearnerClassDetailPage() {
                   <li key={ex.exam_session_id}>
                     <Link
                       href="/learner/exams"
-                      className="block h-full rounded-xl border border-neutral-200 p-5 transition hover:border-neutral-400"
+                      className="block h-full rounded-xl border border-border p-5 transition hover:border-ring"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <h3 className="text-lg font-semibold leading-tight">{ex.title}</h3>
                         <span
                           className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
-                            EXAM_STATUS_TONE[ex.status] ?? "bg-neutral-100 text-neutral-500"
+                            EXAM_STATUS_TONE[ex.status] ?? "bg-muted text-muted-foreground"
                           }`}
                         >
                           {ex.status === "active" ? "Open" : ex.status}
                         </span>
                       </div>
 
-                      <dl className="mt-3 grid grid-cols-2 gap-2 text-xs text-neutral-500">
+                      <dl className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                         <div>
-                          <dt className="text-neutral-400">Start</dt>
+                          <dt className="text-muted-foreground/70">Start</dt>
                           <dd>{formatDateTime(ex.start_at) ?? "—"}</dd>
                         </div>
                         <div>
-                          <dt className="text-neutral-400">Duration</dt>
+                          <dt className="text-muted-foreground/70">Duration</dt>
                           <dd>{ex.duration_minutes} min</dd>
                         </div>
                         <div>
-                          <dt className="text-neutral-400">Questions</dt>
+                          <dt className="text-muted-foreground/70">Questions</dt>
                           <dd>{ex.question_count}</dd>
                         </div>
                         <div>
-                          <dt className="text-neutral-400">Attempts</dt>
+                          <dt className="text-muted-foreground/70">Attempts</dt>
                           <dd>{ex.attempt_limit}</dd>
                         </div>
                       </dl>
 
-                      <span className="mt-4 inline-block text-sm font-medium text-neutral-700">
+                      <span className="mt-4 inline-block text-sm font-medium text-foreground">
                         Go to exam →
                       </span>
                     </Link>

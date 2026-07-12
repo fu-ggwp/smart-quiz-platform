@@ -13,9 +13,9 @@ export function QuestionCard({
 }) {
   // Border color reflects learner review flags without changing the card contents.
   const statusClass = isDifficult 
-    ? "border-amber-200 bg-amber-50/20" 
+    ? "border-warning/30 bg-warning/10" 
     : isMastered 
-    ? "border-emerald-200 bg-emerald-50/20" 
+    ? "border-success/30 bg-success/10" 
     : "border-border bg-card";
 
   return (
@@ -24,17 +24,17 @@ export function QuestionCard({
       <div className="absolute top-4 right-4 flex items-center gap-1 z-10" onClick={(e) => e.stopPropagation()}>
         <button 
           onClick={onToggleDifficult}
-          className="p-1.5 hover:bg-neutral-100 rounded-full transition-colors"
+          className="p-1.5 hover:bg-muted rounded-full transition-colors"
           title={isDifficult ? "Remove from Difficult" : "Mark as Difficult"}
         >
-          <Star className={`size-5 ${isDifficult ? "fill-amber-400 text-amber-500" : "text-neutral-300"}`} />
+          <Star className={`size-5 ${isDifficult ? "fill-warning text-warning" : "text-muted-foreground/50"}`} />
         </button>
         <button 
           onClick={onToggleMastered}
-          className="p-1.5 hover:bg-neutral-100 rounded-full transition-colors"
+          className="p-1.5 hover:bg-muted rounded-full transition-colors"
           title={isMastered ? "Remove from Mastered" : "Mark as Mastered"}
         >
-          <CheckCircle className={`size-5 ${isMastered ? "fill-emerald-500 text-emerald-600" : "text-neutral-300"}`} />
+          <CheckCircle className={`size-5 ${isMastered ? "fill-success text-success" : "text-muted-foreground/50"}`} />
         </button>
       </div>
 
@@ -64,7 +64,7 @@ export function QuestionCard({
               Correct Answer
             </span>
             {(question.answer_options || []).filter(opt => opt.is_correct).map((opt, oIdx) => (
-              <p key={oIdx} className="text-base font-bold text-emerald-600 leading-relaxed bg-emerald-50/40 border border-emerald-100/50 px-2.5 py-1 rounded-lg inline-block">
+              <p key={oIdx} className="text-base font-bold text-success leading-relaxed bg-success/10 border border-success/20 px-2.5 py-1 rounded-lg inline-block">
                 {opt.option_text}
               </p>
             ))}

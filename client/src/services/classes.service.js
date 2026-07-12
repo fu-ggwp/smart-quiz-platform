@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "./axios-client";
 
 const classesService = {
   // Teacher: fetch all own classes (backend returns { ok, data: [...] })

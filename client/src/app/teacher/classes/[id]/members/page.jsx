@@ -61,27 +61,27 @@ export default function ClassMembersPage() {
           <h1 className="text-2xl font-semibold">Members</h1>
           <Link
             href={`/teacher/classes/${id}`}
-            className="text-sm text-neutral-400 hover:text-neutral-700"
+            className="text-sm text-muted-foreground/70 hover:text-foreground"
           >
             ← Back to class
           </Link>
         </div>
 
-        {loading && <p className="text-sm text-neutral-400">Loading...</p>}
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {loading && <p className="text-sm text-muted-foreground/70">Loading...</p>}
+        {error && <p className="text-sm text-error">{error}</p>}
 
         {!loading && !error && members.length === 0 && (
-          <p className="text-sm text-neutral-400">No members yet.</p>
+          <p className="text-sm text-muted-foreground/70">No members yet.</p>
         )}
 
         {!loading && !error && members.length > 0 && (
-          <div className="rounded-xl border border-neutral-200">
+          <div className="rounded-xl border border-border">
             {/* Table header */}
-            <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-4 border-b border-neutral-100 px-5 py-3">
-              <span className="text-xs font-medium text-neutral-400">Name</span>
-              <span className="text-xs font-medium text-neutral-400">Email</span>
-              <span className="text-xs font-medium text-neutral-400">Joined</span>
-              <span className="text-xs font-medium text-neutral-400"></span>
+            <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-4 border-b border-border px-5 py-3">
+              <span className="text-xs font-medium text-muted-foreground/70">Name</span>
+              <span className="text-xs font-medium text-muted-foreground/70">Email</span>
+              <span className="text-xs font-medium text-muted-foreground/70">Joined</span>
+              <span className="text-xs font-medium text-muted-foreground/70"></span>
             </div>
 
             {/* Rows */}
@@ -93,21 +93,21 @@ export default function ClassMembersPage() {
                 >
                   {/* Avatar + name */}
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-medium text-neutral-600">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
                       {(m.user?.full_name || m.user?.username || "?")[0].toUpperCase()}
                     </div>
-                    <span className="text-sm font-medium text-neutral-800">
+                    <span className="text-sm font-medium text-foreground">
                       {m.user?.full_name || m.user?.username || "Unknown"}
                     </span>
                   </div>
 
                   {/* Email */}
-                  <span className="truncate text-sm text-neutral-500">
+                  <span className="truncate text-sm text-muted-foreground">
                     {m.user?.email ?? "—"}
                   </span>
 
                   {/* Joined at */}
-                  <span className="text-xs text-neutral-400 whitespace-nowrap">
+                  <span className="text-xs text-muted-foreground/70 whitespace-nowrap">
                     {m.joined_at ? new Date(m.joined_at).toLocaleDateString() : "—"}
                   </span>
 
@@ -115,7 +115,7 @@ export default function ClassMembersPage() {
                   <button
                     onClick={() => handleRemove(m)}
                     disabled={removing === m.class_member_id}
-                    className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-error hover:bg-error/10 disabled:opacity-50"
                   >
                     {removing === m.class_member_id ? "Removing..." : "Remove"}
                   </button>
@@ -124,8 +124,8 @@ export default function ClassMembersPage() {
             </ul>
 
             {/* Footer count */}
-            <div className="border-t border-neutral-100 px-5 py-3">
-              <span className="text-xs text-neutral-400">{members.length} member{members.length !== 1 ? "s" : ""}</span>
+            <div className="border-t border-border px-5 py-3">
+              <span className="text-xs text-muted-foreground/70">{members.length} member{members.length !== 1 ? "s" : ""}</span>
             </div>
           </div>
         )}
@@ -134,35 +134,35 @@ export default function ClassMembersPage() {
 
       {/* Remove confirmation modal */}
       {confirmTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-lg">
-            <h3 className="text-base font-semibold text-neutral-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 px-4">
+          <div className="w-full max-w-sm rounded-xl bg-card p-6 shadow-lg">
+            <h3 className="text-base font-semibold text-foreground">
               Remove member
             </h3>
-            <p className="mt-2 text-sm text-neutral-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               Remove{" "}
-              <span className="font-medium text-neutral-800">
+              <span className="font-medium text-foreground">
                 {confirmTarget.user?.full_name || confirmTarget.user?.username || "this learner"}
               </span>{" "}
               from this class? They will need to join again to regain access.
             </p>
 
             {removeError && (
-              <p className="mt-3 text-sm text-red-500">{removeError}</p>
+              <p className="mt-3 text-sm text-error">{removeError}</p>
             )}
 
             <div className="mt-5 flex justify-end gap-2">
               <button
                 onClick={() => { setConfirmTarget(null); setRemoveError(""); }}
                 disabled={removing === confirmTarget.class_member_id}
-                className="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-50 disabled:opacity-50"
+                className="rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmRemove}
                 disabled={removing === confirmTarget.class_member_id}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                className="rounded-lg bg-error px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-error/90 disabled:opacity-50"
               >
                 {removing === confirmTarget.class_member_id ? "Removing..." : "Remove"}
               </button>

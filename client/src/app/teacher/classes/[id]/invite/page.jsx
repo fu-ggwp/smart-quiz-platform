@@ -43,7 +43,7 @@ export default function ClassInvitePage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-neutral-400">Loading...</p>
+        <p className="text-sm text-muted-foreground/70">Loading...</p>
       </main>
     );
   }
@@ -51,7 +51,7 @@ export default function ClassInvitePage() {
   if (error) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-3">
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-sm text-error">{error}</p>
       </main>
     );
   }
@@ -65,25 +65,25 @@ export default function ClassInvitePage() {
           <h1 className="text-2xl font-semibold">Invite Learners</h1>
           <Link
             href={`/teacher/classes/${id}`}
-            className="text-sm text-neutral-400 hover:text-neutral-700"
+            className="text-sm text-muted-foreground/70 hover:text-foreground"
           >
             ← Back to class
           </Link>
         </div>
 
         {/* Class Code */}
-        <div className="rounded-xl border border-neutral-200 p-5">
-          <h2 className="mb-1 text-sm font-semibold text-neutral-700">Class Code</h2>
-          <p className="mb-4 text-xs text-neutral-400">
+        <div className="rounded-xl border border-border p-5">
+          <h2 className="mb-1 text-sm font-semibold text-foreground">Class Code</h2>
+          <p className="mb-4 text-xs text-muted-foreground/70">
             Share this code with your students. They can enter it on the Join Class page.
           </p>
-          <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 px-5 py-4">
-            <span className="font-mono text-3xl font-bold tracking-widest text-neutral-900">
+          <div className="flex items-center justify-between gap-4 rounded-lg bg-muted px-5 py-4">
+            <span className="font-mono text-3xl font-bold tracking-widest text-foreground">
               {cls.class_code}
             </span>
             <button
               onClick={() => copyText(cls.class_code, setCodeCopied)}
-              className="rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm hover:bg-neutral-50"
+              className="rounded-lg border border-border bg-card px-4 py-2 text-sm hover:bg-muted"
             >
               {codeCopied ? "Copied!" : "Copy"}
             </button>
@@ -92,20 +92,20 @@ export default function ClassInvitePage() {
 
         {/* Invitation Link */}
         {inviteLink && (
-          <div className="rounded-xl border border-neutral-200 p-5">
-            <h2 className="mb-1 text-sm font-semibold text-neutral-700">Invitation Link</h2>
-            <p className="mb-4 text-xs text-neutral-400">
+          <div className="rounded-xl border border-border p-5">
+            <h2 className="mb-1 text-sm font-semibold text-foreground">Invitation Link</h2>
+            <p className="mb-4 text-xs text-muted-foreground/70">
               Anyone with this link can join the class directly (subject to your join policy).
             </p>
             <div className="flex items-center gap-3">
               <input
                 readOnly
                 value={inviteLink}
-                className="flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-xs text-neutral-600 outline-none"
+                className="flex-1 rounded-lg border border-border bg-muted px-4 py-2.5 text-xs text-muted-foreground outline-none"
               />
               <button
                 onClick={() => copyText(inviteLink, setLinkCopied)}
-                className="shrink-0 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm hover:bg-neutral-50"
+                className="shrink-0 rounded-lg border border-border bg-card px-4 py-2.5 text-sm hover:bg-muted"
               >
                 {linkCopied ? "Copied!" : "Copy"}
               </button>

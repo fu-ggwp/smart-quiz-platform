@@ -30,7 +30,7 @@ export default function ResultDashboard({ session, totalQuestions, onRetake, onB
               cx="64" 
               cy="64" 
               r="50" 
-              stroke={accuracy >= 50 ? "#10B981" : "#EF4444"} 
+          stroke={accuracy >= 50 ? "var(--color-success)" : "var(--color-error)"}
               strokeWidth="10" 
               fill="transparent" 
               strokeDasharray="314.16"

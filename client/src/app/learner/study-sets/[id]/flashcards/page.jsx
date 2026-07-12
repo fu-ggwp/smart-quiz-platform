@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { FlashcardPracticeView } from "@/components/study-set/FlashcardPracticeView";
+import { FlashcardPracticeView } from "@/components/study-set/flashcard-practice-view";
 
 export default function LearnerFlashcardsPage() {
   const params = useParams();

@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, BookOpen, Save, UserPlus, Users, AlertCircle } from "lucide-react";
 import { studySetsService } from "@/services/study-sets.service";
 import { Button } from "@/components/ui/button";
-import ClassSelectorModal from "../../create/ClassSelectorModal";
+import ClassSelectorModal from "../../create/class-selector-modal";
 
 export default function AssignStudySetPage() {
   const params = useParams();
@@ -88,7 +88,7 @@ export default function AssignStudySetPage() {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-4 rounded-2xl border border-border bg-card p-6 shadow-lg">
-          <AlertCircle className="size-12 text-rose-500 mx-auto" />
+          <AlertCircle className="size-12 text-error mx-auto" />
           <h2 className="text-xl font-bold text-foreground">Error Occurred</h2>
           <p className="text-sm text-muted-foreground">{error || "Study set not found."}</p>
           <Button onClick={() => router.push("/teacher/study-sets")} className="w-full">
@@ -157,7 +157,7 @@ export default function AssignStudySetPage() {
                 {selectedClassNames.map((name, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-white shadow-sm"
+                    className="inline-flex items-center rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground shadow-sm"
                   >
                     {name}
                   </span>

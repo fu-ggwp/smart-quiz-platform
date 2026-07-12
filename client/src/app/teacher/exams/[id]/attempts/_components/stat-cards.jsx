@@ -2,10 +2,10 @@ import { Users, CheckCircle2, Hourglass, UserCheck } from "lucide-react";
 
 function StatCard({ icon: Icon, label, value, tone = "blue" }) {
   const tones = {
-    blue: "bg-blue-50 text-blue-700",
-    green: "bg-emerald-50 text-emerald-700",
-    amber: "bg-amber-50 text-amber-700",
-    rose: "bg-rose-50 text-rose-700",
+    blue: "bg-info/10 text-info",
+    green: "bg-success/10 text-success",
+    amber: "bg-warning/10 text-warning",
+    rose: "bg-error/10 text-error",
   };
 
   return (

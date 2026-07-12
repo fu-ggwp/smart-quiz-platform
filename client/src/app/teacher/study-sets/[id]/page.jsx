@@ -6,8 +6,8 @@ import { ArrowLeft, Edit3, Trash2, Calendar, Layers, Eye, EyeOff, AlertCircle, U
 import { studySetsService } from "@/services/study-sets.service";
 import { Button } from "@/components/ui/button";
 import { QuestionPreviewCard } from "@/components/questions/question-preview-card";
-import ClassSelectorModal from "../create/ClassSelectorModal";
-import ConfirmModal from "@/components/common/ConfirmModal";
+import ClassSelectorModal from "../create/class-selector-modal";
+import ConfirmModal from "@/components/common/confirm-modal";
 
 export default function TeacherStudySetDetailPage() {
   const params = useParams();
@@ -123,7 +123,7 @@ export default function TeacherStudySetDetailPage() {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-4 rounded-2xl border border-border bg-card p-6 shadow-lg">
-          <AlertCircle className="size-12 text-rose-500 mx-auto" />
+          <AlertCircle className="size-12 text-error mx-auto" />
           <h2 className="text-xl font-bold text-foreground">Error Occurred</h2>
           <p className="text-sm text-muted-foreground">{error || "Study set not found."}</p>
           <Button onClick={() => router.push("/teacher/study-sets")} className="w-full">
@@ -197,7 +197,7 @@ export default function TeacherStudySetDetailPage() {
               variant="outline"
               disabled={deleting}
               size="sm"
-              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 gap-1.5"
+              className="text-error hover:text-error hover:bg-error/10 border-error/30 gap-1.5"
             >
               <Trash2 size={14} />
               {deleting ? "Deleting..." : "Delete"}

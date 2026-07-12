@@ -16,7 +16,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import supabase from "@/lib/supabaseClient";
+import supabase from "@/lib/supabase-client";
 import { authService, syncAuthCookie } from "@/services/auth.service";
 
 const passwordSchema = z

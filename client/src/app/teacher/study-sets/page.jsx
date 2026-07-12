@@ -6,8 +6,8 @@ import { useMemo, useState } from "react";
 import { AlertCircle, Eye, Layers3, Plus, Search, SlidersHorizontal, Users } from "lucide-react";
 import { AppPagination } from "@/components/common/app-pagination";
 import { studySetsService } from "@/services/study-sets.service";
-import ClassSelectorModal from "./create/ClassSelectorModal";
-import ConfirmModal from "@/components/common/ConfirmModal";
+import ClassSelectorModal from "./create/class-selector-modal";
+import ConfirmModal from "@/components/common/confirm-modal";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -400,9 +400,9 @@ function VisibilityBadge({ visibility }) {
 
   const toneClass =
     normalized === "public"
-      ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
+      ? "bg-success/10 text-success ring-success/20"
       : normalized === "class-only"
-        ? "bg-amber-50 text-amber-700 ring-amber-100"
+        ? "bg-warning/10 text-warning ring-warning/20"
         : "bg-muted text-muted-foreground ring-border";
 
   return (

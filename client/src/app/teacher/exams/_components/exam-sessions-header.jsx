@@ -14,7 +14,7 @@ export function ExamSessionsHeader() {
       </div>
       <Button
         asChild
-        className="h-11 rounded-md bg-primary px-5 text-sm font-bold text-primary-foreground hover:bg-[color-mix(in_oklch,var(--color-primary),var(--color-foreground)_10%)]"
+        className="h-11 rounded-md bg-primary px-5 text-sm font-bold text-primary-foreground hover:bg-primary/90"
       >
         <Link href="/teacher/exams/create">
           <Plus className="size-5" aria-hidden="true" />

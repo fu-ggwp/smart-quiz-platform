@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { StudySetDetailView } from "@/components/study-set/StudySetDetailView";
+import { StudySetDetailView } from "@/components/study-set/study-set-detail-view";
 
 export default function PublicStudySetDetailPage() {
   const params = useParams();

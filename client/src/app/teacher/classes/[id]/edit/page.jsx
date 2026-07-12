@@ -73,16 +73,16 @@ export default function EditClassPage() {
           <h1 className="text-3xl font-semibold">Edit Class</h1>
           <Link
             href="/teacher/classes"
-            className="text-sm text-neutral-500 hover:text-neutral-800"
+            className="text-sm text-muted-foreground hover:text-foreground"
           >
             ← Back
           </Link>
         </div>
 
-        {loading && <p className="text-sm text-neutral-400">Loading class...</p>}
+        {loading && <p className="text-sm text-muted-foreground/70">Loading class...</p>}
 
         {!loading && loadError && (
-          <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div className="rounded-lg bg-error/10 px-4 py-3 text-sm text-error">
             {loadError}{" "}
             <button onClick={load} className="underline">
               Try again
@@ -94,14 +94,14 @@ export default function EditClassPage() {
           <>
             {/* Class code is generated and immutable */}
             {classCode && (
-              <p className="mb-5 text-sm text-neutral-400">
-                Class code: <span className="font-mono text-neutral-600">{classCode}</span>
+              <p className="mb-5 text-sm text-muted-foreground/70">
+                Class code: <span className="font-mono text-muted-foreground">{classCode}</span>
                 <span className="ml-2 text-xs">(cannot be changed)</span>
               </p>
             )}
 
             {notice && (
-              <p className="mb-5 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              <p className="mb-5 rounded-lg bg-success/10 px-4 py-3 text-sm text-success">
                 {notice}{" "}
                 <Link href="/teacher/classes" className="underline">
                   Back to classes

@@ -19,9 +19,9 @@ export default function QuestionMap({ questions, currentIndex, selectedAnswers, 
             const isCorrect = correctOptionIds.length === userSelected.length && 
                               correctOptionIds.every(id => userSelected.includes(id));
             if (isCorrect) {
-              cellClass = "bg-emerald-500 text-white border-emerald-500 shadow-sm";
+              cellClass = "bg-success text-primary-foreground border-success shadow-sm";
             } else {
-              cellClass = "bg-red-500 text-white border-red-500 shadow-sm";
+              cellClass = "bg-error text-primary-foreground border-error shadow-sm";
             }
           } else if (isCurrent) {
             cellClass = "bg-primary text-primary-foreground border-primary shadow-sm";

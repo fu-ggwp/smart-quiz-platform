@@ -82,7 +82,7 @@ export default function ClassSelectorModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/60 backdrop-blur-sm p-4 overflow-y-auto">
       <div className="relative w-full max-w-md bg-card rounded-2xl shadow-2xl border border-border p-6 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border pb-3">
@@ -110,12 +110,12 @@ export default function ClassSelectorModal({
 
         {/* Validation or Load Error */}
         {error && (
-          <p className="text-sm font-semibold text-rose-500 bg-rose-50 p-3 rounded-xl border border-rose-100">
+          <p className="text-sm font-semibold text-error bg-error/10 p-3 rounded-xl border border-error/20">
             {error}
           </p>
         )}
         {validationError && (
-          <div className="flex items-center gap-2 text-sm font-semibold text-rose-500 bg-rose-50/50 p-3 rounded-xl border border-rose-100">
+          <div className="flex items-center gap-2 text-sm font-semibold text-error bg-error/10 p-3 rounded-xl border border-error/20">
             <AlertCircle className="size-4 shrink-0" />
             <span>{validationError}</span>
           </div>
@@ -172,7 +172,7 @@ export default function ClassSelectorModal({
                         Code: {c.class_code || "N/A"}
                       </p>
                     </div>
-                    {isChecked && <Check className="size-4 text-emerald-600 shrink-0" />}
+                    {isChecked && <Check className="size-4 text-success shrink-0" />}
                   </label>
                 );
               })}

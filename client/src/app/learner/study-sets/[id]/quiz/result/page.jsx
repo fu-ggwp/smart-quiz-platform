@@ -5,8 +5,8 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { studySetsService } from "@/services/study-sets.service";
 import { Button } from "@/components/ui/button";
 
-import ResultDashboard from "./_components/ResultDashboard";
-import AnswersReviewList from "./_components/AnswersReviewList";
+import ResultDashboard from "./_components/result-dashboard";
+import AnswersReviewList from "./_components/answers-review-list";
 
 export default function LearnerQuizResultPage() {
   const params = useParams();

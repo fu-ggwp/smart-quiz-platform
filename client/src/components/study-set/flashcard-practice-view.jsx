@@ -6,9 +6,9 @@ import { ArrowLeft, ChevronLeft, ChevronRight, BookOpen, PartyPopper } from "luc
 import { studySetsService } from "@/services/study-sets.service";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/layout/navbar";
-import ConfirmModal from "@/components/common/ConfirmModal";
-import Flashcard from "./Flashcard";
-import FlashcardProgress from "./FlashcardProgress";
+import ConfirmModal from "@/components/common/confirm-modal";
+import Flashcard from "./flashcard";
+import FlashcardProgress from "./flashcard-progress";
 
 export function FlashcardPracticeView({ 
   studySetId, 
@@ -323,7 +323,7 @@ export function FlashcardPracticeView({
       </header>
 
       <section className="flex-1 max-w-md w-full mx-auto flex flex-col justify-center items-center text-center space-y-6 px-4">
-        <div className="size-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+        <div className="size-16 rounded-full bg-success/10 text-success flex items-center justify-center border border-success/20">
           <PartyPopper className="size-8" />
         </div>
         <div className="space-y-2">
@@ -379,20 +379,20 @@ export function FlashcardPracticeView({
           <button 
             onClick={handlePrev} 
             disabled={currentIndex === 0} 
-            className="w-16 h-11 bg-white border border-slate-200 text-slate-800 rounded-full flex items-center justify-center hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none shadow-md"
+            className="w-16 h-11 bg-card border border-border text-foreground rounded-full flex items-center justify-center hover:bg-background active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none shadow-md"
             title="Back"
           >
             <ChevronLeft className="size-6 stroke-[2.5]" />
           </button>
           
-          <span className="text-lg font-bold text-slate-800 tracking-wider min-w-[80px] text-center select-none">
+          <span className="text-lg font-bold text-foreground tracking-wider min-w-[80px] text-center select-none">
             {currentIndex + 1} / {questions.length}
           </span>
           
           <button 
             onClick={handleNext} 
             disabled={currentIndex === questions.length} 
-            className="w-16 h-11 bg-white border border-slate-200 text-slate-800 rounded-full flex items-center justify-center hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none shadow-md"
+            className="w-16 h-11 bg-card border border-border text-foreground rounded-full flex items-center justify-center hover:bg-background active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none shadow-md"
             title={currentIndex === questions.length - 1 ? "Finish" : "Next"}
           >
             <ChevronRight className="size-6 stroke-[2.5]" />

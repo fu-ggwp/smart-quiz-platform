@@ -193,7 +193,7 @@ export default function LearnerExamsPage() {
           </Button>
         </div>
 
-        {error ? <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">{error}</div> : null}
+        {error ? <div className="rounded-md border border-error/30 bg-error/10 px-4 py-3 text-sm font-medium text-error">{error}</div> : null}
         {loading ? <div className="rounded-md border border-border bg-card px-4 py-6 text-sm text-muted-foreground">Loading exams...</div> : null}
 
         {!loading && !error && exams.length === 0 ? (

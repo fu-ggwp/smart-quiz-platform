@@ -9,8 +9,8 @@ function InfoRow({ label, value }) {
   if (!value) return null;
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-xs text-neutral-400">{label}</span>
-      <span className="text-sm text-neutral-800">{value}</span>
+      <span className="text-xs text-muted-foreground/70">{label}</span>
+      <span className="text-sm text-foreground">{value}</span>
     </div>
   );
 }
@@ -103,7 +103,7 @@ export default function ClassDetailPage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-neutral-400">Loading...</p>
+        <p className="text-sm text-muted-foreground/70">Loading...</p>
       </main>
     );
   }
@@ -111,10 +111,10 @@ export default function ClassDetailPage() {
   if (error) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-3">
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-sm text-error">{error}</p>
         <button
           onClick={() => router.push("/teacher/classes")}
-          className="text-sm text-neutral-500 underline"
+          className="text-sm text-muted-foreground underline"
         >
           Back to classes
         </button>
@@ -132,19 +132,19 @@ export default function ClassDetailPage() {
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold">{cls.class_name}</h1>
             {cls.description && (
-              <p className="text-sm text-neutral-500">{cls.description}</p>
+              <p className="text-sm text-muted-foreground">{cls.description}</p>
             )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Link
               href={`/teacher/classes/${id}/edit`}
-              className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
             >
               Edit
             </Link>
             <Link
               href="/teacher/classes"
-              className="text-sm text-neutral-400 hover:text-neutral-700"
+              className="text-sm text-muted-foreground/70 hover:text-foreground"
             >
               ← Back
             </Link>
@@ -152,8 +152,8 @@ export default function ClassDetailPage() {
         </div>
 
         {/* Class Info */}
-        <div className="rounded-xl border border-neutral-200 p-5">
-          <h2 className="mb-4 text-sm font-semibold text-neutral-700">
+        <div className="rounded-xl border border-border p-5">
+          <h2 className="mb-4 text-sm font-semibold text-foreground">
             Class Info
           </h2>
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
@@ -175,17 +175,17 @@ export default function ClassDetailPage() {
         </div>
 
         {/* Class Code */}
-        <div className="rounded-xl border border-neutral-200 p-5">
+        <div className="rounded-xl border border-border p-5">
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-neutral-400">Class Code</span>
-              <span className="font-mono text-2xl font-bold tracking-widest text-neutral-800">
+              <span className="text-xs text-muted-foreground/70">Class Code</span>
+              <span className="font-mono text-2xl font-bold tracking-widest text-foreground">
                 {cls.class_code}
               </span>
             </div>
             <Link
               href={`/teacher/classes/${id}/invite`}
-              className="rounded-lg border border-neutral-200 px-4 py-2 text-sm hover:bg-neutral-50"
+              className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-muted"
             >
               View Invite Options
             </Link>
@@ -194,20 +194,20 @@ export default function ClassDetailPage() {
 
         {/* Join Requests — only shown when policy is teacher_approval */}
         {cls.join_policy === "teacher_approval" && (
-          <div className="rounded-xl border border-neutral-200 p-5">
+          <div className="rounded-xl border border-border p-5">
             <div className="mb-4 flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-neutral-700">
+              <h2 className="text-sm font-semibold text-foreground">
                 Join Requests
               </h2>
               {joinRequests.length > 0 && (
-                <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
+                <span className="rounded-full bg-warning/20 px-2 py-0.5 text-xs font-medium text-warning">
                   {joinRequests.length} pending
                 </span>
               )}
             </div>
 
             {joinRequests.length === 0 ? (
-              <p className="text-sm text-neutral-400">
+              <p className="text-sm text-muted-foreground/70">
                 No pending join requests.
               </p>
             ) : (
@@ -218,10 +218,10 @@ export default function ClassDetailPage() {
                     className="flex items-center justify-between py-3"
                   >
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-sm font-medium text-neutral-800">
+                      <span className="text-sm font-medium text-foreground">
                         {req.user?.full_name || req.user?.username || "Unknown"}
                       </span>
-                      <span className="text-xs text-neutral-400">
+                      <span className="text-xs text-muted-foreground/70">
                         {req.user?.email}
                       </span>
                     </div>
@@ -231,7 +231,7 @@ export default function ClassDetailPage() {
                           handleResolve(req.join_request_id, "approved")
                         }
                         disabled={resolving === req.join_request_id}
-                        className="rounded-lg bg-black px-3 py-1.5 text-xs font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+                        className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/80 disabled:opacity-50"
                       >
                         Approve
                       </button>
@@ -240,7 +240,7 @@ export default function ClassDetailPage() {
                           handleResolve(req.join_request_id, "rejected")
                         }
                         disabled={resolving === req.join_request_id}
-                        className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50 disabled:opacity-50"
+                        className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
                       >
                         Reject
                       </button>
@@ -253,24 +253,24 @@ export default function ClassDetailPage() {
         )}
 
         {/* Members Preview */}
-        <div className="rounded-xl border border-neutral-200 p-5">
+        <div className="rounded-xl border border-border p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-neutral-700">
+            <h2 className="text-sm font-semibold text-foreground">
               Members
-              <span className="ml-2 text-xs font-normal text-neutral-400">
+              <span className="ml-2 text-xs font-normal text-muted-foreground/70">
                 {members.length} / {cls.learner_capacity}
               </span>
             </h2>
             <Link
               href={`/teacher/classes/${id}/members`}
-              className="text-xs text-neutral-500 hover:text-neutral-800"
+              className="text-xs text-muted-foreground hover:text-foreground"
             >
               View all →
             </Link>
           </div>
 
           {members.length === 0 ? (
-            <p className="text-sm text-neutral-400">No members yet.</p>
+            <p className="text-sm text-muted-foreground/70">No members yet.</p>
           ) : (
             <ul className="divide-y divide-neutral-100">
               {previewMembers.map((m) => (
@@ -278,16 +278,16 @@ export default function ClassDetailPage() {
                   key={m.class_member_id}
                   className="flex items-center gap-3 py-2.5"
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-medium text-neutral-600">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
                     {(m.user?.full_name ||
                       m.user?.username ||
                       "?")[0].toUpperCase()}
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-medium text-neutral-800">
+                    <span className="text-sm font-medium text-foreground">
                       {m.user?.full_name || m.user?.username || "Unknown"}
                     </span>
-                    <span className="text-xs text-neutral-400">
+                    <span className="text-xs text-muted-foreground/70">
                       {m.user?.email}
                     </span>
                   </div>
@@ -297,11 +297,11 @@ export default function ClassDetailPage() {
           )}
 
           {members.length > 5 && (
-            <p className="mt-3 text-xs text-neutral-400">
+            <p className="mt-3 text-xs text-muted-foreground/70">
               +{members.length - 5} more —{" "}
               <Link
                 href={`/teacher/classes/${id}/members`}
-                className="underline hover:text-neutral-700"
+                className="underline hover:text-foreground"
               >
                 see all
               </Link>
@@ -310,16 +310,16 @@ export default function ClassDetailPage() {
         </div>
 
         {/* Manage Class — delete (UC-32) */}
-        <div className="rounded-xl border border-red-200 p-5">
-          <h2 className="text-sm font-semibold text-red-700">Manage Class</h2>
-          <p className="mt-1 text-xs text-neutral-500">
+        <div className="rounded-xl border border-error/30 p-5">
+          <h2 className="text-sm font-semibold text-error">Manage Class</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
             Delete a class you no longer need. It will be removed from class
             lists.
           </p>
           <div className="mt-4">
             <button
               onClick={() => setConfirmingDelete(true)}
-              className="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+              className="rounded-lg border border-error/40 px-4 py-2 text-sm font-medium text-error hover:bg-error/10"
             >
               Delete Class
             </button>
@@ -329,12 +329,12 @@ export default function ClassDetailPage() {
 
       {/* Confirmation modal (Normal Flow step 3 / Alt 4.1 Cancel) */}
       {confirmingDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-neutral-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 px-4">
+          <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-foreground">
               Delete this class?
             </h3>
-            <p className="mt-2 text-sm text-neutral-600">
+            <p className="mt-2 text-sm text-muted-foreground">
               This class will be removed from the web class lists. Learners
               will no longer be able to access it.
             </p>
@@ -342,14 +342,14 @@ export default function ClassDetailPage() {
               <button
                 onClick={() => setConfirmingDelete(false)}
                 disabled={processing}
-                className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50 disabled:opacity-50"
+                className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={processing}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                className="rounded-lg bg-error px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-error/90 disabled:opacity-50"
               >
                 {processing ? "Deleting..." : "Delete Class"}
               </button>
@@ -359,19 +359,19 @@ export default function ClassDetailPage() {
       )}
 
       {deleteSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-neutral-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 px-4">
+          <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-foreground">
               Class deleted successfully
             </h3>
-            <p className="mt-2 text-sm text-neutral-600">
+            <p className="mt-2 text-sm text-muted-foreground">
               The class has been removed from your class list.
               Redirecting...
             </p>
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => router.replace("/teacher/classes")}
-                className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80"
               >
                 Back to Classes
               </button>
@@ -381,16 +381,16 @@ export default function ClassDetailPage() {
       )}
 
       {deleteError && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-neutral-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 px-4">
+          <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-foreground">
               Delete failed
             </h3>
-            <p className="mt-2 text-sm text-neutral-600">{deleteError}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{deleteError}</p>
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setDeleteError("")}
-                className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80"
               >
                 OK
               </button>

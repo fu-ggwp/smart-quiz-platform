@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "./axios-client";
 import { getCookie } from "../lib/utils";
 
 function apiBaseUrl() {
