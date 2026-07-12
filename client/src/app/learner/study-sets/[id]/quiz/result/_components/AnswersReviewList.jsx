@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CheckCircle2, Loader2, Sparkles, XCircle } from "lucide-react";
 import { studySetsService } from "@/services/study-sets.service";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 function getAiExplanationError(error) {
   const status = error?.response?.status;
@@ -56,28 +57,28 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
   return (
     <div className="space-y-6">
       {/* Header & Toggle bộ lọc */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-neutral-100 p-5 rounded-2xl shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border p-5 rounded-2xl shadow-sm">
         <div>
-          <h3 className="font-extrabold text-neutral-900 text-lg">Review Answers</h3>
-          <p className="text-xs text-neutral-400 mt-0.5">Check detail correctness and explanations</p>
+          <h3 className="font-extrabold text-foreground text-lg">Review Answers</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Check detail correctness and explanations</p>
         </div>
 
         {/* Toggle chỉ hiện câu sai (UC-21) */}
-        <label className="flex items-center gap-2.5 cursor-pointer select-none bg-neutral-50 border border-neutral-200 px-4 py-2 rounded-xl hover:bg-neutral-100 transition-colors">
+        <label className="flex items-center gap-2.5 cursor-pointer select-none bg-muted border border-border px-4 py-2 rounded-xl hover:bg-muted/80 transition-colors">
           <input 
             type="checkbox" 
             checked={showOnlyWrong} 
             onChange={(e) => setShowOnlyWrong(e.target.checked)} 
-            className="size-4 rounded text-indigo-600 border-neutral-300 focus:ring-indigo-500 cursor-pointer"
+            className="size-4 rounded accent-primary border-border cursor-pointer text-foreground"
           />
-          <span className="text-xs font-bold text-neutral-700">Show Only Wrong Answers</span>
+          <span className="text-xs font-bold text-foreground">Show Only Wrong Answers</span>
         </label>
       </div>
 
       {/* Danh sách câu hỏi */}
       <div className="space-y-4">
         {filteredQuestions.length === 0 ? (
-          <div className="bg-white border border-neutral-100 rounded-3xl p-8 text-center text-neutral-400 italic">
+          <div className="bg-card border border-border rounded-3xl p-8 text-center text-muted-foreground italic">
             No questions match the filter criteria.
           </div>
         ) : (
@@ -91,7 +92,7 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
             return (
               <div 
                 key={q.question_id}
-                className={`bg-white border rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 transition-all duration-200 ${
+                className={`bg-card border rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 transition-all duration-200 ${
                   isCorrect 
                     ? "border-emerald-100 hover:border-emerald-200" 
                     : "border-red-100 hover:border-red-200"
@@ -100,10 +101,10 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
                 {/* Trạng thái và Tiêu đề câu hỏi */}
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-2">
-                    <span className="text-xs font-extrabold text-neutral-400 tracking-wider uppercase block">
+                    <span className="text-xs font-extrabold text-muted-foreground tracking-wider uppercase block">
                       Question {qIdx + 1}
                     </span>
-                    <h4 className="text-lg font-bold text-neutral-900 leading-snug">
+                    <h4 className="text-lg font-bold text-foreground leading-snug">
                       {q.question_text}
                     </h4>
                   </div>
@@ -132,8 +133,8 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
                     const letter = String.fromCharCode(65 + optIdx);
 
                     // Thiết lập màu sắc viền/nền tương ứng
-                    let itemStyle = "border-neutral-200 bg-white";
-                    let badgeStyle = "bg-neutral-100 text-neutral-500 border-neutral-200";
+                    let itemStyle = "border-border bg-card";
+                    let badgeStyle = "bg-muted text-muted-foreground border-border";
 
                     if (isCorrectOption) {
                       itemStyle = "border-emerald-500 bg-emerald-50/10";
@@ -152,7 +153,7 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
                           <span className={`size-7 rounded-lg flex items-center justify-center text-xs font-bold border ${badgeStyle}`}>
                             {letter}
                           </span>
-                          <span className="text-sm font-semibold text-neutral-800">{opt.option_text}</span>
+                          <span className="text-sm font-semibold text-foreground">{opt.option_text}</span>
                         </div>
 
                         {/* Nhãn hiển thị trạng thái đáp án */}
@@ -173,22 +174,23 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
 
                 {/* Giải thích đáp án (Nếu có) */}
                 {q.explanation && (
-                  <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-4 space-y-1">
-                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                  <div className="bg-muted/50 border border-border rounded-2xl p-4 space-y-1">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
                       Explanation
                     </span>
-                    <p className="text-sm text-neutral-600 italic leading-relaxed">
+                    <p className="text-sm text-foreground italic leading-relaxed">
                       {q.explanation}
                     </p>
                   </div>
                 )}
 
                 <div className="space-y-3">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => handleGenerateAiExplanation(q.question_id)}
                     disabled={isAiLoading || !sessionId}
-                    className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-700 transition-colors hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    variant="outline"
+                    className="gap-2 rounded-xl font-bold text-xs px-4 py-2 h-auto"
                   >
                     {isAiLoading ? (
                       <Loader2 size={14} className="animate-spin" />
@@ -196,7 +198,7 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
                       <Sparkles size={14} />
                     )}
                     <span>{isAiLoading ? "Generating..." : "AI Explanation"}</span>
-                  </button>
+                  </Button>
 
                   {aiState.status === "error" && (
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3.5 text-sm font-medium text-red-700">
@@ -204,7 +206,7 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
                       {aiState.error.includes("Premium") && (
                         <Link
                           href="/upgrade"
-                          className="shrink-0 inline-flex items-center justify-center rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2.5 text-xs text-center transition-colors shadow-sm"
+                          className="shrink-0 inline-flex items-center justify-center rounded-xl bg-destructive text-white hover:bg-destructive/90 font-bold px-4 py-2.5 text-xs text-center transition-colors shadow-sm"
                         >
                           Upgrade Now
                         </Link>
@@ -213,11 +215,11 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
                   )}
 
                   {aiState.status === "success" && aiState.text && (
-                    <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 space-y-1">
-                      <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider block">
+                    <div className="rounded-2xl border border-border bg-muted/50 p-4 space-y-1">
+                      <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">
                         AI Explanation
                       </span>
-                      <p className="text-sm text-neutral-700 leading-relaxed">
+                      <p className="text-sm text-foreground leading-relaxed">
                         {aiState.text}
                       </p>
                     </div>

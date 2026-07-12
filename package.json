@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "dev": "concurrently \"cd client && npm run dev\" \"cd server && npm run dev\""

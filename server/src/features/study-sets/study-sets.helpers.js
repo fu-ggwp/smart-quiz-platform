@@ -71,7 +71,7 @@ export async function requirePremiumLearner(userId) {
   await requirePremiumFeature(userId, aiStudySetQaFeature, premiumRequiredMessage);
 }
 
-export function buildQuery(teacherId, filters, assignedIds) {
+export function buildQuery(teacherId, filters) {
   let dbQuery = dao.findByTeacher(teacherId);
 
   const keyword = filters.keyword ? String(filters.keyword).trim() : "";
@@ -81,18 +81,6 @@ export function buildQuery(teacherId, filters, assignedIds) {
 
   if (filters.visibility && filters.visibility !== "all") {
     dbQuery = dbQuery.eq("visibility", filters.visibility);
-  }
-
-  if (filters.assignment === "assigned") {
-    if (assignedIds.length === 0) {
-      dbQuery = dbQuery.eq("study_set_id", "00000000-0000-0000-0000-000000000000");
-    } else {
-      dbQuery = dbQuery.in("study_set_id", assignedIds);
-    }
-  } else if (filters.assignment === "unassigned") {
-    if (assignedIds.length > 0) {
-      dbQuery = dbQuery.not("study_set_id", "in", `(${assignedIds.join(",")})`);
-    }
   }
 
   if (filters.sortBy === "name-asc") {
@@ -152,7 +140,11 @@ export async function validateStudySetAccess(studySet, userId, userRole) {
   if (studySet.visibility === "public") {
     return;
   }
-  if (studySet.visibility === "private" || studySet.visibility === "class_only") {
+  if (studySet.visibility === "private") {
+    throw accessDenied();
+  }
+
+  if (studySet.visibility === "class_only") {
     if (userRole !== "learner") {
       throw accessDenied();
     }

@@ -37,10 +37,6 @@ function getStudySetId(studySet) {
   return studySet.study_set_id ?? studySet.id;
 }
 
-function getAssignedClasses(studySet) {
-  return studySet.assigned_class_names ?? studySet.assignedClassNames ?? [];
-}
-
 function getSourceName(studySet) {
   return (
     studySet.source_question_bank_title ??
