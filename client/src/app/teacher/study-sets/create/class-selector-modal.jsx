@@ -82,7 +82,7 @@ export default function ClassSelectorModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral/60 backdrop-blur-sm p-4 overflow-y-auto">
       <div className="relative w-full max-w-md bg-card rounded-2xl shadow-2xl border border-border p-6 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border pb-3">

@@ -134,7 +134,7 @@ export default function ClassMembersPage() {
 
       {/* Remove confirmation modal */}
       {confirmTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral/40 px-4">
           <div className="w-full max-w-sm rounded-xl bg-card p-6 shadow-lg">
             <h3 className="text-base font-semibold text-foreground">
               Remove member

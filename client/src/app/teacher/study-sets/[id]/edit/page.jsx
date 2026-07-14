@@ -699,7 +699,7 @@ export default function EditStudySetPage() {
 
       {/* Question Bank Selector Popup */}
       {showQBSelector && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-2xl border border-border">
             <QuestionBankSelector
               onQuestionsSelected={handleQBQuestionsImported}
@@ -714,7 +714,7 @@ export default function EditStudySetPage() {
 
       {/* Excel Importer Popup */}
       {showExcelImporter && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-2xl border border-border">
             <ExcelImporter
               onQuestionsImported={handleExcelQuestionsImported}
@@ -726,7 +726,7 @@ export default function EditStudySetPage() {
 
       {/* Material Generator Popup */}
       {showMaterialGenerator && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-2xl border border-border">
             <MaterialQuestionGenerator
               generateQuestions={aiService.generateQuestionsFromMaterial}

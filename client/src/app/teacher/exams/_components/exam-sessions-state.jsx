@@ -27,7 +27,8 @@ export function ExamSessionsEmptyState() {
       </p>
       <Button
         asChild
-        className="mt-6 h-11 rounded-md bg-primary px-5 text-sm font-bold text-primary-foreground hover:bg-primary/90"
+        variant="primary"
+        className="mt-6 h-11 px-5 text-sm font-bold"
       >
         <Link href="/teacher/exams/create">Create Exam Session</Link>
       </Button>

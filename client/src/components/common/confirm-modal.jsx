@@ -58,7 +58,7 @@ export default function ConfirmModal({
   const currentTheme = themes[resolvedVariant] || themes.info;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-primary/60 backdrop-blur-sm px-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral/60 backdrop-blur-sm px-4">
       <div className="relative w-full max-w-xl rounded-2xl bg-card border border-border p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 space-y-6">
         {/* Close Button */}
         <button

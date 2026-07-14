@@ -232,7 +232,7 @@ export function QuestionBankEditorForm({
  */
 export function QuestionBankExcelImportModal({ onCancel, onQuestionsImported }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-primary/60 p-4 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-neutral/60 p-4 backdrop-blur-sm">
       <div className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-border bg-card shadow-2xl">
         <ExcelImporter
           onCancel={onCancel}
@@ -248,7 +248,7 @@ export function QuestionBankExcelImportModal({ onCancel, onQuestionsImported }) 
  */
 export function QuestionBankMaterialGenerateModal({ generateQuestions, onCancel, onQuestionsGenerated }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-primary/60 p-4 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-neutral/60 p-4 backdrop-blur-sm">
       <div className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-border bg-card shadow-2xl">
         <MaterialQuestionGenerator
           generateQuestions={generateQuestions}

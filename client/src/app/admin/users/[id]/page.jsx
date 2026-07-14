@@ -197,7 +197,7 @@ export default function AdminUserDetailPage() {
 
       {/* Confirmation modal */}
       {pending && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral/40 px-4">
           <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
             <h3 className="text-lg font-semibold">{pending.label} this user?</h3>
             <p className="mt-1 text-sm text-muted-foreground">

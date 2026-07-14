@@ -329,7 +329,7 @@ export default function ClassDetailPage() {
 
       {/* Confirmation modal (Normal Flow step 3 / Alt 4.1 Cancel) */}
       {confirmingDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral/40 px-4">
           <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-foreground">
               Delete this class?
@@ -359,7 +359,7 @@ export default function ClassDetailPage() {
       )}
 
       {deleteSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral/40 px-4">
           <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-foreground">
               Class deleted successfully
@@ -381,7 +381,7 @@ export default function ClassDetailPage() {
       )}
 
       {deleteError && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/40 px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral/40 px-4">
           <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-foreground">
               Delete failed

@@ -2,6 +2,14 @@ import { Search, SlidersHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import {
   RESULT_VISIBILITY_OPTIONS,
@@ -9,18 +17,34 @@ import {
   STATUS_OPTIONS,
 } from "./exam-session-options";
 
-function SelectField({ id, label, value, onChange, children }) {
+const EMPTY_SELECT_VALUE = "__all__";
+
+function toSelectValue(value) {
+  return value || EMPTY_SELECT_VALUE;
+}
+
+function fromSelectValue(value) {
+  return value === EMPTY_SELECT_VALUE ? "" : value;
+}
+
+function SelectField({ id, label, value, onValueChange, options }) {
   return (
-    <label htmlFor={id} className="space-y-2 text-sm font-bold text-foreground">
+    <label htmlFor={id} className="flex flex-col gap-2 text-sm font-bold text-foreground">
       <span>{label}</span>
-      <select
-        id={id}
-        value={value}
-        onChange={onChange}
-        className="h-11 w-full rounded-md border border-border bg-card px-4 text-sm font-semibold text-foreground shadow-sm outline-none transition focus:border-ring focus:ring-4 focus:ring-ring/20"
-      >
-        {children}
-      </select>
+      <Select value={toSelectValue(value)} onValueChange={(next) => onValueChange(fromSelectValue(next))}>
+        <SelectTrigger id={id} className="h-11 w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            {options.map((option) => (
+              <SelectItem key={option.value || EMPTY_SELECT_VALUE} value={toSelectValue(option.value)}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
     </label>
   );
 }
@@ -35,14 +59,14 @@ export function ExamSessionsFilters({
   return (
     <section className="rounded-md border border-border bg-card p-5 shadow-sm">
       <div className="grid gap-5 lg:grid-cols-[minmax(280px,1fr)_minmax(180px,292px)_minmax(180px,292px)_auto] lg:items-end">
-        <label htmlFor="exam-search" className="space-y-2 text-sm font-bold text-foreground">
+        <label htmlFor="exam-search" className="flex flex-col gap-2 text-sm font-bold text-foreground">
           <span>Search Exam Sessions</span>
           <Input
             id="exam-search"
             value={filters.search}
             onChange={(event) => onUpdateFilter("search", event.target.value)}
             placeholder="Exam title, class, status"
-            className="h-11 rounded-md border-border bg-card px-4 text-sm font-semibold shadow-sm placeholder:font-medium placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/20"
+            className="h-11"
           />
         </label>
 
@@ -50,36 +74,31 @@ export function ExamSessionsFilters({
           id="status-filter"
           label="Status Filter"
           value={filters.status}
-          onChange={(event) => onUpdateFilter("status", event.target.value)}
-        >
-          {STATUS_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </SelectField>
+          onValueChange={(value) => onUpdateFilter("status", value)}
+          options={STATUS_OPTIONS}
+        />
 
         <SelectField
           id="class-filter"
           label="Class Filter"
           value={filters.classId}
-          onChange={(event) => onUpdateFilter("classId", event.target.value)}
-        >
-          <option value="">All classes</option>
-          {classOptions.map((classItem) => (
-            <option key={classItem.class_id} value={classItem.class_id}>
-              {classItem.class_name}
-            </option>
-          ))}
-        </SelectField>
+          onValueChange={(value) => onUpdateFilter("classId", value)}
+          options={[
+            { value: "", label: "All classes" },
+            ...classOptions.map((classItem) => ({
+              value: String(classItem.class_id),
+              label: classItem.class_name,
+            })),
+          ]}
+        />
 
         <Button
           type="button"
           variant="outline"
           onClick={onApply}
-          className="h-11 rounded-md border-border bg-card px-5 text-sm font-bold text-foreground hover:bg-accent hover:text-accent-foreground"
+          className="h-11 px-5 text-sm font-bold"
         >
-          <Search className="size-5" aria-hidden="true" />
+          <Search data-icon="inline-start" aria-hidden="true" />
           Apply
         </Button>
       </div>
@@ -89,36 +108,26 @@ export function ExamSessionsFilters({
           id="visibility-filter"
           label="Result Visibility"
           value={filters.resultVisibility}
-          onChange={(event) => onUpdateFilter("resultVisibility", event.target.value)}
-        >
-          {RESULT_VISIBILITY_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </SelectField>
+          onValueChange={(value) => onUpdateFilter("resultVisibility", value)}
+          options={RESULT_VISIBILITY_OPTIONS}
+        />
 
         <SelectField
           id="sort-filter"
           label="Sort By"
           value={filters.sortBy}
-          onChange={(event) => onUpdateFilter("sortBy", event.target.value)}
-        >
-          {SORT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </SelectField>
+          onValueChange={(value) => onUpdateFilter("sortBy", value)}
+          options={SORT_OPTIONS}
+        />
 
         <div className="flex justify-start md:justify-end">
           <Button
             type="button"
             variant="ghost"
             onClick={onReset}
-            className="h-11 rounded-md px-4 text-sm font-bold text-foreground hover:bg-accent hover:text-accent-foreground"
+            className="h-11 px-4 text-sm font-bold"
           >
-            <SlidersHorizontal className="size-5" aria-hidden="true" />
+            <SlidersHorizontal data-icon="inline-start" aria-hidden="true" />
             Reset Filters
           </Button>
         </div>

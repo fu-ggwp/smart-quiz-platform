@@ -77,7 +77,7 @@ function SidebarLink({ isCollapsed, item, pathname }) {
         "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
         isCollapsed && "md:justify-center md:px-2",
         isActive
-          ? "bg-primary text-primary-foreground"
+          ? "bg-neutral text-neutral-foreground"
           : "text-foreground hover:bg-muted hover:text-foreground",
       )}
     >
@@ -89,10 +89,11 @@ function SidebarLink({ isCollapsed, item, pathname }) {
 
 export function AppSidebar({ role }) {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(getSavedSidebarCollapsed);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const config = roleConfig[role];
 
   useEffect(() => {
+    setIsCollapsed(getSavedSidebarCollapsed());
     return subscribeToSidebarCollapsed(setIsCollapsed);
   }, []);
 

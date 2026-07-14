@@ -5,7 +5,7 @@ export function ExportMenu({ open, options, onChange, onClose, onExport }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-primary/40 px-4 py-6">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-neutral/40 px-4 py-6">
       <section className="w-full max-w-xl rounded-md border border-border bg-card shadow-xl">
         <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-4">
           <h2 className="inline-flex items-center gap-2 text-base font-bold text-foreground">

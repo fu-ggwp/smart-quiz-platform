@@ -2,7 +2,18 @@
 
 import Link from "next/link";
 import { useState, useMemo } from "react";
+import { Plus } from "lucide-react";
 import { AppPagination } from "@/components/common/app-pagination";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useClasses } from "../../../hooks/use-classes.js";
 
 const SORT_OPTIONS = [
@@ -62,8 +73,8 @@ export default function TeacherClassesPage() {
     setPage(1);
   }
 
-  function handleSort(e) {
-    setSort(e.target.value);
+  function handleSort(value) {
+    setSort(value);
     setPage(1);
   }
 
@@ -74,34 +85,37 @@ export default function TeacherClassesPage() {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-semibold">My Classes</h1>
-          <Link
-            href="/teacher/classes/create"
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80"
-          >
-            + Create Class
-          </Link>
+          <Button asChild variant="primary">
+            <Link href="/teacher/classes/create">
+              <Plus data-icon="inline-start" aria-hidden="true" />
+              Create Class
+            </Link>
+          </Button>
         </div>
 
         {/* Search + Sort */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <input
+          <Input
             type="text"
             value={search}
             onChange={handleSearch}
             placeholder="Search by class name..."
-            className="flex-1 rounded-lg border border-border px-4 py-2 text-sm outline-none focus:border-ring"
+            className="flex-1"
           />
-          <select
-            value={sort}
-            onChange={handleSort}
-            className="rounded-lg border border-border px-4 py-2 text-sm outline-none focus:border-ring"
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <Select value={sort} onValueChange={handleSort}>
+            <SelectTrigger aria-label="Sort classes" className="w-full sm:w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {SORT_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Loading */}
@@ -113,9 +127,9 @@ export default function TeacherClassesPage() {
         {error && (
           <div className="rounded-md bg-error/10 p-4 text-sm text-error">
             {error}{" "}
-            <button onClick={reload} className="underline">
+            <Button type="button" variant="link" onClick={reload} className="h-auto p-0">
               Try again
-            </button>
+            </Button>
           </div>
         )}
 
@@ -123,9 +137,9 @@ export default function TeacherClassesPage() {
         {!loading && !error && classes.length === 0 && (
           <p className="text-muted-foreground">
             You haven&apos;t created any classes yet.{" "}
-            <Link href="/teacher/classes/create" className="underline">
-              Create your first class
-            </Link>
+            <Button asChild variant="primary" size="sm">
+              <Link href="/teacher/classes/create">Create your first class</Link>
+            </Button>
           </p>
         )}
 
@@ -142,12 +156,9 @@ export default function TeacherClassesPage() {
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {paginated.map((cls) => (
                 <li key={cls.class_id} className="relative">
-                  <Link
-                    href={`/teacher/classes/${cls.class_id}/edit`}
-                    className="absolute right-3 top-3 z-10 rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-ring"
-                  >
-                    Edit
-                  </Link>
+                  <Button asChild variant="outline" size="xs" className="absolute right-3 top-3 z-10">
+                    <Link href={`/teacher/classes/${cls.class_id}/edit`}>Edit</Link>
+                  </Button>
                   <Link
                     href={`/teacher/classes/${cls.class_id}`}
                     className="block rounded-xl border border-border p-5 hover:border-ring transition"
