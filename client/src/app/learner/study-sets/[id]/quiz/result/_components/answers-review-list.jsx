@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CheckCircle2, Loader2, Sparkles, XCircle } from "lucide-react";
-import { studySetsService } from "@/services/study-sets.service";
+import { aiService } from "@/services/ai.service";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -32,7 +32,7 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
     }));
 
     try {
-      const response = await studySetsService.generateAnswerExplanation(sessionId, questionId);
+      const response = await aiService.generateStudySetAnswerExplanation(sessionId, questionId);
       const aiExplanation = response?.data?.aiExplanation || response?.aiExplanation || "";
 
       setAiExplanations((current) => ({

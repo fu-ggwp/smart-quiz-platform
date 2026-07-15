@@ -1,5 +1,6 @@
 import * as service from "./study-sets.service.js";
 import { ok, fail } from "../../utils/api-response.js";
+export { generateAnswerExplanation } from "../ai/ai.controller.js";
 
 export const listMine = async (req, res) => {
   try {
@@ -95,21 +96,6 @@ export const getSessionResults = async (req, res) => {
     return ok(res, await service.getSessionResults(req.params.sessionId));
   } catch (err) {
     return fail(res, err, err.status || 404);
-  }
-};
-
-export const generateAnswerExplanation = async (req, res) => {
-  try {
-    return ok(
-      res,
-      await service.generateAnswerExplanation(
-        req.user,
-        req.params.sessionId,
-        req.params.questionId,
-      ),
-    );
-  } catch (err) {
-    return fail(res, err, err.status || 500);
   }
 };
 

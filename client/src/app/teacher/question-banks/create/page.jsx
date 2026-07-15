@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
+import { aiService } from "@/services/ai.service";
 import { questionBanksService } from "@/services/question-banks.service";
 
 import {
@@ -64,7 +65,7 @@ export default function CreateQuestionBankPage() {
       {/* AI Material Generator Modal */}
       {editor.showMaterialGenerator && (
         <QuestionBankMaterialGenerateModal
-          generateQuestions={questionBanksService.generateFromMaterial}
+          generateQuestions={aiService.generateQuestionsFromMaterial}
           onCancel={editor.closeMaterialGenerator}
           onQuestionsGenerated={editor.handleGeneratedQuestions}
         />

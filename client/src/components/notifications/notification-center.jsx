@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Bell, MoreHorizontal } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import ConfirmModal from "@/components/common/confirm-modal";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,6 @@ import { notificationsService } from "@/services/notifications.service";
 import { profileService } from "@/services/profile.service";
 
 const PAGE_SIZE = 20;
-const SWITCHABLE_NOTIFICATION_ROLES = new Set(["learner", "teacher"]);
 
 function getRequiredRoleFromUrl(targetUrl) {
   if (!targetUrl) return null;
@@ -32,11 +31,7 @@ function getRequiredRoleFromUrl(targetUrl) {
 }
 
 function needsRoleSwitch(currentRole, requiredRole) {
-  return Boolean(
-    requiredRole &&
-    SWITCHABLE_NOTIFICATION_ROLES.has(currentRole) &&
-    currentRole !== requiredRole,
-  );
+  return Boolean(requiredRole && currentRole !== requiredRole);
 }
 
 function getRoleLabel(role) {
@@ -75,12 +70,11 @@ export function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [nextOffset, setNextOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [pendingNotification, setPendingNotification] = useState(null);
   const [isSwitchConfirmOpen, setIsSwitchConfirmOpen] = useState(false);
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
@@ -89,7 +83,7 @@ export function NotificationCenter() {
   const loadNotifications = useCallback(
     async ({ offset = 0, reset = false } = {}) => {
       if (reset) {
-        setIsInitialLoading(true);
+        setIsLoading(true);
       } else {
         setIsLoadingMore(true);
       }
@@ -110,22 +104,34 @@ export function NotificationCenter() {
         setNextOffset(listResult.nextOffset);
         setHasMore(Boolean(listResult.hasMore));
         if (countResult) setUnreadCount(countResult.count || 0);
-        setHasLoadedOnce(true);
       } catch (loadError) {
         console.error("Failed to load notifications", loadError);
         setError("Could not load notifications.");
       } finally {
-        setIsInitialLoading(false);
+        setIsLoading(false);
         setIsLoadingMore(false);
       }
     },
     [],
   );
 
+  useEffect(() => {
+    async function loadUnreadCount() {
+      try {
+        const countResult = await notificationsService.getUnreadCount();
+        setUnreadCount(countResult.count || 0);
+      } catch (countError) {
+        console.error("Failed to load notification unread count", countError);
+      }
+    }
+
+    loadUnreadCount();
+  }, []);
+
   function handleOpenChange(open) {
     setIsOpen(open);
 
-    if (open && !hasLoadedOnce && !isInitialLoading) {
+    if (open && !isLoading) {
       loadNotifications({ offset: 0, reset: true });
     }
   }
@@ -244,12 +250,8 @@ export function NotificationCenter() {
     }
   }
 
-  function handleScroll(event) {
-    const element = event.currentTarget;
-    const isNearBottom =
-      element.scrollTop + element.clientHeight >= element.scrollHeight - 48;
-
-    if (!isNearBottom || !hasMore || isLoadingMore || isInitialLoading) return;
+  function handleLoadMore() {
+    if (!hasMore || isLoadingMore || isLoading) return;
 
     loadNotifications({ offset: nextOffset || 0 });
   }
@@ -304,11 +306,8 @@ export function NotificationCenter() {
             </Button>
           </div>
 
-          <div
-            className="max-h-[480px] overflow-y-auto p-2"
-            onScroll={handleScroll}
-          >
-            {isInitialLoading ? (
+          <div className="max-h-[480px] overflow-y-auto p-2">
+            {isLoading ? (
               <div className="space-y-1">
                 <NotificationSkeleton />
                 <NotificationSkeleton />
@@ -316,7 +315,7 @@ export function NotificationCenter() {
               </div>
             ) : null}
 
-            {!isInitialLoading && error ? (
+            {!isLoading && error ? (
               <div className="grid gap-3 px-3 py-8 text-center">
                 <p className="text-sm font-medium text-foreground">{error}</p>
                 <Button
@@ -331,13 +330,13 @@ export function NotificationCenter() {
               </div>
             ) : null}
 
-            {!isInitialLoading && !error && notifications.length === 0 ? (
+            {!isLoading && !error && notifications.length === 0 ? (
               <p className="px-3 py-8 text-center text-sm text-muted-foreground">
                 No notifications yet.
               </p>
             ) : null}
 
-            {!isInitialLoading && !error && notifications.length > 0 ? (
+            {!isLoading && !error && notifications.length > 0 ? (
               <div className="grid gap-1">
                 {notifications.map((notification) => (
                   <article
@@ -401,9 +400,18 @@ export function NotificationCenter() {
               </div>
             ) : null}
 
-            {isLoadingMore ? (
-              <div className="pt-1">
-                <NotificationSkeleton />
+            {hasMore && !isLoading && !error && notifications.length > 0 ? (
+              <div className="px-3 py-2">
+                <Button
+                  className="w-full"
+                  disabled={isLoadingMore}
+                  onClick={handleLoadMore}
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                >
+                  {isLoadingMore ? "Loading..." : "Load more"}
+                </Button>
               </div>
             ) : null}
           </div>

@@ -22,7 +22,6 @@ export {
   submitAnswer,
   completeSession,
   getSessionResults,
-  generateAnswerExplanation,
   listLearnerStudySets
 } from "./study-sets-practice.service.js";
 

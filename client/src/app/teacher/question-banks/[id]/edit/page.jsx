@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { AlertCircle, Loader2, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { aiService } from "@/services/ai.service";
 import { questionBanksService } from "@/services/question-banks.service";
 import ConfirmModal from "@/components/common/confirm-modal";
 
@@ -161,7 +162,7 @@ export default function EditQuestionBankPage() {
       {/* AI Material Generator Modal */}
       {editor.showMaterialGenerator && (
         <QuestionBankMaterialGenerateModal
-          generateQuestions={questionBanksService.generateFromMaterial}
+          generateQuestions={aiService.generateQuestionsFromMaterial}
           onCancel={editor.closeMaterialGenerator}
           onQuestionsGenerated={editor.handleGeneratedQuestions}
         />

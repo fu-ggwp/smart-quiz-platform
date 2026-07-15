@@ -39,6 +39,7 @@ export function Navbar() {
 
   const targetRole =
     role === "learner" ? "teacher" : role === "teacher" ? "learner" : null;
+  const canViewNotifications = isAuthenticated && role !== "admin";
   const displayName = profile?.fullName || profile?.username || "User";
   const avatarUrl = profile?.avatarUrl || profile?.avatar_url || "";
   const initial = displayName.charAt(0).toUpperCase();
@@ -129,7 +130,7 @@ export function Navbar() {
 
           {isAuthenticated ? (
             <>
-              <NotificationCenter />
+              {canViewNotifications ? <NotificationCenter /> : null}
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

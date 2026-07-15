@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Plus, Save, ArrowLeft, Database, FileSpreadsheet, Sparkles } from "lucide-react";
+import { aiService } from "@/services/ai.service";
 import { studySetsService } from "@/services/study-sets.service";
 import { questionBanksService } from "@/services/question-banks.service";
 import { Button } from "@/components/ui/button";
@@ -728,7 +729,7 @@ export default function EditStudySetPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-card rounded-2xl shadow-2xl border border-border">
             <MaterialQuestionGenerator
-              generateQuestions={questionBanksService.generateFromMaterial}
+              generateQuestions={aiService.generateQuestionsFromMaterial}
               onQuestionsGenerated={handleGeneratedQuestions}
               onCancel={() => setShowMaterialGenerator(false)}
             />

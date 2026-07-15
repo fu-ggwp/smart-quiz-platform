@@ -1,12 +1,8 @@
 import * as dao from "./study-sets.dao.js";
-import * as aiService from "../ai/ai.service.js";
 import { getOne } from "./study-sets.service.js";
 import {
   dbError,
   notFound,
-  accessDenied,
-  serviceError,
-  requirePremiumLearner,
 } from "./study-sets.helpers.js";
 
 // Bắt đầu session
@@ -143,55 +139,6 @@ export async function getSessionResults(sessionId) {
     throw dbError(error, 500);
   }
   return { session: session.data, answers: data };
-}
-
-export async function generateAnswerExplanation(user, sessionId, questionId) {
-  const learnerId = user.user_id || user.id;
-
-  const session = await dao.findAttemptById(sessionId);
-  if (session.error || !session.data) {
-    throw notFound("Practice session not found");
-  }
-
-  if (session.data.learner_id !== learnerId) {
-    throw accessDenied("You do not have permission to access this practice session.");
-  }
-
-  if (session.data.mode !== "quiz") {
-    throw serviceError("AI explanations are only available for quiz results.", 400);
-  }
-
-  const { data: answers, error: answersErr } = await dao.listAnswersByAttempt(sessionId);
-  if (answersErr) {
-    throw dbError(answersErr, 500);
-  }
-
-  if (session.data.status !== "submitted" && !(answers || []).length) {
-    throw serviceError("Complete the quiz before requesting AI explanations.", 400);
-  }
-
-  await requirePremiumLearner(learnerId);
-
-  const studySet = await getOne(session.data.study_set_id, user);
-  const question = (studySet.questions || []).find((item) => item.question_id === questionId);
-  if (!question) {
-    throw notFound("Question not found in this quiz session");
-  }
-
-  const sortedQuestion = {
-    ...question,
-    answer_options: [...(question.answer_options || [])].sort(
-      (left, right) => (left.display_order || 0) - (right.display_order || 0),
-    ),
-  };
-  const attemptAnswer = (answers || []).find((answer) => answer.question_id === questionId);
-  const { aiExplanation } = await aiService.generateAnswerExplanation({
-    studySet,
-    question: sortedQuestion,
-    attemptAnswer,
-  });
-
-  return { aiExplanation };
 }
 
 async function getLearnerRelations(learnerId) {

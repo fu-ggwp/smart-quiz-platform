@@ -2,6 +2,7 @@ import express from "express";
 import healthRouter from "./features/health/health.routes.js";
 import authRouter from "./features/auth/auth.routes.js";
 import analyticsRouter from "./features/analytics/analytics.routes.js";
+import aiRouter from "./features/ai/ai.routes.js";
 import examsRouter from "./features/exams/exams.routes.js";
 import dashboardsRouter from "./features/dashboards/dashboards.routes.js";
 import studySetsRouter from "./features/study-sets/study-sets.routes.js";
@@ -25,6 +26,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/", healthRouter);
 app.use("/api/analytics", analyticsRouter);
+app.use("/api/ai", aiRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/dashboards", dashboardsRouter);
 app.use("/api/exams", examsRouter);

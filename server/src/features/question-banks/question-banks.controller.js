@@ -6,16 +6,15 @@ import {
   getQuestionBank,
   listQuestionBankQuestions,
   listQuestionBanks,
-  generateQuestionsFromMaterial,
   updateQuestionBank,
 } from "./question-banks.service.js";
 import {
   getUserId,
   validateCreatePayload,
-  validateGenerateMaterialPayload,
   validateUpdatePayload,
 } from "./question-banks.validation.js";
 import { fail, ok } from "../../utils/api-response.js";
+export { generateFromMaterial } from "../ai/ai.controller.js";
 
 /**
  * List the current teacher's question banks.
@@ -87,19 +86,6 @@ export async function create(req, res) {
     const payload = validateCreatePayload(req.body);
     const data = await createQuestionBank(getUserId(req), payload);
     return ok(res, data, 201);
-  } catch (error) {
-    return fail(res, error, error.statusCode || error.status || 500);
-  }
-}
-
-/**
- * Validate the uploaded material, then ask the AI service for question drafts.
- */
-export async function generateFromMaterial(req, res) {
-  try {
-    const payload = validateGenerateMaterialPayload(req.body, req.file);
-    const data = await generateQuestionsFromMaterial(getUserId(req), payload);
-    return ok(res, data);
   } catch (error) {
     return fail(res, error, error.statusCode || error.status || 500);
   }

@@ -1,7 +1,5 @@
 import { supabase } from "../../config/supabase.js";
 import { httpError } from "../../utils/api-response.js";
-import { requirePremiumFeature } from "../../utils/premium-access.js";
-import * as aiService from "../ai/ai.service.js";
 import * as questionBanksDao from "./question-banks.dao.js";
 import {
   normalizeListFilters,
@@ -9,9 +7,6 @@ import {
 } from "./question-banks.validation.js";
 
 const db = supabase;
-
-const materialQuestionGenerationFeature = "ai_generate_from_material";
-const premiumRequiredMessage = "This feature is available for Premium accounts only. Please upgrade to continue.";
 
 /**
  * Add active question count to a bank row for list/detail cards.
@@ -132,15 +127,6 @@ function handleLoadError(error) {
   if (error) {
     throw questionBankLoadError();
   }
-}
-
-/**
- * Premium-gated AI generation entry point for teacher material uploads.
- */
-export async function generateQuestionsFromMaterial(userId, { file, questionCount, focus }) {
-  await requirePremiumFeature(userId, materialQuestionGenerationFeature, premiumRequiredMessage);
-
-  return aiService.generateQuestionsFromMaterial({ file, questionCount, focus });
 }
 
 /**

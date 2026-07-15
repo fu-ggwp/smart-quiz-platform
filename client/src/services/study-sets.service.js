@@ -1,4 +1,5 @@
 import axiosClient from "./axios-client";
+import { aiService } from "./ai.service";
 
 export const studySetsService = {
   listMine: (params) => axiosClient.get("/api/study-sets/mine", { params }).then((r) => r.data),
@@ -19,10 +20,7 @@ export const studySetsService = {
     axiosClient.patch(`/api/study-sets/sessions/${sessionId}/complete`, { score }).then((r) => r.data),
   getSessionResults: (sessionId) =>
     axiosClient.get(`/api/study-sets/sessions/${sessionId}/results`).then((r) => r.data),
-  generateAnswerExplanation: (sessionId, questionId) =>
-    axiosClient
-      .post(`/api/study-sets/sessions/${sessionId}/questions/${questionId}/ai-explanation`)
-      .then((r) => r.data),
+  generateAnswerExplanation: aiService.generateStudySetAnswerExplanation,
   listLearnerStudySets: () =>
     axiosClient.get("/api/study-sets/learner").then((r) => r.data),
 };

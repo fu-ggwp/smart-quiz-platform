@@ -1,4 +1,5 @@
 import axiosClient from "./axios-client";
+import { aiService } from "./ai.service";
 
 // Teacher question-bank API wrapper. Each method returns the backend `data` payload.
 export const questionBanksService = {
@@ -11,7 +12,7 @@ export const questionBanksService = {
   listReadyQuestions: (id) => axiosClient.get(`/api/question-banks/ready/${id}/questions`).then((r) => r.data.data),
   // Mutations send the editor payload shape built in _lib/question-bank-editor.js.
   create: (payload) => axiosClient.post("/api/question-banks", payload).then((r) => r.data.data),
-  generateFromMaterial: (payload) => axiosClient.post("/api/question-banks/generate-from-material", payload).then((r) => r.data.data),
+  generateFromMaterial: aiService.generateQuestionsFromMaterial,
   update: (id, changes) => axiosClient.patch(`/api/question-banks/${id}`, changes).then((r) => r.data.data),
   remove: (id) => axiosClient.delete(`/api/question-banks/${id}`).then((r) => r.data.data),
 };
