@@ -2,7 +2,6 @@ import Link from "next/link";
 import { PlayCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { DashboardBadge } from "./dashboard-badge";
 import { DashboardState } from "./dashboard-state";
 
 /**
@@ -29,7 +28,7 @@ export function ContinueLearningCard({ item }) {
     <section className="rounded-md border border-border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-foreground">Continue Learning</h2>
+          <h2 className="text-lg font-bold text-foreground">Recent Learning</h2>
         </div>
       </div>
 
@@ -48,7 +47,6 @@ export function ContinueLearningCard({ item }) {
             <span className="inline-flex size-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <PlayCircle className="size-5" />
             </span>
-            <DashboardBadge status={item.status} />
             <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-bold text-muted-foreground">
               {item.sourceLabel}
             </span>
@@ -57,12 +55,9 @@ export function ContinueLearningCard({ item }) {
           <p className="mt-2 text-sm font-medium text-muted-foreground">
             {item.questionCount} questions - {formatDateTime(item.lastStudiedAt)}
           </p>
-          <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+          <div className="mt-5">
             <Button asChild>
-              <Link href={item.href}>Continue</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href={item.detailsHref}>Details</Link>
+              <Link className="w-full" href={item.detailsHref}>Study</Link>
             </Button>
           </div>
         </article>

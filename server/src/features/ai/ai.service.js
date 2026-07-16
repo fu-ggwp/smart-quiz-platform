@@ -122,10 +122,9 @@ function normalizeGeneratedQuestions(responseBody, requestedCount) {
 function buildGenerationPrompt({ questionCount, focus }) {
   return [
     "Generate multiple-choice questions from the attached learning material.",
-    `Generate at most ${questionCount} questions.`,
-    `${questionCount} is an upper limit, not a required quantity.`,
-    "Return fewer questions when the material does not support enough distinct, evidence-based questions.",
-    "Do not create filler, repetitive, trivial, or unsupported questions just to reach the upper limit.",
+    `Generate as close as possible to ${requestedCount} questions, without exceeding this number.`,
+    "Can return fewer questions when the material does not support enough distinct, evidence-based questions.",
+    "Do not create filler, repetitive, trivial, or unsupported questions just to reach the limit.",
     focus
       ? `Use this teacher focus only to prioritize relevant content from the material: ${focus}`
       : "No teacher focus was provided. Choose the most important knowledge across the whole material.",
@@ -139,7 +138,7 @@ function buildGenerationPrompt({ questionCount, focus }) {
     "Do not reveal the correct answer in the question text.",
     "Each question must have exactly 4 answer options: A, B, C, and D.",
     "Exactly one answer option must be correct.",
-    "The three distractors must be plausible, relevant to the subject, and clearly incorrect according to the material.",
+    "The three distractors must be plausible, on-topic, and clearly incorrect according to the material.",
     "Do not use 'All of the above' or 'None of the above'.",
     "Do not make the correct answer easier to identify by making it longer, more detailed, or grammatically different from the distractors.",
     "Do not include two answer options that could both reasonably be considered correct.",
