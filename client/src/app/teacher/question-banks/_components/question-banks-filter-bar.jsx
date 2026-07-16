@@ -26,7 +26,7 @@ export function QuestionBanksFilterBar({
         <Field label="Search Question Banks">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input className="pl-8" onChange={onKeywordChange} placeholder="Title, description, or topic" value={keyword} />
+            <Input className="pl-8" onChange={onKeywordChange} placeholder="Title, description, or subject" value={keyword} />
           </div>
         </Field>
 

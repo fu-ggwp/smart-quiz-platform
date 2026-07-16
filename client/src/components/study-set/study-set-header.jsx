@@ -26,10 +26,10 @@ export function StudySetHeader({ studySet, onBack, backLabel = "Back", hasAssign
             <span className="text-xs font-bold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full capitalize">
               {studySet.visibility?.replace("_", " ")}
             </span>
-            {studySet.topic && (
+            {studySet.subject && (
               <span className="text-xs font-bold bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-border">
                 <Layers size={10} />
-                {studySet.topic}
+                {studySet.subject}
               </span>
             )}
             {hasAssigned && (

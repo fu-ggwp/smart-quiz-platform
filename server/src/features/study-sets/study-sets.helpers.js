@@ -76,7 +76,7 @@ export function buildQuery(teacherId, filters) {
 
   const keyword = filters.keyword ? String(filters.keyword).trim() : "";
   if (keyword) {
-    dbQuery = dbQuery.or(`title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%`);
+    dbQuery = dbQuery.or(`title.ilike.%${keyword}%,description.ilike.%${keyword}%,subject.ilike.%${keyword}%`);
   }
 
   if (filters.visibility && filters.visibility !== "all") {

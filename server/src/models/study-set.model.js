@@ -28,7 +28,7 @@ export const StudySetCardOrder = Object.freeze({
  * @property {string} [source_question_bank_id]   - FK -> question_banks.question_bank_id
  * @property {string} title
  * @property {string} [description]
- * @property {string} [topic]
+ * @property {string} [subject]
  * @property {"public"|"private"|"class_only"} visibility
  * @property {boolean} is_admin_hidden
  * @property {number} question_count

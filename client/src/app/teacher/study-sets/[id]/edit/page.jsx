@@ -23,7 +23,7 @@ export default function EditStudySetPage() {
   // --- 1. STATE FOR STUDY SET METADATA ---
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [topic, setTopic] = useState("");
+  const [subject, setSubject] = useState("");
   const [visibility, setVisibility] = useState("private");
   const [questionBankId, setQuestionBankId] = useState(null);
 
@@ -62,7 +62,7 @@ export default function EditStudySetPage() {
         if (data) {
           setTitle(data.title || "");
           setDescription(data.description || "");
-          setTopic(data.topic || "");
+          setSubject(data.subject || "");
           setVisibility(data.visibility || "private");
           setQuestionBankId(data.source_question_bank_id || null);
 
@@ -405,7 +405,7 @@ export default function EditStudySetPage() {
       await studySetsService.update(id, {
         title,
         description,
-        topic: topic || null,
+        subject: subject || null,
         visibility,
         classId: selectedClassIds,
         questionBankId,
@@ -488,7 +488,7 @@ export default function EditStudySetPage() {
                 <label className="text-sm font-semibold text-foreground">Description</label>
                 <textarea
                   className="min-h-[80px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  placeholder="Provide details about the topics covered in this study set."
+                  placeholder="Provide details about the subjects covered in this study set."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
@@ -497,11 +497,11 @@ export default function EditStudySetPage() {
 
 
               <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-foreground">General Topic</label>
+                <label className="text-sm font-semibold text-foreground">General Subject</label>
                 <Input
                   placeholder="e.g. Thermodynamics, WW2"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
                 />
               </div>
 

@@ -169,7 +169,7 @@ export default function QuestionBankDetailPage() {
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {/* Question Bank Metadata */}
-          <MetadataItem label="Topic" value={questionBank.topic || "No topic"} />
+          <MetadataItem label="Subject" value={questionBank.subject || "No subject"} />
           <MetadataItem label="Questions" value={String(questions.length)} />
           <MetadataItem label="Created" value={formatDate(questionBank.created_at)} />
           <MetadataItem label="Updated" value={formatDate(questionBank.updated_at || questionBank.created_at)} />

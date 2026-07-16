@@ -34,7 +34,7 @@ export function findPublicStudySets() {
   return db
     .from(STUDY_SET_TABLE)
     .select(
-      "study_set_id, title, description, topic, question_count, created_at, updated_at, teacher:users!teacher_id(full_name, username, avatar_url)",
+      "study_set_id, title, description, subject, question_count, created_at, updated_at, teacher:users!teacher_id(full_name, username, avatar_url)",
       { count: "exact" },
     )
     .eq("visibility", "public")
@@ -297,7 +297,7 @@ export function getOwnedStudySetIds(teacherId) {
 }
 
 const ADMIN_MODERATION_SELECT =
-  "study_set_id, title, description, topic, visibility, is_admin_hidden, question_count, created_at, updated_at, " +
+  "study_set_id, title, description, subject, visibility, is_admin_hidden, question_count, created_at, updated_at, " +
   "teacher:users!teacher_id(user_id, full_name, username)";
 
 export function adminListPublicStudySets() {

@@ -21,7 +21,7 @@ export default function CreateStudySetPage() {
   // --- 1. STATE FOR STUDY SET METADATA ---
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [topic, setTopic] = useState("");
+  const [subject, setSubject] = useState("");
   const [visibility, setVisibility] = useState("private");
   const [questionBankId, setQuestionBankId] = useState(null);
 
@@ -369,7 +369,7 @@ export default function CreateStudySetPage() {
       await studySetsService.create({
         title,
         description,
-        topic: topic || null,
+        subject: subject || null,
         visibility,
         classId: selectedClassIds,
         questionBankId,
@@ -442,7 +442,7 @@ export default function CreateStudySetPage() {
                 <label className="text-sm font-semibold text-foreground">Description</label>
                 <textarea
                   className="min-h-[80px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  placeholder="Provide details about the topics covered in this study set."
+                  placeholder="Provide details about the subjects covered in this study set."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
@@ -451,11 +451,11 @@ export default function CreateStudySetPage() {
 
 
               <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-foreground">General Topic</label>
+                <label className="text-sm font-semibold text-foreground">General Subject</label>
                 <Input
                   placeholder="e.g. Thermodynamics, WW2"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
                 />
               </div>
 

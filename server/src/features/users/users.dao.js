@@ -89,7 +89,7 @@ export function findPublicStudySetsByTeacher(teacherId) {
   return supabase
     .from(STUDY_SET_TABLE)
     .select(
-      "study_set_id, title, description, topic, question_count, created_at, updated_at, teacher:users!teacher_id(full_name, username, avatar_url)",
+      "study_set_id, title, description, subject, question_count, created_at, updated_at, teacher:users!teacher_id(full_name, username, avatar_url)",
     )
     .eq("teacher_id", teacherId)
     .eq("visibility", "public")

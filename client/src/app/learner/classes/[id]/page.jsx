@@ -81,7 +81,7 @@ export default function LearnerClassDetailPage() {
     let list = allActivities.filter((a) => {
       if (applied.completion !== "all" && a.progress?.status !== applied.completion) return false;
       if (keyword) {
-        const haystack = `${a.title ?? ""} ${a.topic ?? ""} ${a.description ?? ""}`.toLowerCase();
+        const haystack = `${a.title ?? ""} ${a.subject ?? ""} ${a.description ?? ""}`.toLowerCase();
         if (!haystack.includes(keyword)) return false;
       }
       return true;
@@ -230,9 +230,9 @@ export default function LearnerClassDetailPage() {
                         </span>
                       </div>
 
-                      {a.topic && (
+                      {a.subject && (
                         <p className="mt-1 text-sm text-muted-foreground/70">
-                          {a.topic}
+                          {a.subject}
                         </p>
                       )}
 

@@ -103,7 +103,7 @@ export async function listPublic(query = {}) {
   const keyword = sanitizeSearchKeyword(filters.keyword);
   if (keyword) {
     dbQuery = dbQuery.or(
-      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%`,
+      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,subject.ilike.%${keyword}%`,
     );
   }
 
@@ -197,7 +197,7 @@ export async function create(
   teacherId,
   payload,
 ) {
-  const { title, description, visibility, classId, questionBankId, questions } = payload;
+  const { title, description, subject, visibility, classId, questionBankId, questions } = payload;
   if (!title?.trim()) {
     throw Object.assign(new Error("Title is required"), { status: 422 });
   }
@@ -206,6 +206,7 @@ export async function create(
     teacher_id: teacherId,
     title,
     description,
+    subject: subject || null,
     visibility: visibility || "private",
     source_question_bank_id: questionBankId || null,
   });

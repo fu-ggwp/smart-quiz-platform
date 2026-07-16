@@ -107,15 +107,15 @@ export function QuestionBankEditorForm({
                 <textarea
                   className="min-h-[80px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   name="description"
-                  placeholder="What topics, classes, or exam goals does this bank cover?"
+                  placeholder="What subject, classes, or exam goals does this bank cover?"
                   value={form.description}
                   onChange={onMetadataChange}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-foreground">Topic</label>
-                <Input name="topic" placeholder="e.g. Linear equations" value={form.topic} onChange={onMetadataChange} />
+                <label className="text-sm font-semibold text-foreground">Subject</label>
+                <Input name="subject" placeholder="e.g. Linear equations" value={form.subject} onChange={onMetadataChange} />
               </div>
 
               <div className="space-y-1.5">

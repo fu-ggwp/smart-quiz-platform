@@ -14,7 +14,7 @@ export const QuestionBankStatus = Object.freeze({
  * @property {string} teacher_id   - FK -> users.user_id
  * @property {string} title
  * @property {string} [description]
- * @property {string} [topic]
+ * @property {string} [subject]
  * @property {"Draft"|"Ready"|"Deleted"} status
  * @property {string} created_at
  * @property {string} updated_at

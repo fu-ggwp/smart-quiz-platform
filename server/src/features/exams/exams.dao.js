@@ -53,7 +53,7 @@ const EXAM_SESSION_SELECT = `
   question_bank:question_banks (
     question_bank_id,
     title,
-    topic
+    subject
   )
 `;
 

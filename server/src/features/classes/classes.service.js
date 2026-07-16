@@ -550,7 +550,7 @@ export async function getLearnerClassDetail(classId, learnerId) {
       study_set_id: set.study_set_id,
       title: set.title,
       description: set.description,
-      topic: set.topic,
+      subject: set.subject,
       question_count: set.question_count,
       progress: deriveProgress(attemptsBySet[set.study_set_id]),
     };

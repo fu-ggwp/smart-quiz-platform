@@ -299,7 +299,7 @@ function FilterBar({
             <Input
               className="pl-8"
               onChange={onKeywordChange}
-              placeholder="Title, topic, owner"
+              placeholder="Title, subject, owner"
               value={keyword}
             />
           </div>
@@ -365,7 +365,7 @@ function StudySetsTable({ studySets, onAssignClick, assignLoadingId }) {
                   <td className="px-4 py-3 max-w-[200px] md:max-w-[320px]">
                     <p className="font-bold text-foreground hover:text-primary transition-colors truncate" title={studySet.title}>{studySet.title}</p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {studySet.topic || "No topic"}
+                      {studySet.subject || "No subject"}
                     </p>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{getSourceName(studySet)}</td>

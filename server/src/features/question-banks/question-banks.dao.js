@@ -25,7 +25,7 @@ export function listByTeacher(teacherId, filters = {}) {
 
   if (keyword) {
     query = query.or(
-      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%`,
+      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,subject.ilike.%${keyword}%`,
     );
   }
 

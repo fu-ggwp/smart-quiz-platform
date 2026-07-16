@@ -119,7 +119,7 @@ export default function AdminResourcesPage() {
             value={draft.q}
             onChange={(e) => setDraft((d) => ({ ...d, q: e.target.value }))}
             onKeyDown={(e) => e.key === "Enter" && applyFilters()}
-            placeholder="Search title, description, topic"
+            placeholder="Search title, description, subject"
             className="rounded-md border border-border bg-background px-3 py-2 text-sm lg:col-span-2"
           />
           <select

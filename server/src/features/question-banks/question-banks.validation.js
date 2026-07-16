@@ -190,7 +190,7 @@ export function validateCreatePayload(body = {}) {
   return {
     title,
     description: normalizeNullableText(body.description),
-    topic: normalizeNullableText(body.topic),
+    subject: normalizeNullableText(body.subject),
     status: status || "Draft",
     updated_at: new Date().toISOString(),
     ...(questions !== undefined ? { questions } : {}),
@@ -205,7 +205,7 @@ export function validateUpdatePayload(body = {}) {
   const changes = {};
   const title = normalizeText(body.title);
   const description = normalizeNullableText(body.description);
-  const topic = normalizeNullableText(body.topic);
+  const subject = normalizeNullableText(body.subject);
   const status = validateEnum(body.status, editableQuestionBankStatuses, "status", errors);
 
   if (body.title !== undefined) {
@@ -217,7 +217,7 @@ export function validateUpdatePayload(body = {}) {
   }
 
   if (description !== undefined) changes.description = description;
-  if (topic !== undefined) changes.topic = topic;
+  if (subject !== undefined) changes.subject = subject;
   if (status !== undefined) changes.status = status;
 
   if (body.questions !== undefined) {
@@ -230,7 +230,7 @@ export function validateUpdatePayload(body = {}) {
     throw httpError("No valid question bank fields were provided.");
   }
 
-  if (title !== undefined || description !== undefined || topic !== undefined || status !== undefined) {
+  if (title !== undefined || description !== undefined || subject !== undefined || status !== undefined) {
     changes.updated_at = new Date().toISOString();
   }
   return changes;

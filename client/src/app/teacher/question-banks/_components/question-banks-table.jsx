@@ -22,7 +22,7 @@ export function QuestionBanksTable({ questionBanks }) {
         <table className="min-w-full divide-y divide-border text-sm">
           <thead className="bg-muted text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
             <tr>
-              {["Question Bank", "Topic", "Status", "Questions", "Updated"].map((header) => (
+              {["Question Bank", "Subject", "Status", "Questions", "Updated"].map((header) => (
                 <th className="px-4 py-3" key={header}>
                   {header}
                 </th>
@@ -43,7 +43,7 @@ export function QuestionBanksTable({ questionBanks }) {
                   <p className="font-bold text-foreground">{bank.title}</p>
                   <p className="max-w-xl text-xs text-muted-foreground">{bank.description || "No description"}</p>
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{bank.topic || "No topic"}</td>
+                <td className="px-4 py-3 text-muted-foreground">{bank.subject || "No subject"}</td>
                 <td className="px-4 py-3">
                   <QuestionBanksBadge tone={getStatusTone(bank.status)}>{formatBankStatus(bank.status)}</QuestionBanksBadge>
                 </td>

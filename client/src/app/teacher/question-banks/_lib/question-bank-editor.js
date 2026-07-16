@@ -5,7 +5,7 @@ import { useState } from "react";
 export const initialQuestionBankForm = {
   title: "",
   description: "",
-  topic: "",
+  subject: "",
   status: "Draft",
 };
 
@@ -98,7 +98,7 @@ export function toQuestionBankForm(questionBank) {
   return {
     title: questionBank?.title || "",
     description: questionBank?.description || "",
-    topic: questionBank?.topic || "",
+    subject: questionBank?.subject || "",
     status: questionBank?.status === "Ready" ? "Ready" : "Draft",
   };
 }
@@ -110,7 +110,7 @@ export function buildQuestionBankPayload(form, questions) {
   return {
     title: form.title.trim(),
     description: form.description.trim() || null,
-    topic: form.topic.trim() || null,
+    subject: form.subject.trim() || null,
     status: form.status,
     questions: questions.map((question) => ({
       question_id: question.question_id,

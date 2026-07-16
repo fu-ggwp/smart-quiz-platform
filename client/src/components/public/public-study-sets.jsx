@@ -22,7 +22,7 @@ function matchesQuery(studySet, query) {
   return [
     studySet.title,
     studySet.description,
-    studySet.topic,
+    studySet.subject,
     teacher.full_name,
     teacher.username,
     studySet.teacher_name,
@@ -72,7 +72,7 @@ export function PublicStudySets({ limit, showSearch = false }) {
           <Input
             aria-label="Search public study sets"
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search by title, topic, or teacher"
+            placeholder="Search by title, subject, or teacher"
             value={query}
           />
         </div>
