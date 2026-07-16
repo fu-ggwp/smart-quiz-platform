@@ -1,5 +1,6 @@
 import * as dao from "./study-sets.dao.js";
 import { buildPaginatedResponse, getPagination } from "../../utils/pagination.js";
+import { supabase } from "../../config/supabase.js";
 import {
   dbError,
   notFound,
@@ -149,6 +150,12 @@ export async function getOne(id, user = null) {
     throw dbError(qError, 500);
   }
 
+  const { data: materials, error: mError } =
+    await dao.findMaterialsByStudySetId(id);
+  if (mError) {
+    throw dbError(mError, 500);
+  }
+
   let setCopy = { ...studySet };
   if (user && user.role === "learner") {
     const userId = user.user_id || user.id;
@@ -165,6 +172,7 @@ export async function getOne(id, user = null) {
   return {
     ...setCopy,
     questions: questions || [],
+    materials: materials || [],
   };
 }
 
@@ -192,12 +200,11 @@ async function assignAndNotify(studySet, teacherId, classId, payload) {
   }
 }
 
-// Tạo mới 1 study set
 export async function create(
   teacherId,
   payload,
 ) {
-  const { title, description, subject, visibility, classId, questionBankId, questions } = payload;
+  const { title, description, subject, visibility, classId, questionBankId, questions, materials } = payload;
   if (!title?.trim()) {
     throw Object.assign(new Error("Title is required"), { status: 422 });
   }
@@ -213,6 +220,18 @@ export async function create(
 
   if (error) {
     throw dbError(error);
+  }
+
+  if (materials && materials.length > 0) {
+    const materialsPayload = materials.map((m) => ({
+      study_set_id: studySet.study_set_id,
+      material_url: m.material_url,
+      material_name: m.material_name,
+    }));
+    const { error: mError } = await dao.addMaterials(materialsPayload);
+    if (mError) {
+      throw dbError(mError);
+    }
   }
 
   await createQuestionsAndOptions(studySet.study_set_id, teacherId, questions);
@@ -267,7 +286,6 @@ export async function update(id, teacherId, changes) {
     throw Object.assign(new Error("Forbidden"), { status: 403 });
   }
 
-  // Load questions for the study set to support question/option diff updates
   const { data: questionsData, error: qError } = await dao.listQuestionByStudySet(id);
   if (qError) {
     throw dbError(qError, 500);
@@ -277,10 +295,9 @@ export async function update(id, teacherId, changes) {
     questions: questionsData || [],
   };
 
-  // Pull notification-only fields out of `changes` so they are never written
-  // to study_sets columns (they are not columns) in metadataChanges below.
   const {
     questions,
+    materials,
     classId,
     questionBankId,
     notifyLearners,
@@ -304,14 +321,46 @@ export async function update(id, teacherId, changes) {
     data = updatedData;
   }
 
-  // 1. Update classroom assignments and send notifications
+  if (materials) {
+    const { data: existingMaterials } = await dao.findMaterialsByStudySetId(id);
+    const existingM = existingMaterials || [];
+
+    const payloadUrls = materials.map((m) => m.material_url).filter(Boolean);
+    const deletedMaterials = existingM.filter((em) => !payloadUrls.includes(em.material_url));
+
+    if (deletedMaterials.length > 0) {
+      const deletedIds = deletedMaterials.map((dm) => dm.material_id);
+      await dao.deleteMaterials(deletedIds);
+
+      const filePaths = deletedMaterials.map((m) => {
+        const urlParts = m.material_url.split("/study-set-materials/");
+        return urlParts.length > 1 ? urlParts[1] : null;
+      }).filter(Boolean);
+
+      if (filePaths.length > 0) {
+        await supabase.storage.from("study-set-materials").remove(filePaths);
+      }
+    }
+
+    const existingUrls = existingM.map((em) => em.material_url);
+    const newMaterials = materials.filter((m) => !existingUrls.includes(m.material_url));
+
+    if (newMaterials.length > 0) {
+      const newMaterialsPayload = newMaterials.map((m) => ({
+        study_set_id: id,
+        material_url: m.material_url,
+        material_name: m.material_name,
+      }));
+      await dao.addMaterials(newMaterialsPayload);
+    }
+  }
+
   await updateAssignments(id, teacherId, classId, {
     visibility: changes.visibility,
     notifyLearners,
     notify_learners,
   }, data.title || set.title);
 
-  // 2. Synchronize questions and options if provided in the changes payload
   if (questions) {
     await syncQuestions(id, teacherId, set.questions || [], questions);
     data.question_count = questions.length;
@@ -320,7 +369,6 @@ export async function update(id, teacherId, changes) {
   return data;
 }
 
-// Xóa
 export async function remove(id, teacherId) {
   const { data: set, error: fetchError } = await dao.findById(id);
   if (fetchError || !set) {
@@ -328,6 +376,18 @@ export async function remove(id, teacherId) {
   }
   if (set.teacher_id !== teacherId) {
     throw Object.assign(new Error("Forbidden"), { status: 403 });
+  }
+
+  const { data: materials } = await dao.findMaterialsByStudySetId(id);
+  if (materials && materials.length > 0) {
+    const filePaths = materials.map((m) => {
+      const urlParts = m.material_url.split("/study-set-materials/");
+      return urlParts.length > 1 ? urlParts[1] : null;
+    }).filter(Boolean);
+
+    if (filePaths.length > 0) {
+      await supabase.storage.from("study-set-materials").remove(filePaths);
+    }
   }
 
   const { error } = await dao.remove(id);

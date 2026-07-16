@@ -24,17 +24,22 @@ export function findByTeacher(teacherId) {
       ),
       practice_attempts (
         learner_id
+      ),
+      study_set_materials (
+        material_id,
+        material_name
       )
     `, { count: "exact" })
     .eq("teacher_id", teacherId)
-    .is("deleted_at", null);
+    .is("deleted_at", null)
+    .order("updated_at", {ascending: true});
 }
 
 export function findPublicStudySets() {
   return db
     .from(STUDY_SET_TABLE)
     .select(
-      "study_set_id, title, description, subject, question_count, created_at, updated_at, teacher:users!teacher_id(full_name, username, avatar_url)",
+      "study_set_id, title, description, subject, question_count, created_at, updated_at, teacher:users!teacher_id(full_name, username, avatar_url), study_set_materials(material_id, material_name)",
       { count: "exact" },
     )
     .eq("visibility", "public")
@@ -43,7 +48,7 @@ export function findPublicStudySets() {
 }
 
 export function findPublic() {
-  return db.from(STUDY_SET_TABLE).select("*");
+  return db.from(STUDY_SET_TABLE).select("*, study_set_materials(material_id, material_name)");
 }
 
 // Tìm study set theo id
@@ -325,4 +330,33 @@ export function adminSetHidden(studySetId, hidden) {
     .is("deleted_at", null)
     .select(ADMIN_MODERATION_SELECT)
     .single();
+}
+
+export function findMaterialsByStudySetId(studySetId) {
+  return db
+    .from("study_set_materials")
+    .select("*")
+    .eq("study_set_id", studySetId)
+    .order("created_at", { ascending: true });
+}
+
+export function addMaterials(materials) {
+  return db
+    .from("study_set_materials")
+    .insert(materials)
+    .select();
+}
+
+export function deleteMaterials(materialIds) {
+  return db
+    .from("study_set_materials")
+    .delete()
+    .in("material_id", materialIds);
+}
+
+export function deleteAllMaterialsByStudySetId(studySetId) {
+  return db
+    .from("study_set_materials")
+    .delete()
+    .eq("study_set_id", studySetId);
 }

@@ -14,18 +14,20 @@ import { Navbar } from "@/components/layout/navbar";
 import { StudySetHeader } from "./study-set-header";
 import { StudyModeCard } from "./study-mode-card";
 import { QuestionCard } from "./question-card";
+import DocumentPreviewModal from "./document-preview-modal";
 
 export function StudySetDetailView({
   studySetId,
   isGuest = false,
-  backHref,
-  backLabel = "Back",
+  backHref = "/learner/study-sets",
+  backLabel = "My Study Sets",
   flashcardHref,
   quizHref,
   showNavbar = false
 }) {
   const router = useRouter();
 
+  const [previewMaterial, setPreviewMaterial] = useState(null);
   const [studySet, setStudySet] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [difficultQuestionIds, setDifficultQuestionIds] = useState(new Set());
@@ -111,6 +113,7 @@ export function StudySetDetailView({
 
   useEffect(() => {
     if (difficultQuestionIds.size === 0 && activeTab === "starred") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab("all");
     }
   }, [difficultQuestionIds, activeTab]);
@@ -205,7 +208,6 @@ export function StudySetDetailView({
 
       // Save progress to database
       await studySetsService.submitAnswer(currentSessionId, {
-        question_id: currentSessionId,
         question_id: qId,
         selected_answer_option_ids: [],
         is_correct: !isMast,
@@ -239,7 +241,7 @@ export function StudySetDetailView({
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center space-y-4 text-foreground">
         <HelpCircle className="size-12 text-destructive" />
         <h2 className="text-xl font-bold">Study Set Not Found</h2>
-        <p className="text-sm text-muted-foreground max-w-sm">We couldn't retrieve this study set. It may have been deleted, set to private, or you don't have access.</p>
+        <p className="text-sm text-muted-foreground max-w-sm">We couldn&apos;t retrieve this study set. It may have been deleted, set to private, or you don&apos;t have access.</p>
         <Button onClick={() => router.push(isGuest ? "/" : "/learner/study-sets")}>
           {isGuest ? "Back to Homepage" : "Back to My Study Sets"}
         </Button>
@@ -271,151 +273,189 @@ export function StudySetDetailView({
           hasAssigned={hasAssigned}
         />
 
-        {/* STUDY MODE SELECTORS */}
-        <div className="space-y-3">
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-1.5">
-            <span>Select Study Mode</span>
-          </h2>
-          
-          <div className="grid gap-4 sm:grid-cols-2">
-            <StudyModeCard 
-              title="Flashcards"
-              description="Rotate cards to check terms, mark difficult cards, and review key definitions at your own pace."
-              icon={BookOpen}
-              onClick={() => router.push(flashcardHref)}
-            />
-
-            <StudyModeCard 
-              title="Practice Quiz"
-              description="Challenge yourself with multiple-choice questions under test conditions and calculate your mastery score."
-              icon={FileQuestion}
-              onClick={handleQuizClick}
-              isLocked={isGuest}
-              lockLabel="Login Required"
-              hoverBorderClass="hover:border-success/50"
-            bgCircleClass="bg-success/10 group-hover:bg-success/20"
-            />
-          </div>
-        </div>
-
-        {/* QUESTION PREVIEW LIST */}
-        <div className="space-y-6 pt-6 border-t border-border">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="text-xl font-bold text-foreground">
-              Study Set Cards ({questions.length})
+        {questions.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-1.5">
+              <span>Select Study Mode</span>
             </h2>
+            
+            <div className="grid gap-4 sm:grid-cols-2">
+              <StudyModeCard 
+                title="Flashcards"
+                description="Rotate cards to check terms, mark difficult cards, and review key definitions at your own pace."
+                icon={BookOpen}
+                onClick={() => router.push(flashcardHref)}
+              />
 
-            {/* Segment control tabs (All / Starred) - Only for logged-in learner with difficult questions */}
-            {!isGuest && difficultQuestionIds.size > 0 && (
-              <div className="flex bg-muted p-1 rounded-2xl w-fit border border-border">
-                <button
-                  onClick={() => setActiveTab("all")}
-                  className={`px-6 py-1.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
-                    activeTab === "all"
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => setActiveTab("starred")}
-                  className={`px-6 py-1.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
-                    activeTab === "starred"
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Starred
-                </button>
-              </div>
-            )}
+              <StudyModeCard 
+                title="Practice Quiz"
+                description="Challenge yourself with multiple-choice questions under test conditions and calculate your mastery score."
+                icon={FileQuestion}
+                onClick={handleQuizClick}
+                isLocked={isGuest}
+                lockLabel="Login Required"
+                hoverBorderClass="hover:border-success/50"
+                bgCircleClass="bg-success/10 group-hover:bg-success/20"
+              />
+            </div>
           </div>
+        )}
 
-          <div className="space-y-8">
-            {isGuest ? (
-              // Simple order rendering for Guest users
-              <div className="space-y-3">
-                {questions.length > 0 ? (
+        {studySet?.materials && studySet.materials.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-1.5">
+              <span>Attached Materials</span>
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {studySet.materials.map((m, idx) => {
+                const isLink = m.material_url.startsWith("http") && !m.material_url.includes("supabase.co/storage/v1/object/public/study-set-materials");
+                const ext = isLink ? "LINK" : m.material_name.split(".").pop().toUpperCase();
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      if (isLink) {
+                        window.open(m.material_url, "_blank");
+                      } else {
+                        setPreviewMaterial(m);
+                      }
+                    }}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:bg-muted/50 hover:shadow-sm transition-all text-left w-full"
+                  >
+                    <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-md shrink-0">
+                      {ext}
+                    </span>
+                    <span className="text-xs text-foreground font-medium truncate flex-1">
+                      {m.material_name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {questions.length > 0 && (
+          <div className="space-y-6 pt-6 border-t border-border">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <h2 className="text-xl font-bold text-foreground">
+                Study Set Cards ({questions.length})
+              </h2>
+
+              {!isGuest && difficultQuestionIds.size > 0 && (
+                <div className="flex bg-muted p-1 rounded-2xl w-fit border border-border">
+                  <button
+                    onClick={() => setActiveTab("all")}
+                    className={`px-6 py-1.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
+                      activeTab === "all"
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("starred")}
+                    className={`px-6 py-1.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
+                      activeTab === "starred"
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Starred
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-8">
+              {isGuest ? (
+                <div className="space-y-3">
+                  {questions.length > 0 ? (
+                    <div className="space-y-3">
+                      {questions.map((q, idx) => (
+                        <QuestionCard 
+                          key={q.question_id}
+                          question={q}
+                          index={idx}
+                          isDifficult={false}
+                          isMastered={false}
+                          onToggleDifficult={() => setShowLoginModal(true)}
+                          onToggleMastered={() => setShowLoginModal(true)}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic pl-1">No cards in this section.</p>
+                  )}
+                </div>
+              ) : (
+                <>
                   <div className="space-y-3">
-                    {questions.map((q, idx) => (
-                      <QuestionCard 
-                        key={q.question_id}
-                        question={q}
-                        index={idx}
-                        isDifficult={false}
-                        isMastered={false}
-                        onToggleDifficult={() => setShowLoginModal(true)}
-                        onToggleMastered={() => setShowLoginModal(true)}
-                      />
-                    ))}
+                    <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                      Still learning ({stillLearningQuestions.length})
+                    </h3>
+                    {stillLearningQuestions.length > 0 ? (
+                      <div className="space-y-3">
+                        {stillLearningQuestions.map((q) => {
+                          const originalIdx = questions.findIndex(item => item.question_id === q.question_id);
+                          return (
+                            <QuestionCard 
+                              key={q.question_id}
+                              question={q}
+                              index={originalIdx}
+                              isDifficult={difficultQuestionIds.has(q.question_id)}
+                              isMastered={false}
+                              onToggleDifficult={() => toggleDifficult(q.question_id)}
+                              onToggleMastered={() => toggleMastered(q.question_id)}
+                            />
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground italic pl-1">No cards in this section.</p>
+                    )}
                   </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground italic pl-1">No cards in this section.</p>
-                )}
-              </div>
-            ) : (
-              // Structured category rendering for Learner progress
-              <>
-                {/* Still learning list */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                    Still learning ({stillLearningQuestions.length})
-                  </h3>
-                  {stillLearningQuestions.length > 0 ? (
-                    <div className="space-y-3">
-                      {stillLearningQuestions.map((q) => {
-                        const originalIdx = questions.findIndex(item => item.question_id === q.question_id);
-                        return (
-                          <QuestionCard 
-                            key={q.question_id}
-                            question={q}
-                            index={originalIdx}
-                            isDifficult={difficultQuestionIds.has(q.question_id)}
-                            isMastered={false}
-                            onToggleDifficult={() => toggleDifficult(q.question_id)}
-                            onToggleMastered={() => toggleMastered(q.question_id)}
-                          />
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground italic pl-1">No cards in this section.</p>
-                  )}
-                </div>
 
-                {/* Mastered list */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                    Mastered ({masteredQuestions.length})
-                  </h3>
-                  {masteredQuestions.length > 0 ? (
-                    <div className="space-y-3">
-                      {masteredQuestions.map((q) => {
-                        const originalIdx = questions.findIndex(item => item.question_id === q.question_id);
-                        return (
-                          <QuestionCard 
-                            key={q.question_id}
-                            question={q}
-                            index={originalIdx}
-                            isDifficult={difficultQuestionIds.has(q.question_id)}
-                            isMastered={true}
-                            onToggleDifficult={() => toggleDifficult(q.question_id)}
-                            onToggleMastered={() => toggleMastered(q.question_id)}
-                          />
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground italic pl-1">No cards in this section.</p>
-                  )}
-                </div>
-              </>
-            )}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                      Mastered ({masteredQuestions.length})
+                    </h3>
+                    {masteredQuestions.length > 0 ? (
+                      <div className="space-y-3">
+                        {masteredQuestions.map((q) => {
+                          const originalIdx = questions.findIndex(item => item.question_id === q.question_id);
+                          return (
+                            <QuestionCard 
+                              key={q.question_id}
+                              question={q}
+                              index={originalIdx}
+                              isDifficult={difficultQuestionIds.has(q.question_id)}
+                              isMastered={true}
+                              onToggleDifficult={() => toggleDifficult(q.question_id)}
+                              onToggleMastered={() => toggleMastered(q.question_id)}
+                            />
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground italic pl-1">No cards in this section.</p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
+      <DocumentPreviewModal
+        isOpen={!!previewMaterial}
+        onClose={() => setPreviewMaterial(null)}
+        materialUrl={previewMaterial?.material_url}
+        materialName={previewMaterial?.material_name || ""}
+      />
     </main>
   );
 

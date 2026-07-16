@@ -363,7 +363,14 @@ function StudySetsTable({ studySets, onAssignClick, assignLoadingId }) {
                   onClick={() => router.push(`/teacher/study-sets/${id}`)}
                 >
                   <td className="px-4 py-3 max-w-[200px] md:max-w-[320px]">
-                    <p className="font-bold text-foreground hover:text-primary transition-colors truncate" title={studySet.title}>{studySet.title}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-foreground hover:text-primary transition-colors truncate" title={studySet.title}>{studySet.title}</p>
+                      {studySet.study_set_materials && studySet.study_set_materials.length > 0 && (
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded" title={`${studySet.study_set_materials.length} material(s) attached`}>
+                          📎 {studySet.study_set_materials.length}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground truncate">
                       {studySet.subject || "No subject"}
                     </p>

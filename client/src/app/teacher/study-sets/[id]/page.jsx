@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import { QuestionPreviewCard } from "@/components/questions/question-preview-card";
 import ClassSelectorModal from "../create/class-selector-modal";
 import ConfirmModal from "@/components/common/confirm-modal";
+import DocumentPreviewModal from "@/components/study-set/document-preview-modal";
 
 export default function TeacherStudySetDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id;
 
+  const [previewMaterial, setPreviewMaterial] = useState(null);
   const [studySet, setStudySet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -251,51 +253,82 @@ export default function TeacherStudySetDetailPage() {
           </div>
         </div>
 
-        {/* Questions Section Header */}
-        <div className="flex items-center justify-between pt-4">
-          <h2 className="text-xl font-bold text-foreground">
-            Questions ({studySet.questions?.length || 0})
-          </h2>
-          <Button
-            onClick={() => {
-              if (isAllRevealed) {
-                setRevealedQuestions(new Set());
-              } else {
-                const allIds = (studySet?.questions || []).map((q) => q.question_id);
-                setRevealedQuestions(new Set(allIds));
-              }
-            }}
-            variant="ghost"
-            size="sm"
-            className="gap-2 text-xs text-primary"
-          >
-            {isAllRevealed ? <EyeOff size={14} /> : <Eye size={14} />}
-            {isAllRevealed ? "Hide All Answers" : "Show All Answers"}
-          </Button>
-        </div>
-
-        {/* Questions List */}
-        <div className="space-y-4">
-          {studySet.questions?.length === 0 ? (
-            <div className="text-center py-12 rounded-2xl border border-dashed border-border bg-card">
-              <p className="text-sm text-muted-foreground">This study set contains no questions.</p>
+        {studySet?.materials && studySet.materials.length > 0 && (
+          <div className="space-y-4 pt-4">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-1.5">
+              <span>Attached Materials</span>
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {studySet.materials.map((m, idx) => {
+                const isLink = m.material_url.startsWith("http") && !m.material_url.includes("supabase.co/storage/v1/object/public/study-set-materials");
+                const ext = isLink ? "LINK" : m.material_name.split(".").pop().toUpperCase();
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      if (isLink) {
+                        window.open(m.material_url, "_blank");
+                      } else {
+                        setPreviewMaterial(m);
+                      }
+                    }}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:bg-muted/50 hover:shadow-sm transition-all text-left w-full"
+                  >
+                    <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-md shrink-0">
+                      {ext}
+                    </span>
+                    <span className="text-xs text-foreground font-medium truncate flex-1">
+                      {m.material_name}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-          ) : (
-            studySet.questions?.map((q, index) => {
-              const isRevealed = revealedQuestions.has(q.question_id);
+          </div>
+        )}
 
-              return (
-                <QuestionPreviewCard
-                  index={index}
-                  isRevealed={isRevealed}
-                  key={q.question_id}
-                  onToggleReveal={toggleRevealQuestion}
-                  question={q}
-                />
-              );
-            })
-          )}
-        </div>
+        {studySet?.questions && studySet.questions.length > 0 && (
+          <>
+            <div className="flex items-center justify-between pt-4">
+              <h2 className="text-xl font-bold text-foreground">
+                Questions ({studySet.questions.length})
+              </h2>
+              <Button
+                onClick={() => {
+                  if (isAllRevealed) {
+                    setRevealedQuestions(new Set());
+                  } else {
+                    const allIds = studySet.questions.map((q) => q.question_id);
+                    setRevealedQuestions(new Set(allIds));
+                  }
+                }}
+                variant="ghost"
+                size="sm"
+                className="gap-2 text-xs text-primary"
+              >
+                {isAllRevealed ? <EyeOff size={14} /> : <Eye size={14} />}
+                {isAllRevealed ? "Hide All Answers" : "Show All Answers"}
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {studySet.questions.map((q, index) => {
+                const isRevealed = revealedQuestions.has(q.question_id);
+
+                return (
+                  <QuestionPreviewCard
+                    index={index}
+                    isRevealed={isRevealed}
+                    key={q.question_id}
+                    onToggleReveal={toggleRevealQuestion}
+                    question={q}
+                  />
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Delete confirmation modal */}
@@ -327,6 +360,12 @@ export default function TeacherStudySetDetailPage() {
         message={confirmData.message}
         onConfirm={confirmData.onConfirm}
         onCancel={confirmData.onCancel}
+      />
+      <DocumentPreviewModal
+        isOpen={!!previewMaterial}
+        onClose={() => setPreviewMaterial(null)}
+        materialUrl={previewMaterial?.material_url}
+        materialName={previewMaterial?.material_name || ""}
       />
     </main>
   );

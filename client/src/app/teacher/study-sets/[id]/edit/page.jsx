@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Plus, Save, ArrowLeft, Database, FileSpreadsheet, Sparkles } from "lucide-react";
+import { Plus, Save, ArrowLeft, Database, FileSpreadsheet, Sparkles, Trash2 } from "lucide-react";
 import { aiService } from "@/services/ai.service";
 import { studySetsService } from "@/services/study-sets.service";
 import { questionBanksService } from "@/services/question-banks.service";
@@ -14,20 +14,22 @@ import MaterialQuestionGenerator from "@/components/question-creator/material-qu
 import QuestionBankSelector from "../../create/question-bank-selector";
 import ClassSelectorModal from "../../create/class-selector-modal";
 import ConfirmModal from "@/components/common/confirm-modal";
+import MaterialUpload from "@/components/study-set/material-upload";
+import DocumentPreviewModal from "@/components/study-set/document-preview-modal";
 
 export default function EditStudySetPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id;
 
-  // --- 1. STATE FOR STUDY SET METADATA ---
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [subject, setSubject] = useState("");
   const [visibility, setVisibility] = useState("private");
   const [questionBankId, setQuestionBankId] = useState(null);
+  const [materials, setMaterials] = useState([]);
+  const [previewMaterial, setPreviewMaterial] = useState(null);
 
-  // --- 1.1 CLASSES SELECTION STATE ---
   const [selectedClassIds, setSelectedClassIds] = useState([]);
   const [selectedClassNames, setSelectedClassNames] = useState([]);
   const [showClassSelector, setShowClassSelector] = useState(false);
@@ -65,8 +67,8 @@ export default function EditStudySetPage() {
           setSubject(data.subject || "");
           setVisibility(data.visibility || "private");
           setQuestionBankId(data.source_question_bank_id || null);
+          setMaterials(data.materials || []);
 
-          // Map questions & answers options
           const formattedQuestions = (data.questions || []).map((q) => ({
             question_id: q.question_id,
             question_text: q.question_text || "",
@@ -82,7 +84,6 @@ export default function EditStudySetPage() {
           }));
           setQuestions(formattedQuestions);
 
-          // Populate class assignments if study_set_assignments exists
           if (data.study_set_assignments && data.study_set_assignments.length > 0) {
             const classIds = data.study_set_assignments.map((a) => a.class_id);
             const classNames = data.study_set_assignments.map((a) => a.classes?.class_name || "Lớp học");
@@ -364,36 +365,37 @@ export default function EditStudySetPage() {
 
     const newErrors = {};
 
-    // Validate details
     if (!title.trim()) {
       newErrors.title = "Study set title is required.";
-    }
-    if (questions.length === 0) {
-      newErrors.questions = "A study set must contain at least one question.";
     }
     if (visibility === "class_only" && selectedClassIds.length === 0) {
       newErrors.classIds = "Please select at least one class.";
     }
 
-    // Validate questions
-    questions.forEach((q, idx) => {
-      if (!q.question_text.trim()) {
-        newErrors[`q_${idx}_text`] = "Question prompt cannot be empty.";
-      }
-      if (q.options.length < 2) {
-        newErrors[`q_${idx}_options`] = "Question must have at least 2 options.";
-      } else {
-        const hasEmptyOpt = q.options.some((opt) => !opt.option_text.trim());
-        if (hasEmptyOpt) {
-          newErrors[`q_${idx}_options`] = "All options must be filled out.";
+    const activeQuestions = questions.filter(
+      (q) => q.question_text.trim() !== "" || q.options.some((opt) => opt.option_text.trim() !== "")
+    );
+
+    if (activeQuestions.length > 0) {
+      activeQuestions.forEach((q, idx) => {
+        if (!q.question_text.trim()) {
+          newErrors[`q_${idx}_text`] = "Question prompt cannot be empty.";
+        }
+        if (q.options.length < 2) {
+          newErrors[`q_${idx}_options`] = "Question must have at least 2 options.";
         } else {
-          const hasCorrect = q.options.some((opt) => opt.is_correct);
-          if (!hasCorrect) {
-            newErrors[`q_${idx}_options`] = "At least one correct option must be selected.";
+          const hasEmptyOpt = q.options.some((opt) => !opt.option_text.trim());
+          if (hasEmptyOpt) {
+            newErrors[`q_${idx}_options`] = "All options must be filled out.";
+          } else {
+            const hasCorrect = q.options.some((opt) => opt.is_correct);
+            if (!hasCorrect) {
+              newErrors[`q_${idx}_options`] = "At least one correct option must be selected.";
+            }
           }
         }
-      }
-    });
+      });
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -409,7 +411,8 @@ export default function EditStudySetPage() {
         visibility,
         classId: selectedClassIds,
         questionBankId,
-        questions
+        questions: activeQuestions,
+        materials
       });
 
       router.push(`/teacher/study-sets/${id}`);
@@ -602,73 +605,111 @@ export default function EditStudySetPage() {
             </div>
           </div>
 
-          {/* Questions List */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-foreground">Questions ({questions.length})</h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => setShowExcelImporter(true)}
-                  type="button"
-                  variant="outline"
-                  className="gap-2"
-                >
-                  <FileSpreadsheet size={16} />
-                  Import from Excel
-                </Button>
-                <Button
-                  onClick={() => setShowMaterialGenerator(true)}
-                  type="button"
-                  variant="outline"
-                  className="gap-2"
-                >
-                  <Sparkles size={16} />
-                  Generate from Material
-                </Button>
-                <Button
-                  onClick={() => setShowQBSelector(true)}
-                  type="button"
-                  variant="outline"
-                  className="gap-2"
-                >
-                  <Database size={16} />
-                  Import from Question Bank
-                </Button>
-              </div>
+          <MaterialUpload materials={materials} onChange={setMaterials} onPreview={setPreviewMaterial} />
+
+          {questions.length === 0 ? (
+            <div className="border border-dashed border-border rounded-2xl p-8 text-center bg-card/30 hover:bg-card/50 transition-colors">
+              <h3 className="text-sm font-semibold text-foreground">Add practice questions to this study set?</h3>
+              <p className="text-xs text-muted-foreground mt-1 mb-4">You can write practice questions manually, generate them using AI, import from excel, or keep this study set as theory-only.</p>
+              <Button
+                type="button"
+                onClick={addBlankQuestion}
+                className="rounded-xl gap-2 text-xs font-semibold"
+              >
+                <Plus size={16} />
+                Add Practice Questions
+              </Button>
             </div>
-
-            {errors.questions && (
-              <div className="bg-error/10 text-error border border-error/20 px-4 py-3 rounded-xl text-sm font-semibold">
-                {errors.questions}
-              </div>
-            )}
-
+          ) : (
             <div className="space-y-6">
-              {questions.map((q, qIndex) => (
-                <QuestionCardEditor
-                  key={qIndex}
-                  question={q}
-                  qIndex={qIndex}
-                  errors={errors}
-                  onFieldChange={(field, value) => handleQuestionFieldChange(qIndex, field, value)}
-                  onDelete={() => deleteQuestion(qIndex)}
-                  onAddOption={() => addOptionToQuestion(qIndex)}
-                  onDeleteOption={(optIndex) => deleteOptionFromQuestion(qIndex, optIndex)}
-                  onOptionChange={(optIndex, field, value) => handleOptionChange(qIndex, optIndex, field, value)}
-                />
-              ))}
-            </div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-foreground">Questions ({questions.length})</h2>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setShowExcelImporter(true)}
+                    type="button"
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <FileSpreadsheet size={16} />
+                    Import from Excel
+                  </Button>
+                  <Button
+                    onClick={() => setShowMaterialGenerator(true)}
+                    type="button"
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <Sparkles size={16} />
+                    Generate from Material
+                  </Button>
+                  <Button
+                    onClick={() => setShowQBSelector(true)}
+                    type="button"
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <Database size={16} />
+                    Import from Question Bank
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setConfirmData({
+                        isOpen: true,
+                        title: "Clear All Questions?",
+                        message: "Are you sure you want to remove all questions? This action will reset this section back to theory-only.",
+                        onConfirm: () => {
+                          setQuestions([]);
+                          setConfirmData((prev) => ({ ...prev, isOpen: false }));
+                        },
+                        onCancel: () => {
+                          setConfirmData((prev) => ({ ...prev, isOpen: false }));
+                        }
+                      });
+                    }}
+                    type="button"
+                    variant="ghost"
+                    className="gap-2 text-destructive hover:bg-destructive/5 hover:text-destructive"
+                  >
+                    <Trash2 size={16} />
+                    Clear All
+                  </Button>
+                </div>
+              </div>
 
-            <Button
-              onClick={addBlankQuestion}
-              type="button"
-              variant="outline"
-              className="w-full h-12 border-dashed gap-2 rounded-2xl"
-            >
-              <Plus size={16} />
-              Add Question Card
-            </Button>
-          </div>
+              {errors.questions && (
+                <div className="bg-error/10 text-error border border-error/20 px-4 py-3 rounded-xl text-sm font-semibold">
+                  {errors.questions}
+                </div>
+              )}
+
+              <div className="space-y-6">
+                {questions.map((q, qIndex) => (
+                  <QuestionCardEditor
+                    key={qIndex}
+                    question={q}
+                    qIndex={qIndex}
+                    errors={errors}
+                    onFieldChange={(field, value) => handleQuestionFieldChange(qIndex, field, value)}
+                    onDelete={() => deleteQuestion(qIndex)}
+                    onAddOption={() => addOptionToQuestion(qIndex)}
+                    onDeleteOption={(optIndex) => deleteOptionFromQuestion(qIndex, optIndex)}
+                    onOptionChange={(optIndex, field, value) => handleOptionChange(qIndex, optIndex, field, value)}
+                  />
+                ))}
+              </div>
+
+              <Button
+                onClick={addBlankQuestion}
+                type="button"
+                variant="outline"
+                className="w-full h-12 border-dashed gap-2 rounded-2xl"
+              >
+                <Plus size={16} />
+                Add Question Card
+              </Button>
+            </div>
+          )}
 
           {/* Action Footer */}
           <div className="flex justify-end gap-3 border-t border-border pt-6">
@@ -744,6 +785,13 @@ export default function EditStudySetPage() {
         message={confirmData.message}
         onConfirm={confirmData.onConfirm}
         onCancel={confirmData.onCancel}
+      />
+
+      <DocumentPreviewModal
+        isOpen={!!previewMaterial}
+        onClose={() => setPreviewMaterial(null)}
+        materialUrl={previewMaterial?.material_url}
+        materialName={previewMaterial?.material_name || ""}
       />
     </main>
   );

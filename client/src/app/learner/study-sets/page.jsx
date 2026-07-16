@@ -189,9 +189,16 @@ export default function LearnerStudySetsPage() {
                       </span>
                     </div>
                     <div className="space-y-1">
-                      <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors duration-150 line-clamp-1">
-                        {set.title}
-                      </h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors duration-150 line-clamp-1">
+                          {set.title}
+                        </h3>
+                        {set.study_set_materials && set.study_set_materials.length > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded shrink-0" title={`${set.study_set_materials.length} material(s) attached`}>
+                            📎 {set.study_set_materials.length}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs font-semibold text-muted-foreground">
                         {set.subject || "General"}
                       </p>
