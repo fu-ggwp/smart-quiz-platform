@@ -21,7 +21,7 @@ export async function adminListPublicStudySets(query = {}) {
   const keyword = sanitizeSearchKeyword(filters.keyword);
   if (keyword) {
     dbQuery = dbQuery.or(
-      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,topic.ilike.%${keyword}%`,
+      `title.ilike.%${keyword}%,description.ilike.%${keyword}%,subject.ilike.%${keyword}%`,
     );
   }
   if (filters.hidden === true) {

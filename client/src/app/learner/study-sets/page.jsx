@@ -45,7 +45,7 @@ export default function LearnerStudySetsPage() {
     return studySets.filter((set) => {
       const textToSearch = [
         set.title,
-        set.topic,
+        set.subject,
         set.description,
         set.teacher?.full_name,
       ]
@@ -200,7 +200,7 @@ export default function LearnerStudySetsPage() {
                         )}
                       </div>
                       <p className="text-xs font-semibold text-muted-foreground">
-                        {set.topic || "General"}
+                        {set.subject || "General"}
                       </p>
                       <p className="text-sm text-muted-foreground line-clamp-2 pt-1 min-h-[40px]">
                         {set.description || "No description provided."}

@@ -85,7 +85,7 @@ function formatAssignedStudySet(studySet) {
     studySetId: id,
     title: studySet.title || "Untitled study set",
     className: getAssignedClassName(studySet),
-    topic: studySet.topic || null,
+    subject: studySet.subject || null,
     questionCount: studySet.question_count || 0,
     status,
     href: `/learner/study-sets/${id}`,

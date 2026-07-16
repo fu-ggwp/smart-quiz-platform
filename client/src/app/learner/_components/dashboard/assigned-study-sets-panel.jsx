@@ -39,7 +39,7 @@ export function AssignedStudySetsPanel({ items }) {
                 </span>
               </div>
               <h3 className="mt-3 line-clamp-2 text-base font-bold text-foreground">{studySet.title}</h3>
-              <p className="mt-1 truncate text-sm text-muted-foreground">{studySet.topic || "General"}</p>
+              <p className="mt-1 truncate text-sm text-muted-foreground">{studySet.subject || "General"}</p>
               <p className="mt-3 text-sm font-semibold text-muted-foreground">{studySet.questionCount} questions</p>
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 <Button asChild size="sm" variant={studySet.status === "completed" ? "outline" : "default"}>

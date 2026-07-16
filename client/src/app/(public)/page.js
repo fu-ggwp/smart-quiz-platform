@@ -24,7 +24,7 @@ import { ROLE_HOME } from "@/lib/auth-constants";
 const modes = [
   {
     title: "Learn",
-    text: "Build a topic with short practice rounds and instant feedback.",
+    text: "Build a subject with short practice rounds and instant feedback.",
     icon: Brain,
     tone: "bg-success/10 text-success",
   },
@@ -42,7 +42,7 @@ const modes = [
   },
   {
     title: "Review",
-    text: "Open weak topics and compare answers before signing up.",
+    text: "Open weak subjects and compare answers before signing up.",
     icon: Trophy,
     tone: "bg-error/10 text-error",
   },
@@ -158,10 +158,10 @@ export default function HomeRedirectPage() {
               Public learning library
             </span>
             <h2 className="mt-5 text-3xl font-extrabold leading-tight tracking-normal">
-              Find sets for any class or exam topic
+              Find sets for any class or exam subject
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
-              Start from public cards by subject, topic, teacher, or keyword.
+              Start from public cards by subject, teacher, or keyword.
               Open a set, preview questions, then decide whether to sign in.
             </p>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">

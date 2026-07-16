@@ -33,7 +33,7 @@ export function ExamDetailSummary({ exam }) {
         <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <SummaryItem label="Class" value={exam.classes?.class_name} />
           <SummaryItem className="sm:col-span-2" label="Question Source" value={exam.question_bank?.title} />
-          <SummaryItem label="Question Topic" value={exam.question_bank?.topic || "No topic"} />
+          <SummaryItem label="Question Subject" value={exam.question_bank?.subject || "No subject"} />
           <SummaryItem label="Last Updated" value={formatDateTime(exam.updated_at)} />
         </CardContent>
       </Card>
