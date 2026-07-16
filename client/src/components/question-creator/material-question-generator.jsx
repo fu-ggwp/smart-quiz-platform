@@ -18,7 +18,6 @@ import QuestionCardEditor from "@/components/question-creator/question-card-edit
 
 const acceptedTypes = [
   "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 
 /**
@@ -34,7 +33,7 @@ function getErrorMessage(error) {
 }
 
 /**
- * Upload PDF/DOCX material, generate question drafts, preview them, then add to editor.
+ * Upload PDF material, generate question drafts, preview them, then add to editor.
  */
 export default function MaterialQuestionGenerator({
   generateQuestions,
@@ -61,7 +60,7 @@ export default function MaterialQuestionGenerator({
     if (!acceptedTypes.includes(selectedFile.type)) {
       setFile(null);
       setGeneratedQuestions([]);
-      setError("Only PDF or DOCX files are supported.");
+      setError("Only PDF files are supported.");
       return;
     }
 
@@ -77,7 +76,7 @@ export default function MaterialQuestionGenerator({
     const count = Number(questionCount);
 
     if (!file) {
-      setError("Please upload a PDF or DOCX learning material file.");
+      setError("Please upload a PDF learning material file.");
       return;
     }
 
@@ -137,8 +136,7 @@ export default function MaterialQuestionGenerator({
             Generate Questions from Material
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Upload a PDF or DOCX file and generate multiple choice question
-            drafts.
+            Upload a PDF file and generate multiple choice question drafts.
           </p>
         </div>
         <Button onClick={onCancel} variant="ghost" size="sm" type="button">
@@ -157,7 +155,7 @@ export default function MaterialQuestionGenerator({
             ref={fileInputRef}
             type="file"
             className="hidden"
-            accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            accept=".pdf,application/pdf"
             onChange={handleFileChange}
           />
           <span className="flex flex-col items-center gap-3">
@@ -173,7 +171,7 @@ export default function MaterialQuestionGenerator({
                 {file ? file.name : "Click to upload material"}
               </span>
               <span className="mt-1 block text-xs text-muted-foreground">
-                Supports PDF and DOCX files up to 15MB
+                Supports PDF files up to 15MB
               </span>
             </span>
           </span>
