@@ -38,11 +38,31 @@ export async function listForAdmin(query = {}) {
 
 // ── Admin user detail + status update (UC-52 / §3.9.2) ─────────────────────
 
+/**
+ * Attach derived premium status to a user detail row. The `users` table has no
+ * is_premium column; premium is derived from an active user_subscriptions row.
+ * Adds: is_premium (bool), premium_plan_name (string|null), premium_expires_at.
+ */
+async function attachPremiumStatus(user) {
+  const { data: subscription, error } = await dao.findActiveSubscriptionForUser(user.user_id);
+  if (error) throw dbError(error, 500);
+
+  return {
+    ...user,
+    is_premium: Boolean(subscription),
+    premium_plan_name:
+      subscription?.premium_plan?.display_name ||
+      subscription?.premium_plan?.plan_name ||
+      null,
+    premium_expires_at: subscription?.end_at || null,
+  };
+}
+
 export async function getForAdmin(userId) {
   const { data, error } = await dao.findUserByIdForAdmin(userId);
   if (error) throw dbError(error, 500);
   if (!data) throw notFound();
-  return data;
+  return attachPremiumStatus(data);
 }
 
 /**
@@ -70,7 +90,7 @@ export async function updateAccountStatus(adminId, userId, body = {}) {
   const { data, error } = await dao.updateUserAccountStatus(userId, status);
   if (error) throw dbError(error, 500);
 
-  return data;
+  return attachPremiumStatus(data);
 }
 
 export async function listPublic(query = {}) {

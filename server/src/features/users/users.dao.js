@@ -1,6 +1,8 @@
 import { supabase } from "../../config/supabase.js";
 import { STUDY_SET_TABLE } from "../../models/study-set.model.js";
 import { USER_TABLE } from "../../models/user.model.js";
+import { USER_SUBSCRIPTION_TABLE } from "../../models/user-subscription.model.js";
+import { PREMIUM_PLAN_TABLE } from "../../models/premium-plan.model.js";
 import { getPagination } from "../../utils/pagination.js";
 
 function sanitizeSearchKeyword(value) {
@@ -100,9 +102,34 @@ export function findPublicStudySetsByTeacher(teacherId) {
 
 // ── Admin user detail + status update (UC-52 / §3.9.2) ─────────────────────
 // Safe detail columns (no auth secrets / payment records).
+// NOTE: `users` has NO is_premium column — premium status is derived from an
+// active row in `user_subscriptions` (see findActiveSubscriptionForUser).
 const ADMIN_USER_DETAIL_COLUMNS =
   "user_id, full_name, email, username, avatar_url, bio, phone_number, " +
-  "active_role, account_status, is_premium, created_at, updated_at";
+  "active_role, account_status, created_at, updated_at";
+
+/**
+ * Find the user's current active subscription (if any) plus its plan name.
+ * "Active" = status active AND now within [start_at, end_at]. Used to derive
+ * the premium status shown on the Admin user detail (§3.9.2 Premium status).
+ */
+export async function findActiveSubscriptionForUser(userId) {
+  const now = new Date().toISOString();
+
+  return supabase
+    .from(USER_SUBSCRIPTION_TABLE)
+    .select(
+      `subscription_id, premium_plan_id, status, start_at, end_at,
+       premium_plan:${PREMIUM_PLAN_TABLE}!premium_plan_id(plan_name, display_name)`,
+    )
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .lte("start_at", now)
+    .gte("end_at", now)
+    .order("end_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+}
 
 export async function findUserByIdForAdmin(userId) {
   const db = supabase;

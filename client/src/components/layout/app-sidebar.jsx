@@ -10,7 +10,6 @@ import {
   GraduationCap,
   Home,
   LibraryBig,
-  Settings,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -30,7 +29,6 @@ const roleConfig = {
       { label: "Dashboard", href: "/admin/dashboard", icon: Home },
       { label: "Users", href: "/admin/users", icon: Users },
       { label: "Resources", href: "/admin/resources", icon: LibraryBig },
-      { label: "System status", href: "/admin/system-status", icon: Settings },
     ],
   },
   teacher: {

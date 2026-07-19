@@ -1,9 +1,8 @@
-export default function SystemStatusPage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <section className="w-full max-w-4xl">
-        <h1 className="text-3xl font-semibold">System Status</h1>
-      </section>
-    </main>
-  );
+import { redirect } from "next/navigation";
+
+// System Status has been removed from the Admin area (no longer in SRS scope
+// for the admin app). This route is retired and redirects to the Admin
+// dashboard. Safe to delete this file/folder when convenient.
+export default function RetiredSystemStatusPage() {
+  redirect("/admin/dashboard");
 }

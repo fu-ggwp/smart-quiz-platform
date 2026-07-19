@@ -154,7 +154,15 @@ export default function AdminUserDetailPage() {
                 <Row label="Email">{user.email}</Row>
                 <Row label="Phone">{user.phone_number}</Row>
                 <Row label="Role">{user.active_role}</Row>
-                <Row label="Premium">{user.is_premium ? "Premium" : "Free"}</Row>
+                <Row label="Premium">
+                  {user.is_premium
+                    ? `Premium${user.premium_plan_name ? ` · ${user.premium_plan_name}` : ""}${
+                        user.premium_expires_at
+                          ? ` (until ${new Date(user.premium_expires_at).toLocaleDateString()})`
+                          : ""
+                      }`
+                    : "Free"}
+                </Row>
                 <Row label="Joined">{formatDateTime(user.created_at)}</Row>
                 <Row label="Last updated">{formatDateTime(user.updated_at)}</Row>
               </dl>
