@@ -1,6 +1,6 @@
 import { STATUS_OPTIONS } from "../../../_components/exam-session-options";
 
-const lockedStatuses = new Set(["closed", "archived"]);
+const lockedStatuses = new Set(["closed"]);
 
 export const editableStatusOptions = STATUS_OPTIONS.filter((option) =>
   ["draft", "active"].includes(option.value)

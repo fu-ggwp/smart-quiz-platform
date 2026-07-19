@@ -185,7 +185,7 @@ CREATE TABLE public.exam_sessions (
   question_bank_id uuid NOT NULL,
   title character varying NOT NULL,
   description text,
-  status character varying DEFAULT 'draft'::character varying CHECK (status::text = ANY (ARRAY['draft'::character varying::text, 'active'::character varying::text, 'closed'::character varying::text, 'archived'::character varying::text])),
+  status character varying DEFAULT 'draft'::character varying CHECK (status::text = ANY (ARRAY['draft'::character varying::text, 'active'::character varying::text, 'closed'::character varying::text])),
   start_at timestamp with time zone,
   end_at timestamp with time zone,
   duration_minutes integer NOT NULL CHECK (duration_minutes > 0),

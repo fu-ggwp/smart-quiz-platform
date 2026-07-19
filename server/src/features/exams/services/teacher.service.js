@@ -210,7 +210,7 @@ export async function getExamAttempts(examSessionId, teacherId) {
 export async function updateExamSettings(examSessionId, teacherId, payload = {}) {
   const exam = await getExamDetail(examSessionId, teacherId);
 
-  if ([ExamSessionStatus.CLOSED, ExamSessionStatus.ARCHIVED].includes(exam.status)) {
+  if (exam.status === ExamSessionStatus.CLOSED) {
     throw fail("You do not have permission to access or perform this action.", 409);
   }
 

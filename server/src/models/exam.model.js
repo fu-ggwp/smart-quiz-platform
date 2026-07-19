@@ -10,7 +10,6 @@ export const ExamSessionStatus = Object.freeze({
   DRAFT: "draft",
   ACTIVE: "active",
   CLOSED: "closed",
-  ARCHIVED: "archived",
 });
 
 export const ExamResultVisibility = Object.freeze({
@@ -46,7 +45,7 @@ export const EXAM_SESSION_CONFIG_COLUMNS = Object.freeze(
  * @property {string} question_bank_id   - FK -> question_banks.question_bank_id
  * @property {string} title
  * @property {string} [description]
- * @property {"draft"|"active"|"closed"|"archived"} status
+ * @property {"draft"|"active"|"closed"} status
  * @property {string} [start_at]
  * @property {string} [end_at]
  * @property {number} duration_minutes

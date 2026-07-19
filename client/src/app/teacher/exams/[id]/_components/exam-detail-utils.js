@@ -1,4 +1,4 @@
-const lockedStatuses = new Set(["closed", "archived"]);
+const lockedStatuses = new Set(["closed"]);
 
 export function getExamErrorMessage(error) {
   return (

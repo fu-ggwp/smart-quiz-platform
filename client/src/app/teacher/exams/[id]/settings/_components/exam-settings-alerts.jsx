@@ -3,7 +3,7 @@ export function ExamSettingsAlerts({ locked, error, success }) {
     <>
       {locked ? (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
-          This exam can no longer be configured because it has started, closed, archived, or already has learner attempts.
+          This exam can no longer be configured because it has started, closed, or already has learner attempts.
         </div>
       ) : null}
 

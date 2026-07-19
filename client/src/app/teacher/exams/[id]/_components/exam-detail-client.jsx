@@ -27,7 +27,7 @@ export function ExamDetailClient({ examId }) {
 
         {locked ? (
           <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
-            Active exam sessions cannot be configured after their start time. Closed and archived exams are also locked.
+            Active exam sessions cannot be configured after their start time. Closed exams are also locked.
           </div>
         ) : null}
 

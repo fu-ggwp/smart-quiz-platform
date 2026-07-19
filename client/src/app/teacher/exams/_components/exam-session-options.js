@@ -13,7 +13,6 @@ export const STATUS_OPTIONS = [
   { value: "draft", label: "Draft" },
   { value: "active", label: "Active" },
   { value: "closed", label: "Closed" },
-  { value: "archived", label: "Archived" },
 ];
 
 export const RESULT_VISIBILITY_OPTIONS = [
@@ -34,14 +33,12 @@ const STATUS_STYLES = {
   active: "border-primary/30 bg-primary/10 text-primary",
   draft: "border-border bg-muted text-muted-foreground",
   closed: "border-destructive/30 bg-destructive/10 text-destructive",
-  archived: "border-border bg-muted text-muted-foreground",
 };
 
 const STATUS_LABELS = {
   active: "active",
   draft: "draft",
   closed: "closed",
-  archived: "archived",
 };
 
 const VISIBILITY_LABELS = {
