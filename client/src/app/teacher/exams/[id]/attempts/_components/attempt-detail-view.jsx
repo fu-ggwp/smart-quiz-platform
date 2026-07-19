@@ -46,7 +46,7 @@ export function AttemptDetailView({
   const result = detail?.result;
 
   return (
-    <main className="min-h-screen bg-muted/40 px-4 py-5 text-foreground sm:px-6 lg:px-8">
+    <main className="min-h-full bg-muted/40 px-4 py-5 text-foreground sm:px-6 lg:px-8">
       <section className="mx-auto max-w-7xl space-y-6">
         <header className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-start lg:justify-between">
           <div>

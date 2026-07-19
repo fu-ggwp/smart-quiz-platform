@@ -145,7 +145,7 @@ export default function LearnerExamsPage() {
   const sortOptions = activeTab === "available" ? SORT_OPTIONS : COMPLETED_SORT_OPTIONS;
 
   return (
-    <main className="min-h-screen bg-background px-4 py-5 text-foreground sm:px-6 lg:px-8">
+    <main className="min-h-full bg-background px-4 py-5 text-foreground sm:px-6 lg:px-8">
       <section className="mx-auto max-w-7xl space-y-6">
         <div className="border-b border-border pb-6">
           <h1 className="text-3xl font-bold tracking-normal">My Exams</h1>

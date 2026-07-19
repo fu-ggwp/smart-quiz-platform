@@ -171,7 +171,7 @@ export function CreateExamSessionClient() {
   }
 
   return (
-    <main className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-full bg-background px-4 py-6 sm:px-6 lg:px-8">
       <section className="mx-auto max-w-6xl space-y-6">
         <div className="flex flex-col gap-4 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div>

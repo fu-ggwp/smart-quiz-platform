@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 
 export function ExamSettingsLoading() {
   return (
-    <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
+    <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
       <section className="mx-auto max-w-7xl rounded-md border border-border bg-card p-6 text-sm font-medium text-muted-foreground shadow-sm">
         Loading exam settings...
       </section>
@@ -13,7 +13,7 @@ export function ExamSettingsLoading() {
 
 export function ExamSettingsError({ message }) {
   return (
-    <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
+    <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
       <section className="mx-auto max-w-3xl space-y-4 rounded-md border border-border bg-card p-6 shadow-sm">
         <p className="text-sm font-medium text-destructive">{message}</p>
         <Link

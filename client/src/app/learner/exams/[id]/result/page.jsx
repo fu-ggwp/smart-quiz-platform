@@ -161,7 +161,7 @@ export default function ExamResultPage() {
 
   if (attemptId && loading) {
     return (
-      <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
+      <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
         <section className="mx-auto max-w-7xl rounded-md border border-border bg-card p-6 text-sm text-muted-foreground">
           Loading detailed results...
         </section>
@@ -171,7 +171,7 @@ export default function ExamResultPage() {
 
   if (displayError || !result) {
     return (
-      <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
+      <main className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
         <section className="mx-auto max-w-3xl space-y-4 rounded-md border border-border bg-card p-6 shadow-sm">
           <p className="text-sm font-semibold text-destructive">{displayError || "Detailed results are not available."}</p>
           <Button asChild variant="outline">
@@ -186,7 +186,7 @@ export default function ExamResultPage() {
   }
 
   return (
-    <main className="min-h-screen bg-muted/40 px-4 py-5 text-foreground sm:px-6 lg:px-8">
+    <main className="min-h-full bg-muted/40 px-4 py-5 text-foreground sm:px-6 lg:px-8">
       <section className="mx-auto max-w-7xl space-y-5">
         <header className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
           <Button asChild variant="ghost">

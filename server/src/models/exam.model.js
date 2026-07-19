@@ -55,7 +55,7 @@ export const EXAM_SESSION_CONFIG_COLUMNS = Object.freeze(
  * @property {boolean} randomize_questions
  * @property {boolean} randomize_answers
  * @property {"completion_only"|"score_only"|"question_answer"} result_visibility
- * @property {string} [access_code]          - unique
+ * @property {string} [access_code]
  * @property {string} created_at
  * @property {string} updated_at
  * @property {string} [deleted_at]

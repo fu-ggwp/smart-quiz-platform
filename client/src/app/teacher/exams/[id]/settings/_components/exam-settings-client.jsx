@@ -120,7 +120,7 @@ export function ExamSettingsClient({ examId }) {
   }
 
   return (
-    <main className="min-h-screen bg-background px-4 py-5 font-sans text-foreground [font-family:var(--font-geist-sans),Arial,sans-serif] sm:px-6 lg:px-8">
+    <main className="min-h-full bg-background px-4 py-5 font-sans text-foreground [font-family:var(--font-geist-sans),Arial,sans-serif] sm:px-6 lg:px-8">
       <section className="mx-auto max-w-7xl space-y-6">
         <ExamSettingsHeader examId={examId} />
         <ExamSettingsAlerts locked={locked} error={error} success={success} />

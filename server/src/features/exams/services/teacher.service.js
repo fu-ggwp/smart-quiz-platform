@@ -71,6 +71,17 @@ function assertSelectedQuestions(questionIds, selectedQuestions) {
   }
 }
 
+function examSessionInsertError(error) {
+  if (error?.code === "23505" && String(error.message || "").includes("exam_sessions_access_code_key")) {
+    throw fail(
+      "Exam access codes can be reused, but the database still has the old unique access-code constraint. Please run docs/exam-access-code-non-unique.sql.",
+      500
+    );
+  }
+
+  throw dbError(error);
+}
+
 function toExamQuestionRows(examSessionId, questions) {
   return questions.map((question, index) => {
     const options = [...(question.answer_options ?? [])].sort(
@@ -305,7 +316,7 @@ export async function createExamSession(teacherId, payload = {}) {
     access_code: accessCode,
     teacher_id: teacherId,
   });
-  if (examError) throw dbError(examError);
+  if (examError) examSessionInsertError(examError);
 
   const selectedQuestions = selectedByIds.length
     ? selectedByIds

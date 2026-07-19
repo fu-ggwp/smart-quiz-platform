@@ -194,7 +194,7 @@ CREATE TABLE public.exam_sessions (
   randomize_questions boolean NOT NULL DEFAULT true,
   randomize_answers boolean NOT NULL DEFAULT true,
   result_visibility character varying NOT NULL DEFAULT 'score_only'::character varying CHECK (result_visibility::text = ANY (ARRAY['completion_only'::character varying::text, 'score_only'::character varying::text, 'question_answer'::character varying::text])),
-  access_code character varying UNIQUE,
+  access_code character varying,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   deleted_at timestamp with time zone,

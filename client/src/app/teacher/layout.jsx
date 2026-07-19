@@ -4,7 +4,7 @@ import { RoleGuard } from "@/components/layout/role-guard";
 
 export default function TeacherLayout({ children }) {
   return (
-    <main className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+    <main className="fixed inset-0 flex flex-col overflow-hidden bg-background text-foreground">
       <Navbar />
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         <AppSidebar role="teacher" />
