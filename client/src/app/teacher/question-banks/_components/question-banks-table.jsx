@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-import { formatBankStatus, formatDate, getStatusTone, QuestionBanksBadge } from "./question-banks-badge";
+import { formatDate, getStatusTone, QuestionBanksBadge } from "./question-banks-badge";
 
 /**
  * Read-only table for teacher banks. Rows are keyboard-clickable detail links.
@@ -45,7 +45,7 @@ export function QuestionBanksTable({ questionBanks }) {
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">{bank.subject || "No subject"}</td>
                 <td className="px-4 py-3">
-                  <QuestionBanksBadge tone={getStatusTone(bank.status)}>{formatBankStatus(bank.status)}</QuestionBanksBadge>
+                  <QuestionBanksBadge tone={getStatusTone(bank.status)}>{bank.status}</QuestionBanksBadge>
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">{bank.questionCount ?? 0}</td>
                 <td className="px-4 py-3 text-muted-foreground">{formatDate(bank.updated_at || bank.created_at)}</td>

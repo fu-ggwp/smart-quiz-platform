@@ -41,6 +41,7 @@ export default function EditQuestionBankPage() {
   const [loadError, setLoadError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [archiving, setArchiving] = useState(false);
+  QuestionBankMaterialGenerateModal;
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Submit hook sends the whole editor draft so the backend can sync questions exactly.
@@ -70,7 +71,11 @@ export default function EditQuestionBankPage() {
       setQuestions((questionRows || []).map(toQuestionDraft));
       setErrors({});
     } catch (err) {
-      setLoadError(err.response?.data?.error || err.message || "Failed to load question bank.");
+      setLoadError(
+        err.response?.data?.error ||
+          err.message ||
+          "Failed to load question bank.",
+      );
     } finally {
       setLoading(false);
     }
@@ -91,7 +96,12 @@ export default function EditQuestionBankPage() {
       await questionBanksService.remove(questionBankId);
       router.push("/teacher/question-banks");
     } catch (err) {
-      editor.setErrors({ submit: err.response?.data?.error || err.message || "Question bank delete failed." });
+      editor.setErrors({
+        submit:
+          err.response?.data?.error ||
+          err.message ||
+          "Question bank delete failed.",
+      });
     } finally {
       setArchiving(false);
       setShowDeleteModal(false);
@@ -102,7 +112,10 @@ export default function EditQuestionBankPage() {
     return (
       <main className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
         <section className="mx-auto max-w-4xl">
-          <QuestionBanksStatePanel title="Loading question bank" description="Fetching metadata and questions." />
+          <QuestionBanksStatePanel
+            title="Loading question bank"
+            description="Fetching metadata and questions."
+          />
         </section>
       </main>
     );
@@ -113,7 +126,11 @@ export default function EditQuestionBankPage() {
       <main className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
         <section className="mx-auto max-w-4xl">
           <QuestionBanksStatePanel
-            action={<Button onClick={loadQuestionBank} type="button">Try Again</Button>}
+            action={
+              <Button onClick={loadQuestionBank} type="button">
+                Try Again
+              </Button>
+            }
             icon={<AlertCircle className="size-5" />}
             title="Unable to load question bank"
             description={loadError}
@@ -127,12 +144,21 @@ export default function EditQuestionBankPage() {
     <>
       {/* Edit Editor */}
       <QuestionBankEditorForm
-        actionSlot={(
-          <Button disabled={archiving || submitting} onClick={() => setShowDeleteModal(true)} type="button" variant="destructive">
-            {archiving ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+        actionSlot={
+          <Button
+            disabled={archiving || submitting}
+            onClick={() => setShowDeleteModal(true)}
+            type="button"
+            variant="destructive"
+          >
+            {archiving ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Trash2 className="size-4" />
+            )}
             {archiving ? "Deleting..." : "Delete"}
           </Button>
-        )}
+        }
         errors={editor.errors}
         form={editor.form}
         mode="edit"

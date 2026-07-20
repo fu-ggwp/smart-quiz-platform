@@ -14,17 +14,11 @@ import { getQuestionChapterLabel, groupQuestionsByChapter } from "../_lib/questi
 const labels = {
   create: {
     title: "Create Question Bank",
-    description: "Create metadata and draft reusable questions in one place.",
-    questionDescription: "Add prompts, options, and explanations directly.",
-    emptyDescription: "This bank will be created without questions.",
     submit: "Create Question Bank",
     submitting: "Creating...",
   },
   edit: {
     title: "Edit Question Bank",
-    description: "Update metadata and edit reusable questions in one place.",
-    questionDescription: "Edit prompts, options, and explanations directly.",
-    emptyDescription: "Add a question card or save this empty bank to remove all active questions.",
     submit: "Save Changes",
     submitting: "Saving...",
   },
@@ -79,7 +73,6 @@ export function QuestionBankEditorForm({
               {backLabel}
             </Button>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">{copy.title}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">{copy.description}</p>
           </div>
           {actionSlot}
         </header>
@@ -138,7 +131,6 @@ export function QuestionBankEditorForm({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-foreground">Questions ({questions.length})</h2>
-                <p className="text-sm text-muted-foreground">{copy.questionDescription}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {onImportExcel && (
@@ -156,11 +148,7 @@ export function QuestionBankEditorForm({
               </div>
             </div>
 
-            {questions.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
-                {copy.emptyDescription}
-              </div>
-            ) : (
+            {questions.length > 0 && (
               /* Questions Grouped by Chapter */
               <div className="space-y-6">
                 {questionGroups.map((group) => {

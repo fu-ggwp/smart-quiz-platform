@@ -3,13 +3,26 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { AlertCircle, ArrowLeft, BookOpen, ChevronDown, ChevronRight, Edit3, Eye, EyeOff } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
+  Edit3,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 import { QuestionPreviewCard } from "@/components/questions/question-preview-card";
 import { Button } from "@/components/ui/button";
 import { questionBanksService } from "@/services/question-banks.service";
 
-import { formatBankStatus, formatDate, getStatusTone, QuestionBanksBadge } from "../_components/question-banks-badge";
+import {
+  formatDate,
+  getStatusTone,
+  QuestionBanksBadge,
+} from "../_components/question-banks-badge";
 import { QuestionBanksStatePanel } from "../_components/question-banks-state-panel";
 import { groupQuestionsByChapter } from "../_lib/question-bank-editor";
 
@@ -33,7 +46,10 @@ export default function QuestionBankDetailPage() {
   const [revealedQuestions, setRevealedQuestions] = useState(new Set());
   const [collapsedChapters, setCollapsedChapters] = useState({});
 
-  const questionGroups = useMemo(() => groupQuestionsByChapter(questions), [questions]);
+  const questionGroups = useMemo(
+    () => groupQuestionsByChapter(questions),
+    [questions],
+  );
 
   useEffect(() => {
     if (!questionBankId) return;
@@ -63,7 +79,11 @@ export default function QuestionBankDetailPage() {
 
         setQuestionBank(null);
         setQuestions([]);
-        setError(err.response?.data?.error || err.message || "Failed to load question bank details.");
+        setError(
+          err.response?.data?.error ||
+            err.message ||
+            "Failed to load question bank details.",
+        );
       } finally {
         if (!ignore) setLoading(false);
       }
@@ -112,7 +132,10 @@ export default function QuestionBankDetailPage() {
     return (
       <main className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
         <section className="mx-auto max-w-5xl">
-          <QuestionBanksStatePanel title="Loading question bank" description="Fetching metadata and questions." />
+          <QuestionBanksStatePanel
+            title="Loading question bank"
+            description="Fetching metadata and questions."
+          />
         </section>
       </main>
     );
@@ -149,18 +172,23 @@ export default function QuestionBankDetailPage() {
               </Link>
             </Button>
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl font-bold text-foreground">{questionBank.title}</h1>
+              <h1 className="text-3xl font-bold text-foreground">
+                {questionBank.title}
+              </h1>
               <QuestionBanksBadge tone={getStatusTone(questionBank.status)}>
-                {formatBankStatus(questionBank.status)}
+                {questionBank.status}
               </QuestionBanksBadge>
             </div>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-              {questionBank.description || "No description provided for this question bank."}
+              {questionBank.description ||
+                "No description provided for this question bank."}
             </p>
           </div>
 
           <Button asChild size="sm">
-            <Link href={`/teacher/question-banks/${questionBank.question_bank_id}/edit`}>
+            <Link
+              href={`/teacher/question-banks/${questionBank.question_bank_id}/edit`}
+            >
               <Edit3 className="size-4" />
               Edit Question Bank
             </Link>
@@ -169,20 +197,42 @@ export default function QuestionBankDetailPage() {
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {/* Question Bank Metadata */}
-          <MetadataItem label="Subject" value={questionBank.subject || "No subject"} />
+          <MetadataItem
+            label="Subject"
+            value={questionBank.subject || "No subject"}
+          />
           <MetadataItem label="Questions" value={String(questions.length)} />
-          <MetadataItem label="Created" value={formatDate(questionBank.created_at)} />
-          <MetadataItem label="Updated" value={formatDate(questionBank.updated_at || questionBank.created_at)} />
+          <MetadataItem
+            label="Created"
+            value={formatDate(questionBank.created_at)}
+          />
+          <MetadataItem
+            label="Updated"
+            value={formatDate(
+              questionBank.updated_at || questionBank.created_at,
+            )}
+          />
         </section>
 
         {/* Question Preview Controls */}
         <section className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-xl font-bold text-foreground">Questions ({questions.length})</h2>
-            <p className="text-sm text-muted-foreground">Review prompts, answer choices, and explanations in this bank.</p>
+            <h2 className="text-xl font-bold text-foreground">
+              Questions ({questions.length})
+            </h2>
           </div>
-          <Button disabled={questions.length === 0} onClick={toggleAllAnswers} size="sm" type="button" variant="outline">
-            {showAllAnswers ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          <Button
+            disabled={questions.length === 0}
+            onClick={toggleAllAnswers}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            {showAllAnswers ? (
+              <EyeOff className="size-4" />
+            ) : (
+              <Eye className="size-4" />
+            )}
             {showAllAnswers ? "Hide All Answers" : "Show All Answers"}
           </Button>
         </section>
@@ -200,18 +250,28 @@ export default function QuestionBankDetailPage() {
               const isExpanded = !collapsedChapters[group.chapter];
 
               return (
-                <section key={group.chapter} className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                <section
+                  key={group.chapter}
+                  className="overflow-hidden rounded-lg border border-border bg-card shadow-sm"
+                >
                   <button
                     className="flex w-full items-center justify-between gap-3 border-b border-border px-4 py-3 text-left hover:bg-muted/50"
                     onClick={() => toggleChapter(group.chapter)}
                     type="button"
                   >
                     <span className="flex min-w-0 items-center gap-2">
-                      {isExpanded ? <ChevronDown className="size-4 shrink-0" /> : <ChevronRight className="size-4 shrink-0" />}
-                      <span className="truncate text-sm font-bold text-foreground">{group.chapter}</span>
+                      {isExpanded ? (
+                        <ChevronDown className="size-4 shrink-0" />
+                      ) : (
+                        <ChevronRight className="size-4 shrink-0" />
+                      )}
+                      <span className="truncate text-sm font-bold text-foreground">
+                        {group.chapter}
+                      </span>
                     </span>
                     <span className="shrink-0 text-xs font-semibold text-muted-foreground">
-                      {group.questions.length} {group.questions.length === 1 ? "question" : "questions"}
+                      {group.questions.length}{" "}
+                      {group.questions.length === 1 ? "question" : "questions"}
                     </span>
                   </button>
 
@@ -220,7 +280,10 @@ export default function QuestionBankDetailPage() {
                       {group.questions.map(({ question, index }) => (
                         <QuestionPreviewCard
                           index={index}
-                          isRevealed={showAllAnswers || revealedQuestions.has(question.question_id)}
+                          isRevealed={
+                            showAllAnswers ||
+                            revealedQuestions.has(question.question_id)
+                          }
                           key={question.question_id}
                           onToggleReveal={toggleRevealQuestion}
                           question={question}
@@ -241,7 +304,9 @@ export default function QuestionBankDetailPage() {
 function MetadataItem({ label, value }) {
   return (
     <div className="rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
-      <p className="text-xs font-bold uppercase text-muted-foreground">{label}</p>
+      <p className="text-xs font-bold uppercase text-muted-foreground">
+        {label}
+      </p>
       <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
     </div>
   );

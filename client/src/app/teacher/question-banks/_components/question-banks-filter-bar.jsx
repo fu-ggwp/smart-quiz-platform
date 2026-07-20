@@ -23,14 +23,28 @@ export function QuestionBanksFilterBar({
   return (
     <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
       <div className="grid gap-4 md:grid-cols-[minmax(240px,1fr)_minmax(150px,190px)_auto_auto]">
-        <Field label="Search Question Banks">
+        <label className="block space-y-1.5">
+          <span className="text-sm font-semibold text-foreground">Search Question Banks</span>
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input className="pl-8" onChange={onKeywordChange} placeholder="Title, description, or subject" value={keyword} />
           </div>
-        </Field>
+        </label>
 
-        <SelectField label="Status" onChange={onStatusChange} options={statusOptions} value={status} />
+        <label className="block space-y-1.5">
+          <span className="text-sm font-semibold text-foreground">Status</span>
+          <select
+            className="h-8 w-full rounded-2xl border border-transparent bg-input/50 px-2.5 text-sm outline-none transition focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+            onChange={onStatusChange}
+            value={status}
+          >
+            {statusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <div className="flex items-end justify-end">
           <Button onClick={onApply} type="button">
@@ -47,38 +61,5 @@ export function QuestionBanksFilterBar({
         </div>
       </div>
     </div>
-  );
-}
-
-/**
- * Shared label wrapper for filter controls.
- */
-function Field({ children, label }) {
-  return (
-    <label className="block space-y-1.5">
-      <span className="text-sm font-semibold text-foreground">{label}</span>
-      {children}
-    </label>
-  );
-}
-
-/**
- * Small select field used by the status filter.
- */
-function SelectField({ label, onChange, options, value }) {
-  return (
-    <Field label={label}>
-      <select
-        className="h-8 w-full rounded-2xl border border-transparent bg-input/50 px-2.5 text-sm outline-none transition focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
-        onChange={onChange}
-        value={value}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </Field>
   );
 }

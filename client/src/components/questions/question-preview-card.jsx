@@ -47,42 +47,36 @@ export function QuestionPreviewCard({ className, index, isRevealed, onToggleReve
       <p className="break-words text-base font-medium leading-relaxed text-foreground">{question?.question_text}</p>
 
       {/* Answer Options */}
-      {options.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border bg-muted/10 p-4 text-sm text-muted-foreground">
-          No answer options
-        </p>
-      ) : (
-        <div className="grid gap-2.5 sm:grid-cols-2">
-          {options.map((option, optionIndex) => {
-            const showCorrectAnswer = isRevealed && option.is_correct;
-            const optionKey = option.answer_option_id || `${questionId || "question"}-${optionIndex}`;
+      <div className="grid gap-2.5 sm:grid-cols-2">
+        {options.map((option, optionIndex) => {
+          const showCorrectAnswer = isRevealed && option.is_correct;
+          const optionKey = option.answer_option_id || `${questionId || "question"}-${optionIndex}`;
 
-            return (
+          return (
+            <div
+              className={cn(
+                "flex items-center gap-3 rounded-xl border p-3 text-sm transition duration-150",
+                showCorrectAnswer
+                  ? "border-success bg-success/10 font-semibold text-success"
+                  : "border-border bg-muted/10 text-foreground"
+              )}
+              key={optionKey}
+            >
               <div
                 className={cn(
-                  "flex items-center gap-3 rounded-xl border p-3 text-sm transition duration-150",
+                  "flex size-5 shrink-0 items-center justify-center rounded-full border text-xs",
                   showCorrectAnswer
-                    ? "border-success bg-success/10 font-semibold text-success"
-                    : "border-border bg-muted/10 text-foreground"
+                    ? "border-success bg-success text-primary-foreground"
+                    : "border-border bg-muted/40 text-muted-foreground"
                 )}
-                key={optionKey}
               >
-                <div
-                  className={cn(
-                    "flex size-5 shrink-0 items-center justify-center rounded-full border text-xs",
-                    showCorrectAnswer
-                      ? "border-success bg-success text-primary-foreground"
-                      : "border-border bg-muted/40 text-muted-foreground"
-                  )}
-                >
-                  {showCorrectAnswer ? <Check size={12} /> : null}
-                </div>
-                <span className="w-full break-words">{option.option_text}</span>
+                {showCorrectAnswer ? <Check size={12} /> : null}
               </div>
-            );
-          })}
-        </div>
-      )}
+              <span className="w-full break-words">{option.option_text}</span>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Explanation */}
       {isRevealed && question?.explanation ? (
