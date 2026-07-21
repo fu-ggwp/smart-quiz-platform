@@ -141,21 +141,21 @@ export async function validateStudySetAccess(studySet, userId, userRole) {
     return;
   }
   if (studySet.visibility === "private") {
-    throw accessDenied();
+    throw notAvailable();
   }
 
   if (studySet.visibility === "class_only") {
     if (userRole !== "learner") {
-      throw accessDenied();
+      throw notAvailable();
     }
     const { data: memberships, error: memberErr } = await dao.getLearnerClassMemberships(userId);
     if (memberErr || !memberships || memberships.length === 0) {
-      throw accessDenied();
+      throw notAvailable();
     }
     const classIds = memberships.map((m) => m.class_id);
     const { data: matched, error: matchErr } = await dao.checkAssignmentMatch(studySet.study_set_id, classIds);
     if (matchErr || !matched || matched.length === 0) {
-      throw accessDenied();
+      throw notAvailable();
     }
     return;
   }

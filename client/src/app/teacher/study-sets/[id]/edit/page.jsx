@@ -93,7 +93,8 @@ export default function EditStudySetPage() {
         }
       } catch (err) {
         console.error("Failed to load study set details:", err);
-        setErrors({ submit: "Failed to load study set details. Please try again." });
+        const displayMsg = err.response?.data?.error || "Failed to load study set details. Please try again.";
+        setErrors({ submit: displayMsg });
       } finally {
         setLoading(false);
       }

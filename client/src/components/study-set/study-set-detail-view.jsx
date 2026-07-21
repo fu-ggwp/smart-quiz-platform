@@ -237,11 +237,13 @@ export function StudySetDetailView({
   }
 
   if (error || !studySet) {
+    const displayMessage = error?.response?.data?.error || 
+      "We couldn't retrieve this study set. It may have been deleted, set to private, or you don't have access.";
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center space-y-4 text-foreground">
         <HelpCircle className="size-12 text-destructive" />
         <h2 className="text-xl font-bold">Study Set Not Found</h2>
-        <p className="text-sm text-muted-foreground max-w-sm">We couldn&apos;t retrieve this study set. It may have been deleted, set to private, or you don&apos;t have access.</p>
+        <p className="text-sm text-muted-foreground max-w-sm">{displayMessage}</p>
         <Button onClick={() => router.push(isGuest ? "/" : "/learner/study-sets")}>
           {isGuest ? "Back to Homepage" : "Back to My Study Sets"}
         </Button>

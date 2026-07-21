@@ -45,7 +45,8 @@ export default function TeacherStudySetDetailPage() {
         setStudySet(res.data || null);
       } catch (err) {
         console.error("Failed to load study set:", err);
-        setError("Failed to load study set details. Please try again.");
+        const displayMsg = err.response?.data?.error || "Failed to load study set details. Please try again.";
+        setError(displayMsg);
       } finally {
         setLoading(false);
       }
