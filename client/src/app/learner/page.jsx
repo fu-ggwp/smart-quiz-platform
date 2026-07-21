@@ -69,7 +69,7 @@ export default function LearnerDashboardPage() {
         <header className="flex flex-col gap-4 border-b border-border pb-5 md:flex-row md:items-end md:justify-between">
           <div className="min-w-0">
             <h1 className="text-3xl font-bold tracking-normal text-foreground">
-              Dashboard
+              Learner Home
             </h1>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">

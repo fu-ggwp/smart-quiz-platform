@@ -36,7 +36,7 @@ const roleConfig = {
     homeHref: "/teacher",
     icon: ShieldCheck,
     nav: [
-      { label: "Dashboard", href: "/teacher", icon: Home, exact: true },
+      { label: "Home", href: "/teacher", icon: Home, exact: true },
       { label: "Study sets", href: "/teacher/study-sets", icon: BookOpen },
       {
         label: "Question banks",
@@ -52,7 +52,7 @@ const roleConfig = {
     homeHref: "/learner",
     icon: GraduationCap,
     nav: [
-      { label: "Dashboard", href: "/learner", icon: Home, exact: true },
+      { label: "Home", href: "/learner", icon: Home, exact: true },
       { label: "Study sets", href: "/learner/study-sets", icon: BookOpen },
       { label: "Classes", href: "/learner/classes", icon: Building2 },
       { label: "Exams", href: "/learner/exams", icon: GraduationCap },
@@ -87,11 +87,10 @@ function SidebarLink({ isCollapsed, item, pathname }) {
 
 export function AppSidebar({ role }) {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(getSavedSidebarCollapsed);
   const config = roleConfig[role];
 
   useEffect(() => {
-    setIsCollapsed(getSavedSidebarCollapsed());
     return subscribeToSidebarCollapsed(setIsCollapsed);
   }, []);
 

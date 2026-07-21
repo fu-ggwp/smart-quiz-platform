@@ -166,7 +166,7 @@ export default function TeacherDashboardPage() {
     <main className="min-h-screen bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
       <section className="mx-auto max-w-7xl space-y-6">
         <header className="space-y-1">
-          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Teacher Dashboard</h1>
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Teacher Home</h1>
         </header>
 
         <QuickActions />
