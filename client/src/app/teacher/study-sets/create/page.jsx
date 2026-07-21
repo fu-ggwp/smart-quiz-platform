@@ -355,7 +355,7 @@ export default function CreateStudySetPage() {
 
     setSaving(true);
     try {
-      await studySetsService.create({
+      const res = await studySetsService.create({
         title,
         description,
         subject: subject || null,
@@ -366,7 +366,12 @@ export default function CreateStudySetPage() {
         materials
       });
       
-      router.push("/teacher/study-sets");
+      const createdId = res.data?.study_set_id;
+      if (createdId) {
+        router.push(`/teacher/study-sets/${createdId}`);
+      } else {
+        router.push("/teacher/study-sets");
+      }
     } catch (err) {
       console.error("Failed to create study set:", err);
       const errMsg = err.response?.data?.error || "Failed to create study set. Please try again.";

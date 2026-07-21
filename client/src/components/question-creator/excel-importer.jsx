@@ -284,7 +284,7 @@ export default function ExcelImporter({ onQuestionsImported, onCancel }) {
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">
-              {file ? file.name : "Click to upload or drag & drop"}
+              {file ? file.name : "Click to upload"}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               Supports Excel (.xlsx, .xls) and CSV files
