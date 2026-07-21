@@ -10,7 +10,8 @@ import {
   formatItems,
   validateStudySetAccess,
   shouldNotify,
-  notifyAssignment
+  notifyAssignment,
+  notAvailable
 } from "./study-sets.helpers.js";
 import {
   createQuestionsAndOptions,
@@ -141,7 +142,7 @@ export async function getOne(id, user = null) {
       studySet.visibility === "private" ||
       studySet.visibility === "class_only"
     ) {
-      throw accessDenied("Please log in to access this study set.");
+      throw notAvailable();
     }
   }
   const { data: questions, error: qError } =
@@ -184,6 +185,16 @@ async function assignAndNotify(studySet, teacherId, classId, payload) {
       : [];
 
   if (targetClassIds.length > 0) {
+    const { data: verifiedClasses, error: verifyError } = await dao.verifyClassesOwnership(teacherId, targetClassIds);
+    if (verifyError) {
+      throw dbError(verifyError);
+    }
+    const verifiedIds = (verifiedClasses || []).map((c) => String(c.class_id));
+    const allValid = targetClassIds.every((cid) => verifiedIds.includes(String(cid)));
+    if (!allValid) {
+      throw accessDenied("One or more classes do not exist or you do not have permission to assign to them.");
+    }
+
     const assignments = targetClassIds.map((cid) => ({
       study_set_id: studySet.study_set_id,
       class_id: cid,
@@ -248,14 +259,26 @@ async function updateAssignments(id, teacherId, classId, changes, currentTitle) 
   const { visibility, notifyLearners, notify_learners } = changes;
 
   if (visibility === "class_only" || classId) {
-    const { error: delAssignError } = await dao.deleteAssignments(id);
-    if (delAssignError) throw dbError(delAssignError);
-
     const targetClassIds = Array.isArray(classId)
       ? classId
       : classId
         ? [classId]
         : [];
+
+    if (targetClassIds.length > 0) {
+      const { data: verifiedClasses, error: verifyError } = await dao.verifyClassesOwnership(teacherId, targetClassIds);
+      if (verifyError) {
+        throw dbError(verifyError);
+      }
+      const verifiedIds = (verifiedClasses || []).map((c) => String(c.class_id));
+      const allValid = targetClassIds.every((cid) => verifiedIds.includes(String(cid)));
+      if (!allValid) {
+        throw accessDenied("One or more classes do not exist or you do not have permission to assign to them.");
+      }
+    }
+
+    const { error: delAssignError } = await dao.deleteAssignments(id);
+    if (delAssignError) throw dbError(delAssignError);
 
     if (targetClassIds.length > 0) {
       const assignments = targetClassIds.map((cid) => ({

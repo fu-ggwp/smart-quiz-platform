@@ -268,6 +268,17 @@ export function getActiveClassMemberEmails(classIds) {
     .eq("status", "active");
 }
 
+// Kiểm tra danh sách lớp học có thuộc quyền quản lý của giáo viên hay không
+export function verifyClassesOwnership(teacherId, classIds) {
+  return db
+    .from(CLASS_TABLE)
+    .select("class_id")
+    .eq("teacher_id", teacherId)
+    .in("class_id", classIds)
+    .eq("status", "active")
+    .is("deleted_at", null);
+}
+
 // Lấy danh sách tên lớp học theo ID
 export function getClassNamesByIds(classIds) {
   return db
