@@ -7,7 +7,7 @@ import {
 import { ListChecks, Shuffle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { editableStatusOptions } from "./exam-settings-utils";
 import {
@@ -47,7 +47,6 @@ export function ExamSessionSettingsSection({
       <Card className="border border-border shadow-sm">
         <CardHeader className="border-b bg-muted/30">
           <CardTitle className="text-lg font-semibold">Basic Info</CardTitle>
-          <CardDescription>Class and source are locked after the session is created.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
           <TextField
@@ -73,7 +72,6 @@ export function ExamSessionSettingsSection({
       <Card className="border border-border shadow-sm">
         <CardHeader className="border-b bg-muted/30">
           <CardTitle className="text-lg font-semibold">Question Bank</CardTitle>
-          <CardDescription>Review the source bank and manage the selected exam questions.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5">
           <ReadOnlyField label="Question Source" value={exam.question_bank?.title} />
@@ -92,7 +90,6 @@ export function ExamSessionSettingsSection({
                   <Shuffle className="size-4" />
                   Random pick
                 </span>
-                <span className="mt-1 block text-xs text-muted-foreground">Randomly tick questions first, then review them.</span>
               </button>
               <button
                 type="button"
@@ -106,7 +103,6 @@ export function ExamSessionSettingsSection({
                   <ListChecks className="size-4" />
                   Manual pick
                 </span>
-                <span className="mt-1 block text-xs text-muted-foreground">Choose exact questions by chapter.</span>
               </button>
             </div>
 
@@ -132,7 +128,6 @@ export function ExamSessionSettingsSection({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-foreground">Manual Question Selection</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Open the question bank and update selected exam questions.</p>
                   </div>
                   <Button disabled={disabled} onClick={() => onOpenQuestionPicker("manual")} type="button">
                     <ListChecks className="size-4" />
@@ -161,7 +156,6 @@ export function ExamSessionSettingsSection({
       <Card className="border border-border shadow-sm">
         <CardHeader className="border-b bg-muted/30">
           <CardTitle className="text-lg font-semibold">Timing & Status</CardTitle>
-          <CardDescription>Active exams require a start and end time.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
           {locked ? (
@@ -216,7 +210,6 @@ export function ExamSessionSettingsSection({
       <Card className="border border-border shadow-sm">
         <CardHeader className="border-b bg-muted/30">
           <CardTitle className="text-lg font-semibold">Rules</CardTitle>
-          <CardDescription>Configure attempts, visibility, and randomized delivery.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5 md:grid-cols-2">
           <TextField

@@ -60,7 +60,6 @@ export default function AnswersReviewList({ sessionId, questions, answers }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border p-5 rounded-2xl shadow-sm">
         <div>
           <h3 className="font-extrabold text-foreground text-lg">Review Answers</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Check detail correctness and explanations</p>
         </div>
 
         {/* Toggle chỉ hiện câu sai (UC-21) */}

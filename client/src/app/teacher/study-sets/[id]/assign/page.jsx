@@ -109,9 +109,6 @@ export default function AssignStudySetPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">Assign to Class</h1>
-            <p className="text-xs text-muted-foreground mt-1">
-              Select which classes can view and study this set.
-            </p>
           </div>
         </div>
 

@@ -146,7 +146,6 @@ export default function LearnerProgressPage() {
       <section className="mx-auto max-w-7xl space-y-6">
         <header className="border-b border-border pb-6">
           <h1 className="text-3xl font-bold tracking-normal">My Progress</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Track study consistency and recent performance.</p>
         </header>
 
         {error ? <StatePanel tone="error" message={error} /> : null}

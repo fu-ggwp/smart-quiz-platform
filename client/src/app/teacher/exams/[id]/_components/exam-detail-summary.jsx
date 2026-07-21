@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 import { formatClassLabel, formatDateTime, formatVisibility } from "../../_components/exam-session-options";
@@ -28,7 +28,6 @@ export function ExamDetailSummary({ exam }) {
       <Card className="border border-border shadow-sm">
         <CardHeader className="border-b bg-muted/30">
           <CardTitle className="text-lg font-semibold">Basic Info</CardTitle>
-          <CardDescription>Class, question source, and session metadata.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <SummaryItem label="Class" value={formatClassLabel(exam.classes)} />
@@ -41,7 +40,6 @@ export function ExamDetailSummary({ exam }) {
       <Card className="border border-border shadow-sm">
         <CardHeader className="border-b bg-muted/30">
           <CardTitle className="text-lg font-semibold">Timing & Status</CardTitle>
-          <CardDescription>When learners can start and how long they have.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <SummaryItem label="Start Time" value={formatDateTime(exam.start_at)} />
@@ -53,7 +51,6 @@ export function ExamDetailSummary({ exam }) {
       <Card className="border border-border shadow-sm">
         <CardHeader className="border-b bg-muted/30">
           <CardTitle className="text-lg font-semibold">Rules</CardTitle>
-          <CardDescription>Question delivery, attempts, access, and result visibility.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <SummaryItem label="Question Count" value={String(exam.question_count)} />
