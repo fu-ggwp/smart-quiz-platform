@@ -449,9 +449,6 @@ export default function EditStudySetPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">Edit Study Set</h1>
-            <p className="text-xs text-muted-foreground mt-1">
-              Modify details, edit draft questions, or manage imported items.
-            </p>
           </div>
         </div>
 

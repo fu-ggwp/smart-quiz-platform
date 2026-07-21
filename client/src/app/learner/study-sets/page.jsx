@@ -70,9 +70,6 @@ export default function LearnerStudySetsPage() {
         
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-bold text-foreground">My Study Sets</h1>
-          <p className="text-sm text-muted-foreground">
-            Access assigned study sets from your classes and keep track of your self-study materials.
-          </p>
         </div>
         <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-card p-4 rounded-xl border border-border">
           <div className="flex bg-muted/50 p-1 rounded-lg self-start border border-border">

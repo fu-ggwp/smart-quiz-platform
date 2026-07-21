@@ -148,7 +148,6 @@ export default function LearnerExamsPage() {
       <section className="mx-auto max-w-7xl space-y-6">
         <div className="border-b border-border pb-6">
           <h1 className="text-3xl font-bold tracking-normal">My Exams</h1>
-          <p className="mt-2 text-sm text-muted-foreground">View exams assigned to your classes and review your submitted results.</p>
         </div>
 
         {/* Custom Tabs Navigation */}

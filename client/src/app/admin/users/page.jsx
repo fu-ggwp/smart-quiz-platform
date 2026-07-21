@@ -79,9 +79,6 @@ export default function AdminUsersPage() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-semibold">User Management</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Admin views the list of users in the system.
-            </p>
           </div>
           <span className="rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground">
             {pagination.total ?? 0} users

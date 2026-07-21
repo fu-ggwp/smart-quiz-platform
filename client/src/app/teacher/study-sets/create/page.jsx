@@ -389,9 +389,6 @@ export default function CreateStudySetPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">Create Study Set</h1>
-            <p className="text-xs text-muted-foreground mt-1">
-              Add metadata and write questions manually or import them from your Question Banks.
-            </p>
           </div>
         </div>
 
