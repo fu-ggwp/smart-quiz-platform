@@ -385,10 +385,6 @@ export default function ProfilePage() {
         <section className="rounded-lg border border-border bg-card p-5 shadow-sm sm:p-6">
           <div className="mb-5">
             <h2 className="text-lg font-semibold">Account information</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              These details are managed by the system and cannot be changed
-              here.
-            </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">

@@ -181,7 +181,6 @@ export function CreateExamSessionClient() {
         <div className="flex flex-col gap-4 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-normal text-foreground">Create Exam Session</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Create an official exam session for one of your active classes.</p>
           </div>
 
           <Button asChild variant="ghost">

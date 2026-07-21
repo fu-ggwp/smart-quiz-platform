@@ -449,9 +449,6 @@ export default function EditStudySetPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">Edit Study Set</h1>
-            <p className="text-xs text-muted-foreground mt-1">
-              Modify details, edit draft questions, or manage imported items.
-            </p>
           </div>
         </div>
 
@@ -610,7 +607,6 @@ export default function EditStudySetPage() {
           {questions.length === 0 ? (
             <div className="border border-dashed border-border rounded-2xl p-8 text-center bg-card/30 hover:bg-card/50 transition-colors">
               <h3 className="text-sm font-semibold text-foreground">Add practice questions to this study set?</h3>
-              <p className="text-xs text-muted-foreground mt-1 mb-4">You can write practice questions manually, generate them using AI, import from excel, or keep this study set as theory-only.</p>
               <Button
                 type="button"
                 onClick={addBlankQuestion}

@@ -2,7 +2,7 @@ import { AlertCircle, CheckCircle2, ListChecks, Loader2, Save, Shuffle } from "l
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { CheckboxField, SelectField, SelectItem, TextAreaField, TextField } from "./create-exam-fields";
 import { formatClassLabel, getQuestionCount, RESULT_VISIBILITY_OPTIONS, STATUS_OPTIONS } from "./create-exam-options";
@@ -33,7 +33,6 @@ export function CreateExamForm({
         <Card className="border border-border shadow-sm">
           <CardHeader className="border-b bg-muted/30">
             <CardTitle className="text-lg font-semibold">Basic Info</CardTitle>
-            <CardDescription>Name the exam and choose who receives it.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-5 lg:grid-cols-2">
             <TextField
@@ -73,7 +72,6 @@ export function CreateExamForm({
         <Card className="border border-border shadow-sm">
           <CardHeader className="border-b bg-muted/30">
             <CardTitle className="text-lg font-semibold">Question Bank</CardTitle>
-            <CardDescription>Choose the source bank and pick the exact questions for this exam.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-5">
             <SelectField
@@ -155,7 +153,6 @@ export function CreateExamForm({
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm font-semibold text-foreground">Manual Question Selection</p>
-                      <p className="mt-1 text-xs text-muted-foreground">Open the question bank and tick questions to include.</p>
                     </div>
                     <Button
                       disabled={!canPickQuestions}
@@ -185,7 +182,6 @@ export function CreateExamForm({
         <Card className="border border-border shadow-sm">
           <CardHeader className="border-b bg-muted/30">
             <CardTitle className="text-lg font-semibold">Timing & Status</CardTitle>
-            <CardDescription>Draft exams can be scheduled later; active exams need a full window.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-5 lg:grid-cols-2">
             <SelectField error={fieldErrors.status} label="Status" name="status" onValueChange={onFieldChange} value={form.status}>
@@ -226,7 +222,6 @@ export function CreateExamForm({
         <Card className="border border-border shadow-sm">
           <CardHeader className="border-b bg-muted/30">
             <CardTitle className="text-lg font-semibold">Rules</CardTitle>
-            <CardDescription>Control attempts, result visibility, and randomized delivery.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-5 lg:grid-cols-2">
             <TextField
