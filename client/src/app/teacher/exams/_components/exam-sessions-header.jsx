@@ -9,11 +9,7 @@ export function ExamSessionsHeader() {
       <div>
         <h1 className="text-3xl font-bold tracking-normal text-foreground">Exam Sessions</h1>
       </div>
-      <Button
-        asChild
-        variant="primary"
-        className="h-11 px-5 text-sm font-bold"
-      >
+      <Button asChild>
         <Link href="/teacher/exams/create">
           <Plus data-icon="inline-start" aria-hidden="true" />
           Create Exam Session
