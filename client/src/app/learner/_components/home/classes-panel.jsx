@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Building2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { DashboardState } from "./dashboard-state";
+import { HomeState } from "./home-state";
 
 /**
  * Shows joined classes and links to learner class detail pages.
@@ -22,7 +22,7 @@ export function ClassesPanel({ items }) {
       {/* Joined Class Cards */}
       {items.length === 0 ? (
         <div className="mt-5">
-          <DashboardState actionHref="/learner/classes/join" actionLabel="Join Class" message="No joined classes yet." />
+          <HomeState actionHref="/learner/classes/join" actionLabel="Join Class" message="No joined classes yet." />
         </div>
       ) : (
         <div className="mt-5 grid gap-3 md:grid-cols-2">

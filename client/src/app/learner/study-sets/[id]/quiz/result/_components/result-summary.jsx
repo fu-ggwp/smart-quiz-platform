@@ -1,7 +1,7 @@
 import { RotateCcw, ArrowLeft, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function ResultDashboard({ session, totalQuestions, onRetake, onBack }) {
+export default function ResultSummary({ session, totalQuestions, onRetake, onBack }) {
   const score = parseFloat(session?.total_score) || 0;
   const maxScore = parseFloat(session?.max_score) || totalQuestions || 1;
   const accuracy = Math.round((score / maxScore) * 100) || 0;

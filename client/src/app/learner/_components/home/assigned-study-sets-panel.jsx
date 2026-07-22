@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { DashboardBadge } from "./dashboard-badge";
-import { DashboardState } from "./dashboard-state";
+import { HomeBadge } from "./home-badge";
+import { HomeState } from "./home-state";
 
 /**
  * Shows teacher-assigned practice, already sorted and limited by the backend.
@@ -22,7 +22,7 @@ export function AssignedStudySetsPanel({ items }) {
       {/* Assigned Study Set Cards */}
       {items.length === 0 ? (
         <div className="mt-5">
-          <DashboardState
+          <HomeState
             actionHref="/learner/classes/join"
             actionLabel="Join Class"
             message="No assigned practice yet."
@@ -33,7 +33,7 @@ export function AssignedStudySetsPanel({ items }) {
           {items.map((studySet) => (
             <article className="rounded-md border border-border bg-background p-4" key={studySet.studySetId}>
               <div className="flex flex-wrap items-center gap-2">
-                <DashboardBadge status={studySet.status} />
+                <HomeBadge status={studySet.status} />
                 <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-bold text-muted-foreground">
                   {studySet.className}
                 </span>

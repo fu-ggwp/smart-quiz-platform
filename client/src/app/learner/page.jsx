@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 import { AlertCircle, DoorOpen } from "lucide-react";
 import Link from "next/link";
-import { dashboardsService } from "@/services/dashboards.service";
+import { homeService } from "@/services/home.service";
 import {
-  DashboardState,
-  LoadingDashboard,
-} from "./_components/dashboard/dashboard-state";
-import { LearnerDashboard } from "./_components/dashboard/learner-dashboard";
+  HomeState,
+  LoadingHome,
+} from "./_components/home/home-state";
+import { LearnerHome } from "./_components/home/learner-home";
 import { Button } from "@/components/ui/button";
 
-const EMPTY_DASHBOARD = {
+const EMPTY_HOME = {
   continueLearning: null,
   upcomingExams: [],
   assignedStudySets: [],
@@ -19,21 +19,21 @@ const EMPTY_DASHBOARD = {
 };
 
 /**
- * Pick a readable message from dashboard API failures.
+ * Pick a readable message from home page API failures.
  */
 function getErrorMessage(error) {
   return (
     error?.response?.data?.error ||
     error?.message ||
-    "Unable to load dashboard. Please try again."
+    "Unable to load home page. Please try again."
   );
 }
 
 /**
- * Learner dashboard page: loads dashboard payload once and renders state panels.
+ * Learner home page: loads home payload once and renders state panels.
  */
-export default function LearnerDashboardPage() {
-  const [dashboard, setDashboard] = useState(EMPTY_DASHBOARD);
+export default function LearnerHomePage() {
+  const [home, setHome] = useState(EMPTY_HOME);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -41,16 +41,16 @@ export default function LearnerDashboardPage() {
     let ignore = false;
 
     // Guard with `ignore` so late responses do not update an unmounted page.
-    dashboardsService
-      .getLearnerDashboard()
+    homeService
+      .getLearnerHome()
       .then((data) => {
         if (ignore) return;
-        setDashboard({ ...EMPTY_DASHBOARD, ...data });
+        setHome({ ...EMPTY_HOME, ...data });
         setError("");
       })
       .catch((loadError) => {
         if (ignore) return;
-        setDashboard(EMPTY_DASHBOARD);
+        setHome(EMPTY_HOME);
         setError(getErrorMessage(loadError));
       })
       .finally(() => {
@@ -85,12 +85,12 @@ export default function LearnerDashboardPage() {
           </div>
         </header>
 
-        {/* Dashboard States */}
+        {/* Home States */}
         {error ? (
-          <DashboardState icon={AlertCircle} message={error} tone="error" />
+          <HomeState icon={AlertCircle} message={error} tone="error" />
         ) : null}
-        {loading ? <LoadingDashboard /> : null}
-        {!loading && !error ? <LearnerDashboard dashboard={dashboard} /> : null}
+        {loading ? <LoadingHome /> : null}
+        {!loading && !error ? <LearnerHome home={home} /> : null}
       </section>
     </main>
   );

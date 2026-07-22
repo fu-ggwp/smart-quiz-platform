@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 /**
  * Reusable empty/error state row with an optional action button.
  */
-export function DashboardState({
+export function HomeState({
   actionHref,
   actionLabel,
   icon: Icon = ClipboardList,
@@ -37,9 +37,9 @@ export function DashboardState({
 }
 
 /**
- * Skeleton layout that matches the learner dashboard card structure.
+ * Skeleton layout that matches the learner home page card structure.
  */
-export function LoadingDashboard() {
+export function LoadingHome() {
   return (
     <div className="space-y-5">
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.75fr)]">

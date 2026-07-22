@@ -33,7 +33,7 @@ export function listPendingJoinRequestsForTeacher(teacherId) {
 }
 
 /**
- * Load active/draft exam sessions for the dashboard work queue.
+ * Load active/draft exam sessions for the home page work queue.
  */
 export function listTeacherExamWork(teacherId) {
   return db

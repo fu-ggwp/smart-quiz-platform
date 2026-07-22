@@ -130,7 +130,7 @@ export async function notifyExamPublished({ learners, examTitle, className, star
   const sent = await dispatch(learners, (recipient) => ({
     subject: `New exam scheduled: ${examTitle}`,
     htmlContent: `<p>${greeting(recipient.full_name)}</p>
-       <p>A new exam, <strong>${examTitle}</strong>, has been published${where}. Please check your dashboard for the schedule and details.</p>
+       <p>A new exam, <strong>${examTitle}</strong>, has been published${where}. Please check your home page for the schedule and details.</p>
        ${when}`,
   }));
 

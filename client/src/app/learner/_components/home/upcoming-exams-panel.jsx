@@ -2,11 +2,11 @@ import Link from "next/link";
 import { CalendarClock } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { DashboardBadge } from "./dashboard-badge";
-import { DashboardState } from "./dashboard-state";
+import { HomeBadge } from "./home-badge";
+import { HomeState } from "./home-state";
 
 /**
- * Format exam start time for compact dashboard cards.
+ * Format exam start time for compact home page cards.
  */
 function formatDateTime(value) {
   if (!value) return "Not scheduled";
@@ -22,7 +22,7 @@ function formatDateTime(value) {
 }
 
 /**
- * Shows active/upcoming exams from the learner dashboard payload.
+ * Shows active/upcoming exams from the learner home page payload.
  */
 export function UpcomingExamsPanel({ items }) {
   return (
@@ -39,7 +39,7 @@ export function UpcomingExamsPanel({ items }) {
       {/* Exam Cards */}
       {items.length === 0 ? (
         <div className="mt-5">
-          <DashboardState message="No other active exams right now." />
+          <HomeState message="No other active exams right now." />
         </div>
       ) : (
         <div className="mt-5 space-y-3">
@@ -47,7 +47,7 @@ export function UpcomingExamsPanel({ items }) {
             <article className="rounded-md border border-border bg-background p-4" key={exam.examSessionId}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <DashboardBadge status={exam.status} />
+                  <HomeBadge status={exam.status} />
                   <h3 className="mt-3 truncate text-base font-bold text-foreground">{exam.title}</h3>
                   <p className="mt-1 truncate text-sm text-muted-foreground">{exam.className}</p>
                 </div>

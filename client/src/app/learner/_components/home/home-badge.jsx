@@ -22,9 +22,9 @@ export function statusLabel(status) {
 }
 
 /**
- * Shared dashboard status badge for study sets and exams.
+ * Shared home page status badge for study sets and exams.
  */
-export function DashboardBadge({ status }) {
+export function HomeBadge({ status }) {
   const tone = STATUS_TONES[status] || "bg-muted text-muted-foreground ring-border";
 
   return (

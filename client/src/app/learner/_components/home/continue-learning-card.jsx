@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PlayCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { DashboardState } from "./dashboard-state";
+import { HomeState } from "./home-state";
 
 /**
  * Format the last-study timestamp for the continue-learning card.
@@ -35,7 +35,7 @@ export function ContinueLearningCard({ item }) {
       {/* Empty State or Latest Study Set */}
       {!item ? (
         <div className="mt-2">
-          <DashboardState
+          <HomeState
             actionHref="/learner/classes/join"
             actionLabel="Join Class"
             message="No study activity yet."

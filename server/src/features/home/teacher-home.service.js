@@ -1,4 +1,4 @@
-import * as dao from "./teacher-dashboard.dao.js";
+import * as dao from "./teacher-home.dao.js";
 
 const LIMITS = {
   joinRequestGroups: 6,
@@ -10,7 +10,7 @@ const LIMITS = {
 const UPCOMING_DAYS = 7;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Date helpers keep dashboard sorting readable and safe for null dates.
+// Date helpers keep home page sorting readable and safe for null dates.
 function parseTime(value) {
   if (!value) return null;
   const time = new Date(value).getTime();
@@ -27,10 +27,10 @@ function compareTimeDesc(left, right, field) {
 }
 
 /**
- * Wrap database errors with one dashboard-level message for the controller.
+ * Wrap database errors with one home page-level message for the controller.
  */
 function dbError(error) {
-  return Object.assign(new Error(error.message || "Failed to load teacher dashboard."), {
+  return Object.assign(new Error(error.message || "Failed to load teacher home page."), {
     status: 500,
   });
 }
@@ -48,7 +48,7 @@ function isExamOpenNow(exam, now = Date.now()) {
 }
 
 /**
- * Upcoming means active, starts within the next dashboard window, and not open yet.
+ * Upcoming means active, starts within the next home page window, and not open yet.
  */
 function isUpcomingExam(exam, now = Date.now()) {
   const start = parseTime(exam.start_at);
@@ -173,7 +173,7 @@ function buildExamWork(exams, now = Date.now()) {
 }
 
 /**
- * Build small counter cards shown at the top of the teacher dashboard.
+ * Build small counter cards shown at the top of the teacher home page.
  */
 function buildSummary(joinRequests, exams, now = Date.now()) {
   return {
@@ -185,9 +185,9 @@ function buildSummary(joinRequests, exams, now = Date.now()) {
 }
 
 /**
- * Build the full dashboard payload from join requests and exam work.
+ * Build the full home page payload from join requests and exam work.
  */
-export async function getTeacherDashboard(teacherId) {
+export async function getTeacherHome(teacherId) {
   if (!teacherId) {
     throw Object.assign(new Error("Unauthorized."), { status: 401 });
   }

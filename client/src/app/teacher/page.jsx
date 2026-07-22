@@ -16,7 +16,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { dashboardsService } from "@/services/dashboards.service";
+import { homeService } from "@/services/home.service";
 
 const QUICK_ACTIONS = [
   {
@@ -41,7 +41,7 @@ const QUICK_ACTIONS = [
   },
 ];
 
-const EMPTY_DASHBOARD = {
+const EMPTY_HOME = {
   summary: {
     pendingJoinRequests: 0,
     activeExams: 0,
@@ -57,10 +57,10 @@ const EMPTY_DASHBOARD = {
 };
 
 /**
- * Pick a readable message from dashboard API failures.
+ * Pick a readable message from home page API failures.
  */
 function getErrorMessage(error) {
-  return error?.response?.data?.error || error?.message || "Unable to load dashboard.";
+  return error?.response?.data?.error || error?.message || "Unable to load home page.";
 }
 
 /**
@@ -71,7 +71,7 @@ function pluralize(count, singular, plural = singular + "s") {
 }
 
 /**
- * Format exam/request timestamps for dashboard cards.
+ * Format exam/request timestamps for home page cards.
  */
 function formatDateTime(value) {
   if (!value) return "Not scheduled";
@@ -101,10 +101,10 @@ function hasExamWork(examWork) {
 }
 
 /**
- * Teacher dashboard page: quick actions, join request queue, and exam work queues.
+ * Teacher home page: quick actions, join request queue, and exam work queues.
  */
-export default function TeacherDashboardPage() {
-  const [dashboard, setDashboard] = useState(EMPTY_DASHBOARD);
+export default function TeacherHomePage() {
+  const [home, setHome] = useState(EMPTY_HOME);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -112,24 +112,24 @@ export default function TeacherDashboardPage() {
     let ignore = false;
 
     // Load once on mount; ignore late responses after unmount.
-    async function loadDashboard() {
+    async function loadHome() {
       setLoading(true);
       setError("");
 
       try {
-        const data = await dashboardsService.getTeacherDashboard();
-        if (!ignore) setDashboard(normalizeDashboard(data));
+        const data = await homeService.getTeacherHome();
+        if (!ignore) setHome(normalizeHome(data));
       } catch (loadError) {
         if (!ignore) {
           setError(getErrorMessage(loadError));
-          setDashboard(EMPTY_DASHBOARD);
+          setHome(EMPTY_HOME);
         }
       } finally {
         if (!ignore) setLoading(false);
       }
     }
 
-    loadDashboard();
+    loadHome();
 
     return () => {
       ignore = true;
@@ -140,26 +140,26 @@ export default function TeacherDashboardPage() {
     () => [
       {
         label: "Pending Requests",
-        value: dashboard.summary.pendingJoinRequests,
+        value: home.summary.pendingJoinRequests,
         icon: Users,
       },
       {
         label: "Active Exams",
-        value: dashboard.summary.activeExams,
+        value: home.summary.activeExams,
         icon: CalendarClock,
       },
       {
         label: "Upcoming Exams",
-        value: dashboard.summary.upcomingExams,
+        value: home.summary.upcomingExams,
         icon: GraduationCap,
       },
       {
         label: "Draft Exams",
-        value: dashboard.summary.draftExams,
+        value: home.summary.draftExams,
         icon: Settings,
       },
     ],
-    [dashboard.summary],
+    [home.summary],
   );
 
   return (
@@ -171,18 +171,18 @@ export default function TeacherDashboardPage() {
 
         <QuickActions />
 
-        {/* Dashboard States and Summary */}
+        {/* Home Page States and Summary */}
         {error ? <StatePanel icon={AlertCircle} message={error} tone="error" /> : null}
 
         <WorkSummary actions={summaryActions} loading={loading} />
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)]">
           <JoinRequestsPanel
-            items={dashboard.joinRequestsByClass}
+            items={home.joinRequestsByClass}
             loading={loading}
           />
           <ExamWorkPanel
-            examWork={dashboard.examWork}
+            examWork={home.examWork}
             loading={loading}
           />
         </div>
@@ -194,10 +194,10 @@ export default function TeacherDashboardPage() {
 /**
  * Fill missing API fields so child components can render without null checks everywhere.
  */
-function normalizeDashboard(data) {
+function normalizeHome(data) {
   return {
     summary: {
-      ...EMPTY_DASHBOARD.summary,
+      ...EMPTY_HOME.summary,
       ...(data?.summary || {}),
     },
     joinRequestsByClass: Array.isArray(data?.joinRequestsByClass) ? data.joinRequestsByClass : [],
@@ -239,7 +239,7 @@ function QuickActions() {
 }
 
 /**
- * Top metric cards for urgent dashboard work.
+ * Top metric cards for urgent home page work.
  */
 function WorkSummary({ actions, loading }) {
   if (loading) {
@@ -322,7 +322,7 @@ function JoinRequestItem({ item }) {
 }
 
 /**
- * Shows active, upcoming, and draft exams returned by the teacher dashboard API.
+ * Shows active, upcoming, and draft exams returned by the teacher home API.
  */
 function ExamWorkPanel({ examWork, loading }) {
   const empty = !hasExamWork(examWork);
@@ -450,7 +450,7 @@ function PanelHeader({ actionHref, actionLabel, title }) {
 }
 
 /**
- * Empty state used inside dashboard panels.
+ * Empty state used inside home page panels.
  */
 function EmptyState({ actionHref, actionLabel, compact = false, message }) {
   return (
@@ -468,7 +468,7 @@ function EmptyState({ actionHref, actionLabel, compact = false, message }) {
 }
 
 /**
- * Inline dashboard message for loading/error/neutral states.
+ * Inline home message for loading/error/neutral states.
  */
 function StatePanel({ icon: Icon, message, tone = "muted" }) {
   const toneClass = tone === "error" ? "text-destructive" : "text-muted-foreground";

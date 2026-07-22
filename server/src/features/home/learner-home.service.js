@@ -19,7 +19,7 @@ function sortByLastStudied(left, right) {
   return (parseDateToTimestamp(right.last_studied_at) || 0) - (parseDateToTimestamp(left.last_studied_at) || 0);
 }
 
-// Study set helpers convert service data into dashboard-friendly values.
+// Study set helpers convert service data into home page-friendly values.
 function getStudySetId(studySet) {
   return studySet.study_set_id || studySet.id;
 }
@@ -34,14 +34,14 @@ function getStudySetSourceLabel(studySet) {
   return "Self-study";
 }
 
-function getDashboardStudyStatus(studySet) {
+function getHomeStudyStatus(studySet) {
   if (studySet.study_status === "submitted") return "completed";
   if (studySet.study_status === "in_progress") return "in_progress";
   if (studySet.is_started) return "in_progress";
   return "not_started";
 }
 
-// Exam helpers expose only statuses the dashboard badge understands.
+// Exam helpers expose only statuses the home page badge understands.
 function getExamId(exam) {
   return exam.exam_session_id || exam.id;
 }
@@ -55,12 +55,12 @@ function isExamOpenNow(exam, now = Date.now()) {
   return exam.status === "active";
 }
 
-function getDashboardExamStatus(exam, now = Date.now()) {
+function getHomeExamStatus(exam, now = Date.now()) {
   if (isExamOpenNow(exam, now)) return "active_now";
   return "upcoming";
 }
 
-// Response mappers define the exact shape consumed by the learner dashboard UI.
+// Response mappers define the exact shape consumed by the learner home page UI.
 function formatContinueLearning(studySet) {
   if (!studySet) return null;
   const id = getStudySetId(studySet);
@@ -71,7 +71,7 @@ function formatContinueLearning(studySet) {
     sourceLabel: getStudySetSourceLabel(studySet),
     questionCount: studySet.question_count || 0,
     lastStudiedAt: studySet.last_studied_at || null,
-    status: getDashboardStudyStatus(studySet),
+    status: getHomeStudyStatus(studySet),
     href: `/learner/study-sets/${id}/flashcards`,
     detailsHref: `/learner/study-sets/${id}`,
   };
@@ -79,7 +79,7 @@ function formatContinueLearning(studySet) {
 
 function formatAssignedStudySet(studySet) {
   const id = getStudySetId(studySet);
-  const status = getDashboardStudyStatus(studySet);
+  const status = getHomeStudyStatus(studySet);
 
   return {
     studySetId: id,
@@ -103,7 +103,7 @@ function formatExam(exam, now = Date.now()) {
     startAt: exam.start_at || null,
     endAt: exam.end_at || null,
     durationMinutes: exam.duration_minutes || null,
-    status: getDashboardExamStatus(exam, now),
+    status: getHomeExamStatus(exam, now),
     href: `/learner/exams/${id}`,
   };
 }
@@ -125,7 +125,7 @@ function assignedSortValue(studySet) {
     completed: 2,
   };
 
-  return order[getDashboardStudyStatus(studySet)] ?? 3;
+  return order[getHomeStudyStatus(studySet)] ?? 3;
 }
 
 function sortAssignedStudySets(left, right) {
@@ -145,10 +145,10 @@ function sortExams(left, right) {
 }
 
 /**
- * Build the learner dashboard from existing learner services.
+ * Build the learner home page from existing learner services.
  * Each list is sorted, limited, then mapped into frontend-friendly cards.
  */
-export async function getLearnerDashboard(learnerId) {
+export async function getLearnerHome(learnerId) {
   const [studySets, examsData, classes] = await Promise.all([
     listLearnerStudySets(learnerId),
     listLearnerExamSessions(learnerId, { page: 1, pageSize: 50, sortBy: "start_asc" }),

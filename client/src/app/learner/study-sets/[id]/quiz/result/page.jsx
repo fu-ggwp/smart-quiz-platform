@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { studySetsService } from "@/services/study-sets.service";
 import { Button } from "@/components/ui/button";
 
-import ResultDashboard from "./_components/result-dashboard";
+import ResultSummary from "./_components/result-summary";
 import AnswersReviewList from "./_components/answers-review-list";
 
 export default function LearnerQuizResultPage() {
@@ -90,7 +90,7 @@ export default function LearnerQuizResultPage() {
       <div className="max-w-4xl mx-auto space-y-8">
         
         {/* Thống kê điểm số */}
-        <ResultDashboard 
+        <ResultSummary 
           session={sessionData}
           totalQuestions={questions.length}
           onRetake={handleRetakeQuiz}
