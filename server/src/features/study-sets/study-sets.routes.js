@@ -20,33 +20,33 @@ router.patch(
 router.get("/", requireAuth, studySetsController.listAvailable);
 router.post("/", requireAuth, studySetsController.create);
 
-router.get("/sessions/mine", requireAuth, requireRole("learner"), studySetsController.listMySessions);
+router.get("/sessions/mine", requireAuth, requireRole("learner", "teacher", "admin"), studySetsController.listMySessions);
 router.post(
   "/sessions/:sessionId/answers",
   requireAuth,
-  requireRole("learner"),
+  requireRole("learner", "teacher", "admin"),
   studySetsController.submitAnswer,
 );
 router.patch(
   "/sessions/:sessionId/complete",
   requireAuth,
-  requireRole("learner"),
+  requireRole("learner", "teacher", "admin"),
   studySetsController.completeSession,
 );
 router.get(
   "/sessions/:sessionId/results",
   requireAuth,
-  requireRole("learner"),
+  requireRole("learner", "teacher", "admin"),
   studySetsController.getSessionResults,
 );
 router.post(
   "/sessions/:sessionId/questions/:questionId/ai-explanation",
   requireAuth,
-  requireRole("learner"),
+  requireRole("learner", "teacher", "admin"),
   studySetsController.generateAnswerExplanation,
 );
 
-router.post("/:id/sessions", requireAuth, requireRole("learner"), studySetsController.startSession);
+router.post("/:id/sessions", requireAuth, requireRole("learner", "teacher", "admin"), studySetsController.startSession);
 router.get("/:id", optionalAuth, studySetsController.getOne);
 router.patch("/:id", requireAuth, studySetsController.update);
 router.delete("/:id", requireAuth, studySetsController.remove);
