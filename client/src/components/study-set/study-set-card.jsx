@@ -54,7 +54,7 @@ export function StudySetCard({ studySet }) {
     >
       <Card className="min-h-52 rounded-lg border border-border py-0  transition-colors hover:border-primary/60 hover:bg-accent/30">
         <CardHeader className="px-6 pt-6">
-          <CardTitle className="line-clamp-2 text-xl font-bold text-foreground">
+          <CardTitle className="truncate text-xl font-bold text-foreground" title={studySet.title || "Untitled study set"}>
             {studySet.title || "Untitled study set"}
           </CardTitle>
         </CardHeader>

@@ -28,14 +28,17 @@ export default function PublicStudySetDetailPage() {
     );
   }
 
+  const isGuest = !isAuthenticated;
+  const quizHref = isAuthenticated ? `/study-sets/${id}/quiz` : "";
+
   return (
     <StudySetDetailView 
       studySetId={id}
-      isGuest={true}
+      isGuest={isGuest}
       backHref="/"
       backLabel="Back to Homepage"
       flashcardHref={`/study-sets/${id}/flashcards`}
-      quizHref=""
+      quizHref={quizHref}
       showNavbar={false}
     />
   );
