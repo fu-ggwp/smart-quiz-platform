@@ -7,14 +7,7 @@ import { StudySetCard } from "@/components/study-set/study-set-card";
 import { PublicUserCard } from "@/components/public/public-user-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { AppPagination } from "@/components/common/app-pagination";
 import { studySetsService } from "@/services/study-sets.service";
 import { usersService } from "@/services/users.service";
 
@@ -218,6 +211,8 @@ function ResultSection({
   title,
   totalPages,
 }) {
+  const showPagination = !loading && !error && totalPages > 1;
+
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -230,8 +225,6 @@ function ResultSection({
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
-
-        <Pager page={page} totalPages={totalPages} onPageChange={onPageChange} />
       </div>
 
       {loading ? (
@@ -243,49 +236,20 @@ function ResultSection({
           description="Please check the connection and try again."
         />
       ) : (
-        children
+        <>
+          {children}
+          {showPagination && (
+            <div className="mt-4 flex justify-center">
+              <AppPagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+              />
+            </div>
+          )}
+        </>
       )}
     </section>
-  );
-}
-
-function Pager({ onPageChange, page, totalPages }) {
-  const safeTotalPages = Math.max(totalPages || 1, 1);
-  const safePage = Math.min(Math.max(page || 1, 1), safeTotalPages);
-  const canGoPrevious = safePage > 1;
-  const canGoNext = safePage < safeTotalPages;
-
-  function handlePageClick(event, nextPage, enabled) {
-    event.preventDefault();
-    if (enabled) onPageChange(nextPage);
-  }
-
-  return (
-    <Pagination className="mx-0 w-auto justify-start sm:justify-end">
-      <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious
-            aria-disabled={!canGoPrevious}
-            className={!canGoPrevious ? "pointer-events-none opacity-50" : undefined}
-            href="#"
-            onClick={(event) => handlePageClick(event, safePage - 1, canGoPrevious)}
-          />
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#" isActive onClick={(event) => event.preventDefault()}>
-            {safePage} / {safeTotalPages}
-          </PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationNext
-            aria-disabled={!canGoNext}
-            className={!canGoNext ? "pointer-events-none opacity-50" : undefined}
-            href="#"
-            onClick={(event) => handlePageClick(event, safePage + 1, canGoNext)}
-          />
-        </PaginationItem>
-      </PaginationContent>
-    </Pagination>
   );
 }
 
