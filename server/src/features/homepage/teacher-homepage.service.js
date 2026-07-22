@@ -1,4 +1,4 @@
-import * as dao from "./teacher-home.dao.js";
+import * as dao from "./teacher-homepage.dao.js";
 
 const LIMITS = {
   joinRequestGroups: 6,

@@ -1,6 +1,6 @@
 import { fail, ok } from "../../utils/api-response.js";
-import * as learnerService from "./learner-home.service.js";
-import * as teacherService from "./teacher-home.service.js";
+import * as learnerService from "./learner-homepage.service.js";
+import * as teacherService from "./teacher-homepage.service.js";
 
 function getUserId(req) {
   return req.user?.id || req.user?.user_id;

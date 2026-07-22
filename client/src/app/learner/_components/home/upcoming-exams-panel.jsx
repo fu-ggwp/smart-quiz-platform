@@ -53,9 +53,22 @@ export function UpcomingExamsPanel({ items }) {
                 </div>
                 <CalendarClock className="size-5 shrink-0 text-muted-foreground" />
               </div>
-              <p className="mt-3 text-sm font-medium text-muted-foreground">
-                {formatDateTime(exam.startAt)}{exam.durationMinutes ? ` - ${exam.durationMinutes} minutes` : ""}
-              </p>
+              <dl className="mt-3 space-y-1 text-sm font-medium text-muted-foreground">
+                <div className="flex items-center justify-between gap-3">
+                  <dt>Start at</dt>
+                  <dd className="text-right text-foreground">{formatDateTime(exam.startAt)}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt>End at</dt>
+                  <dd className="text-right text-foreground">{formatDateTime(exam.endAt)}</dd>
+                </div>
+                {exam.durationMinutes ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <dt>Duration</dt>
+                    <dd className="text-right text-foreground">{exam.durationMinutes} minutes</dd>
+                  </div>
+                ) : null}
+              </dl>
               <Button asChild className="mt-4 w-full" size="sm" variant="outline">
                 <Link href={exam.href}>Open</Link>
               </Button>
