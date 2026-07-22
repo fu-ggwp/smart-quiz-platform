@@ -1,4 +1,5 @@
 import supabase from "@/lib/supabase-client";
+import axiosClient from "@/services/axios-client";
 import {
   ACCESS_TOKEN_COOKIE,
   ACTIVE_ROLE_COOKIE,
@@ -96,7 +97,32 @@ export function getOAuthCallbackUrl(nextPath) {
 }
 
 export const authService = {
+  async checkAvailability({ email, username }) {
+    const { data } = await axiosClient.post("/api/auth/check-availability", {
+      email,
+      username,
+    });
+
+    return data?.data ?? { emailTaken: false, usernameTaken: false };
+  },
+
   async register({ fullName, username, email, password }) {
+    // Reject duplicates up front so the user sees a clear field-level message
+    // instead of being silently redirected to login.
+    const availability = await this.checkAvailability({ email, username });
+
+    if (availability.emailTaken) {
+      const error = new Error("EMAIL_TAKEN");
+      error.code = "EMAIL_TAKEN";
+      throw error;
+    }
+
+    if (availability.usernameTaken) {
+      const error = new Error("USERNAME_TAKEN");
+      error.code = "USERNAME_TAKEN";
+      throw error;
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -109,6 +135,15 @@ export const authService = {
     });
 
     if (error) throw error;
+
+    // Supabase does not error for an already-registered email (to prevent email
+    // enumeration); it returns a user with no identities. Treat that as taken.
+    if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      const takenError = new Error("EMAIL_TAKEN");
+      takenError.code = "EMAIL_TAKEN";
+      throw takenError;
+    }
+
     return data;
   },
 

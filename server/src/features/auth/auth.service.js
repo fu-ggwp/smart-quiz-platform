@@ -110,6 +110,25 @@ export async function updateCurrentProfile(userId, body) {
   return userModel.toPublic(updatedProfile);
 }
 
+export async function checkAvailability(body = {}) {
+  const email = String(body.email ?? "").trim().toLowerCase();
+  const username = String(body.username ?? "").trim();
+
+  const result = { emailTaken: false, usernameTaken: false };
+
+  if (email) {
+    const existingByEmail = await userModel.findByEmail(email);
+    result.emailTaken = Boolean(existingByEmail);
+  }
+
+  if (username) {
+    const existingByUsername = await userModel.findByUsername(username);
+    result.usernameTaken = Boolean(existingByUsername);
+  }
+
+  return result;
+}
+
 export async function switchCurrentRole(userId, body = {}) {
   const targetRole = String(body.role ?? "").trim().toLowerCase();
 

@@ -107,6 +107,24 @@ export default function RegisterPage() {
       router.push("/login");
       router.refresh();
     } catch (error) {
+      if (error?.code === "EMAIL_TAKEN") {
+        setError("email", {
+          type: "server",
+          message: "This email is already associated with another account.",
+        });
+        setFormMessage("This email is already associated with another account.");
+        return;
+      }
+
+      if (error?.code === "USERNAME_TAKEN") {
+        setError("username", {
+          type: "server",
+          message: "This username is already taken.",
+        });
+        setFormMessage("This username is already taken.");
+        return;
+      }
+
       const fields = error?.response?.data?.fields || {};
 
       Object.entries(fields).forEach(([name, message]) => {

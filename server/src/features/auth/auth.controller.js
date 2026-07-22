@@ -1,9 +1,19 @@
 import {
+  checkAvailability,
   getCurrentProfile,
   switchCurrentRole,
   updateCurrentProfile,
 } from "./auth.service.js";
 import { ok, fail } from "../../utils/api-response.js";
+
+export async function availability(req, res) {
+  try {
+    const result = await checkAvailability(req.body);
+    return ok(res, result);
+  } catch (error) {
+    return fail(res, error, error.statusCode || error.status || 500);
+  }
+}
 
 export async function me(req, res) {
   try {

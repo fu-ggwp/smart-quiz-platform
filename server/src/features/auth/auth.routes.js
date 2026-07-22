@@ -1,8 +1,11 @@
 import { Router } from "express";
-import { me, switchRole, updateMe } from "./auth.controller.js";
+import { availability, me, switchRole, updateMe } from "./auth.controller.js";
 import { requireAuth } from "../../middlewares/auth.middleware.js";
 
 const authRouter = Router();
+
+// Public: registration screen checks if an email / username is already used.
+authRouter.post("/check-availability", availability);
 
 authRouter.use(requireAuth);
 
