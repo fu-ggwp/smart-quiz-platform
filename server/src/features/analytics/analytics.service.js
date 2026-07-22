@@ -1,7 +1,10 @@
 import * as dao from "./analytics.dao.js";
+import { ExamResultVisibility } from "../../models/exam.model.js";
 
 const EXAM_MAX_SCORE = 10;
 const DAY_MS = 24 * 60 * 60 * 1000;
+const RECENT_PERFORMANCE_LIMIT = 5;
+const RECENT_SCORE_DAYS = 7;
 
 function asNumber(value) {
   const number = Number(value);
@@ -23,6 +26,16 @@ function addDays(date, count) {
 
 function startOfUtcDay(date) {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+function isInRecentScoreDays(value) {
+  if (!value) return false;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+
+  const today = startOfUtcDay(new Date());
+  const start = addDays(today, -(RECENT_SCORE_DAYS - 1));
+  return date >= start;
 }
 
 function buildDateRange(days) {
@@ -140,6 +153,7 @@ function examScoreItem(attempt) {
   const completedAt = attempt.submitted_at || attempt.started_at;
 
   if (attempt.status !== "submitted" || !completedAt) return null;
+  if (attempt.exam_sessions?.result_visibility === ExamResultVisibility.COMPLETION_ONLY) return null;
 
   const score = asNumber(attempt.total_score);
 
@@ -162,21 +176,34 @@ function buildScoredItems(practiceAttempts, examAttempts) {
     .sort((left, right) => new Date(right.completedAt) - new Date(left.completedAt));
 }
 
+function buildQuizScoreItems(practiceAttempts) {
+  return practiceAttempts
+    .map(practiceScoreItem)
+    .filter(Boolean)
+    .sort((left, right) => new Date(right.completedAt) - new Date(left.completedAt));
+}
+
 function countAnswers(attempts) {
   return attempts.reduce((sum, attempt) => sum + (attempt.attempt_answers?.length || 0), 0);
 }
 
-function buildSnapshot({ practiceAttempts, examAttempts, learningRhythm, scoredItems }) {
+function buildSnapshot({ practiceAttempts, examAttempts, learningRhythm, quizScoreItems }) {
   const activeDaysLast30 = learningRhythm.filter((item) => item.activityCount > 0).length;
   const activityDates = uniqueActivityDates(practiceAttempts, examAttempts);
   const submittedPracticeCount = practiceAttempts.filter((attempt) => attempt.status === "submitted").length;
   const submittedExamAttempts = examAttempts.filter((attempt) => {
     return attempt.status === "submitted";
   });
-  const latestScoredItems = scoredItems.slice(0, 10);
-  const recentScoreTotal = latestScoredItems.reduce((sum, item) => sum + item.score, 0);
-  const recentMaxTotal = latestScoredItems.reduce((sum, item) => sum + item.maxScore, 0);
-  const examScoreTotal = submittedExamAttempts.reduce((sum, attempt) => sum + asNumber(attempt.total_score), 0);
+  const visibleExamAttempts = submittedExamAttempts.filter((attempt) => {
+    return attempt.exam_sessions?.result_visibility !== ExamResultVisibility.COMPLETION_ONLY;
+  });
+  const recentQuizItems = quizScoreItems.filter((item) => isInRecentScoreDays(item.completedAt));
+  const recentExamAttempts = visibleExamAttempts.filter((attempt) => {
+    return isInRecentScoreDays(attempt.submitted_at || attempt.started_at);
+  });
+  const recentScoreTotal = recentQuizItems.reduce((sum, item) => sum + item.score, 0);
+  const recentMaxTotal = recentQuizItems.reduce((sum, item) => sum + item.maxScore, 0);
+  const examScoreTotal = recentExamAttempts.reduce((sum, attempt) => sum + asNumber(attempt.total_score), 0);
 
   return {
     activeDaysLast30,
@@ -185,8 +212,8 @@ function buildSnapshot({ practiceAttempts, examAttempts, learningRhythm, scoredI
     completedActivities: submittedPracticeCount + submittedExamAttempts.length,
     questionsAnswered: countAnswers(practiceAttempts) + countAnswers(examAttempts),
     recentAccuracy: recentMaxTotal > 0 ? Math.round((recentScoreTotal / recentMaxTotal) * 100) : null,
-    averageExamScore: submittedExamAttempts.length > 0
-      ? Math.round((examScoreTotal / submittedExamAttempts.length) * 10) / 10
+    averageExamScore: recentExamAttempts.length > 0
+      ? Math.round((examScoreTotal / recentExamAttempts.length) * 10) / 10
       : null,
   };
 }
@@ -219,11 +246,12 @@ export async function getLearnerProgress(learnerId) {
   const examAttempts = examResult.data || [];
   const learningRhythm = buildLearningRhythm(practiceAttempts, examAttempts);
   const scoredItems = buildScoredItems(practiceAttempts, examAttempts);
+  const quizScoreItems = buildQuizScoreItems(practiceAttempts);
 
   return {
-    snapshot: buildSnapshot({ practiceAttempts, examAttempts, learningRhythm, scoredItems }),
+    snapshot: buildSnapshot({ practiceAttempts, examAttempts, learningRhythm, quizScoreItems }),
     learningRhythm,
-    recentPerformance: scoredItems.slice(0, 10),
+    recentPerformance: scoredItems.slice(0, RECENT_PERFORMANCE_LIMIT),
     learningMix: buildLearningMix(practiceAttempts, examAttempts),
   };
 }

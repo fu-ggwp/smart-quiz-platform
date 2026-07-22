@@ -43,7 +43,8 @@ export function listExamAttemptsForProgress(learnerId) {
       total_score,
       exam_sessions:exam_sessions (
         exam_session_id,
-        title
+        title,
+        result_visibility
       ),
       attempt_answers:${ATTEMPT_ANSWER_TABLE} (
         attempt_answer_id,

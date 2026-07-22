@@ -98,13 +98,13 @@ function snapshotCards(snapshot) {
       icon: Target,
       label: "Recent Accuracy",
       value: formatPercent(snapshot.recentAccuracy),
-      helper: "latest 10 scored activities",
+      helper: "scored quizzes in last 7 days",
     },
     {
       icon: GraduationCap,
       label: "Average Exam Score",
-      value: snapshot.averageExamScore === null ? "No exams yet" : `${formatScore(snapshot.averageExamScore)} / 10`,
-      helper: "submitted exams",
+      value: snapshot.averageExamScore === null ? "No recent exams" : `${formatScore(snapshot.averageExamScore)} / 10`,
+      helper: "visible scores in last 7 days",
     },
   ];
 }
