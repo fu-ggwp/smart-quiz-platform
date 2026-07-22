@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { aiService } from "@/services/ai.service";
 import { questionBanksService } from "@/services/question-banks.service";
 import ConfirmModal from "@/components/common/confirm-modal";
+import { useAuthStore } from "@/stores/auth-store";
 
 import {
   QuestionBankEditorForm,
@@ -34,6 +35,8 @@ export default function EditQuestionBankPage() {
   const params = useParams();
   const questionBankId = useMemo(() => normalizeParamId(params?.id), [params]);
   const detailHref = `/teacher/question-banks/${questionBankId}`;
+  const profile = useAuthStore((state) => state.profile);
+  const refreshProfile = useAuthStore((state) => state.refreshProfile);
   const editor = useQuestionBankEditorState();
   const { setErrors, setForm, setQuestions } = editor;
 
@@ -167,7 +170,8 @@ export default function EditQuestionBankPage() {
         onCancel={() => router.push(detailHref)}
         onDeleteOption={editor.deleteOption}
         onDeleteQuestion={editor.deleteQuestion}
-        onGenerateMaterial={editor.openMaterialGenerator}
+        onDismissSubmitError={editor.dismissSubmitError}
+        onGenerateMaterial={() => editor.openMaterialGenerator(profile, refreshProfile)}
         onImportExcel={editor.openExcelImporter}
         onMetadataChange={editor.handleMetadataChange}
         onOptionChange={editor.updateOption}

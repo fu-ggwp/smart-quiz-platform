@@ -33,7 +33,7 @@ export async function getActiveSubscription(userId) {
 
   return db
     .from(USER_SUBSCRIPTION_TABLE)
-    .select("subscription_id, premium_plan_id")
+    .select("subscription_id, premium_plan_id, end_at")
     .eq("user_id", userId)
     .eq("status", "active")
     .lte("start_at", now)
@@ -57,6 +57,35 @@ export async function userPlanHasFeature(userId, featureCode) {
   if (planError) throw dbError(planError);
 
   return hasFeature(plan?.features, featureCode);
+}
+
+export async function getUserPremiumAccess(userId) {
+  const { data: subscription, error: subscriptionError } =
+    await getActiveSubscription(userId);
+  if (subscriptionError) throw dbError(subscriptionError);
+
+  if (!subscription?.premium_plan_id) {
+    return {
+      active: false,
+      planName: null,
+      expiresAt: null,
+      features: [],
+    };
+  }
+
+  const { data: plan, error: planError } = await db
+    .from(PREMIUM_PLAN_TABLE)
+    .select("plan_name, display_name, features")
+    .eq("premium_plan_id", subscription.premium_plan_id)
+    .maybeSingle();
+  if (planError) throw dbError(planError);
+
+  return {
+    active: true,
+    planName: plan?.display_name || plan?.plan_name || null,
+    expiresAt: subscription.end_at || null,
+    features: normalizeFeatures(plan?.features),
+  };
 }
 
 export async function requirePremiumFeature(userId, featureCode, message) {

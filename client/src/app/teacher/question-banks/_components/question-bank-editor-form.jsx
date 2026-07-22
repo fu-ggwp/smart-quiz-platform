@@ -1,13 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowLeft, ChevronDown, ChevronRight, FileSpreadsheet, Loader2, Plus, Save, Sparkles } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronRight, FileSpreadsheet, Loader2, Plus, Save, Sparkles, X } from "lucide-react";
 
 import ExcelImporter from "@/components/question-creator/excel-importer";
 import MaterialQuestionGenerator from "@/components/question-creator/material-question-generator";
 import QuestionCardEditor from "@/components/question-creator/question-card-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PREMIUM_REQUIRED_MESSAGE } from "@/lib/premium";
 
 import { getQuestionChapterLabel, groupQuestionsByChapter } from "../_lib/question-bank-editor";
 
@@ -38,6 +40,7 @@ export function QuestionBankEditorForm({
   onCancel,
   onDeleteOption,
   onDeleteQuestion,
+  onDismissSubmitError,
   onGenerateMaterial,
   onImportExcel,
   onMetadataChange,
@@ -76,12 +79,6 @@ export function QuestionBankEditorForm({
           </div>
           {actionSlot}
         </header>
-
-        {errors.submit && (
-          <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {errors.submit}
-          </div>
-        )}
 
         <form onSubmit={onSubmit} className="space-y-6">
           {/* Question Bank Details */}
@@ -125,6 +122,31 @@ export function QuestionBankEditorForm({
               </div>
             </div>
           </section>
+
+          {errors.submit && (
+            <div className="flex flex-col justify-between gap-4 rounded-2xl border border-error/20 bg-error/10 px-4 py-3.5 text-sm font-medium text-error sm:flex-row sm:items-center">
+              <span>{errors.submit}</span>
+              <div className="flex shrink-0 items-center gap-2">
+                {errors.submit === PREMIUM_REQUIRED_MESSAGE && (
+                  <Link
+                    href="/plans"
+                    className="inline-flex items-center justify-center rounded-xl bg-destructive px-4 py-2.5 text-center text-xs font-bold text-primary-foreground shadow-sm transition-colors hover:bg-destructive/90"
+                  >
+                    Upgrade Now
+                  </Link>
+                )}
+                <Button
+                  aria-label="Dismiss message"
+                  className="size-9 rounded-xl p-0 text-error hover:bg-error/10 hover:text-error"
+                  onClick={onDismissSubmitError}
+                  type="button"
+                  variant="ghost"
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Question Editor Tools */}
           <section className="space-y-6">

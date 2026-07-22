@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 
+import {
+  canUsePremiumFeature,
+  PREMIUM_FEATURES,
+  PREMIUM_REQUIRED_MESSAGE,
+} from "@/lib/premium";
+
 export const initialQuestionBankForm = {
   title: "",
   description: "",
@@ -224,6 +230,14 @@ export function useQuestionBankEditorState({
     });
   }
 
+  function dismissSubmitError() {
+    setErrors((current) => {
+      const next = { ...current };
+      delete next.submit;
+      return next;
+    });
+  }
+
   function handleMetadataChange(event) {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
@@ -317,13 +331,28 @@ export function useQuestionBankEditorState({
     closeMaterialGenerator: () => setShowMaterialGenerator(false),
     deleteOption,
     deleteQuestion,
+    dismissSubmitError,
     errors,
     form,
     handleGeneratedQuestions,
     handleImportedQuestions,
     handleMetadataChange,
     openExcelImporter: () => setShowExcelImporter(true),
-    openMaterialGenerator: () => setShowMaterialGenerator(true),
+    openMaterialGenerator: async (profile, refreshProfile) => {
+      const currentProfile = profile?.premium ? profile : await refreshProfile?.();
+
+      if (!canUsePremiumFeature(currentProfile, PREMIUM_FEATURES.AI_GENERATE_FROM_MATERIAL)) {
+        setErrors((current) => ({ ...current, submit: PREMIUM_REQUIRED_MESSAGE }));
+        return;
+      }
+
+      setErrors((current) => {
+        const next = { ...current };
+        delete next.submit;
+        return next;
+      });
+      setShowMaterialGenerator(true);
+    },
     questions,
     setErrors,
     setForm,

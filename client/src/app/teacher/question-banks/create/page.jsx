@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 
 import { aiService } from "@/services/ai.service";
 import { questionBanksService } from "@/services/question-banks.service";
+import { useAuthStore } from "@/stores/auth-store";
 
 import {
   QuestionBankEditorForm,
@@ -20,6 +21,8 @@ import {
  */
 export default function CreateQuestionBankPage() {
   const router = useRouter();
+  const profile = useAuthStore((state) => state.profile);
+  const refreshProfile = useAuthStore((state) => state.refreshProfile);
   const editor = useQuestionBankEditorState();
   const { handleSubmit, submitting } = useQuestionBankEditorSubmit({
     editor,
@@ -43,7 +46,8 @@ export default function CreateQuestionBankPage() {
         onCancel={() => router.push("/teacher/question-banks")}
         onDeleteOption={editor.deleteOption}
         onDeleteQuestion={editor.deleteQuestion}
-        onGenerateMaterial={editor.openMaterialGenerator}
+        onDismissSubmitError={editor.dismissSubmitError}
+        onGenerateMaterial={() => editor.openMaterialGenerator(profile, refreshProfile)}
         onImportExcel={editor.openExcelImporter}
         onMetadataChange={editor.handleMetadataChange}
         onOptionChange={editor.updateOption}

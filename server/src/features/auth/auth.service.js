@@ -1,5 +1,6 @@
 import { supabase } from "../../config/supabase.js";
 import { createUserModel, userColumns } from "../../models/user.model.js";
+import { getUserPremiumAccess } from "../../utils/premium-access.js";
 
 const db = supabase;
 const userModel = createUserModel(db);
@@ -20,7 +21,10 @@ export async function getCurrentProfile(userId) {
     throw serviceError("Account profile was not found.", 404);
   }
 
-  return userModel.toPublic(profile);
+  return {
+    ...userModel.toPublic(profile),
+    premium: await getUserPremiumAccess(userId),
+  };
 }
 
 async function buildProfileChanges(userId, body = {}) {
