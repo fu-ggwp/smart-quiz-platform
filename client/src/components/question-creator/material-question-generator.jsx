@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import QuestionCardEditor from "@/components/question-creator/question-card-editor";
 
 const acceptedTypes = ["application/pdf"];
+const maxQuestionCount = 20;
 
 /**
  * Read an API error from either validation or AI service failure responses.
@@ -85,9 +86,9 @@ export default function MaterialQuestionGenerator({
       return;
     }
 
-    if (count > 25) {
+    if (count > maxQuestionCount) {
       setError(
-        "The system limits generation to 25 questions to ensure question quality.",
+        `The system limits generation to ${maxQuestionCount} questions to ensure question quality.`,
       );
       return;
     }
@@ -186,6 +187,8 @@ export default function MaterialQuestionGenerator({
             </label>
             <Input
               type="number"
+              min="1"
+              max={maxQuestionCount}
               value={questionCount}
               onChange={(event) => setQuestionCount(event.target.value)}
             />

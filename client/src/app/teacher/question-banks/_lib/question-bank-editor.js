@@ -370,13 +370,17 @@ export function useQuestionBankEditorState({
  */
 export function useQuestionBankEditorSubmit({ editor, fallbackErrorMessage, onSave, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
+  const [errorScrollSignal, setErrorScrollSignal] = useState(0);
 
   async function handleSubmit(event) {
     event.preventDefault();
 
     const nextErrors = validateQuestionBankEditor(editor.form, editor.questions);
     editor.setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
+    if (Object.keys(nextErrors).length > 0) {
+      setErrorScrollSignal((current) => current + 1);
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -390,10 +394,11 @@ export function useQuestionBankEditorSubmit({ editor, fallbackErrorMessage, onSa
           ? "Please review the highlighted fields."
           : err.response?.data?.error || err.message || fallbackErrorMessage,
       });
+      setErrorScrollSignal((current) => current + 1);
     } finally {
       setSubmitting(false);
     }
   }
 
-  return { handleSubmit, submitting };
+  return { errorScrollSignal, handleSubmit, submitting };
 }

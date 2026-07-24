@@ -1,4 +1,4 @@
-# Smart Quiz Platform
+# Online Study Platform
 
 A web-based platform that helps teachers create classes, manage question banks and study sets, and lets learners practice and take exams with AI-assisted support.
 
@@ -12,7 +12,7 @@ A web-based platform that helps teachers create classes, manage question banks a
 ## Project Structure
 
 ```
-smart-quiz-platform/
+online-study-platform/
 ├── client/        # Next.js frontend
 ├── server/        # Express.js backend (feature-folder architecture)
 ├── docs/          # Documentation
@@ -30,8 +30,8 @@ smart-quiz-platform/
 ### Installation
 
 ```
-git clone https://github.com/fu-ggwp/smart-quiz-platform.git
-cd smart-quiz-platform
+git clone https://github.com/fu-ggwp/online-study-platform.git
+cd online-study-platform
 npm install
 ```
 
@@ -73,6 +73,7 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
+
 ### Running the project
 
 # Backend

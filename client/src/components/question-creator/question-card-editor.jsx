@@ -11,6 +11,7 @@ export default function QuestionCardEditor({
   question,
   qIndex,
   errors = {},
+  hasError = false,
   onFieldChange = () => {},
   onDelete = () => {},
   onAddOption = () => {},
@@ -22,7 +23,11 @@ export default function QuestionCardEditor({
   const options = question.options || question.answer_options || [];
 
   return (
-    <div className="relative rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
+    <div
+      className="relative rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4"
+      data-editor-error={hasError ? "true" : undefined}
+      tabIndex={hasError ? -1 : undefined}
+    >
 
       {/* Header bar of question card */}
       <div className="flex items-center justify-between border-b border-border pb-3">

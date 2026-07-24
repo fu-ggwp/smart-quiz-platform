@@ -24,7 +24,7 @@ export default function CreateQuestionBankPage() {
   const profile = useAuthStore((state) => state.profile);
   const refreshProfile = useAuthStore((state) => state.refreshProfile);
   const editor = useQuestionBankEditorState();
-  const { handleSubmit, submitting } = useQuestionBankEditorSubmit({
+  const { errorScrollSignal, handleSubmit, submitting } = useQuestionBankEditorSubmit({
     editor,
     fallbackErrorMessage: "Question bank could not be created.",
     onSave: questionBanksService.create,
@@ -39,6 +39,7 @@ export default function CreateQuestionBankPage() {
       {/* Create Editor */}
       <QuestionBankEditorForm
         errors={editor.errors}
+        errorScrollSignal={errorScrollSignal}
         form={editor.form}
         mode="create"
         onAddOption={editor.addOption}

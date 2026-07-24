@@ -275,7 +275,7 @@ export async function generateQuestionsFromMaterial(userId, { file, questionCoun
       config: {
         responseMimeType: "application/json",
         responseJsonSchema: generatedQuestionsSchema,
-        temperature: 0.0,
+        temperature: 1.0,
       },
     });
 

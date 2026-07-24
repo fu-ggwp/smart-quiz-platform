@@ -48,7 +48,7 @@ export default function EditQuestionBankPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Submit hook sends the whole editor draft so the backend can sync questions exactly.
-  const { handleSubmit } = useQuestionBankEditorSubmit({
+  const { errorScrollSignal, handleSubmit } = useQuestionBankEditorSubmit({
     editor,
     fallbackErrorMessage: "Question bank could not be updated.",
     onSave: (payload) => questionBanksService.update(questionBankId, payload),
@@ -163,6 +163,7 @@ export default function EditQuestionBankPage() {
           </Button>
         }
         errors={editor.errors}
+        errorScrollSignal={errorScrollSignal}
         form={editor.form}
         mode="edit"
         onAddOption={editor.addOption}

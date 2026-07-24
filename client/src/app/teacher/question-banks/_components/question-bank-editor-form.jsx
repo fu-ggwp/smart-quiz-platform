@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ChevronDown, ChevronRight, FileSpreadsheet, Loader2, Plus, Save, Sparkles, X } from "lucide-react";
 
 import ExcelImporter from "@/components/question-creator/excel-importer";
@@ -33,6 +33,7 @@ export function QuestionBankEditorForm({
   actionSlot,
   backLabel = "Back",
   errors = {},
+  errorScrollSignal = 0,
   form,
   mode,
   onAddOption,
@@ -51,6 +52,8 @@ export function QuestionBankEditorForm({
   submitting,
 }) {
   const copy = labels[mode] || labels.edit;
+  const formRef = useRef(null);
+  const submitErrorRef = useRef(null);
   const [collapsedChapters, setCollapsedChapters] = useState({});
 
   // Group by chapter for readability, while each item keeps its original draft index.
@@ -58,6 +61,35 @@ export function QuestionBankEditorForm({
     () => groupQuestionsByChapter(questions, (question) => question.groupChapter || getQuestionChapterLabel(question)),
     [questions],
   );
+
+  const erroredChapters = useMemo(() => {
+    const chapters = new Set();
+
+    Object.keys(errors).forEach((key) => {
+      const match = key.match(/^q_(\d+)_/);
+      if (!match) return;
+
+      const question = questions[Number(match[1])];
+      const chapter = question?.groupChapter || getQuestionChapterLabel(question);
+      if (chapter) chapters.add(chapter);
+    });
+
+    return chapters;
+  }, [errors, questions]);
+
+  useEffect(() => {
+    if (!errorScrollSignal) return;
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const target = formRef.current?.querySelector('[data-editor-error="true"]');
+        if (!target) return;
+
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.focus({ preventScroll: true });
+      });
+    });
+  }, [errorScrollSignal]);
 
   function toggleChapter(chapter) {
     setCollapsedChapters((current) => ({
@@ -80,13 +112,17 @@ export function QuestionBankEditorForm({
           {actionSlot}
         </header>
 
-        <form onSubmit={onSubmit} className="space-y-6">
+        <form ref={formRef} onSubmit={onSubmit} className="space-y-6">
           {/* Question Bank Details */}
           <section className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
             <h2 className="border-b border-border pb-2 text-lg font-bold text-foreground">Question Bank Details</h2>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-1.5 md:col-span-2">
+              <div
+                className="space-y-1.5 md:col-span-2"
+                data-editor-error={errors.title ? "true" : undefined}
+                tabIndex={errors.title ? -1 : undefined}
+              >
                 <label className="text-sm font-semibold text-foreground">Title <span className="text-error">*</span></label>
                 <Input name="title" placeholder="e.g. Grade 10 Algebra" value={form.title} onChange={onMetadataChange} />
                 {errors.title && <p className="text-xs font-semibold text-error">{errors.title}</p>}
@@ -124,7 +160,14 @@ export function QuestionBankEditorForm({
           </section>
 
           {errors.submit && (
-            <div className="flex flex-col justify-between gap-4 rounded-2xl border border-error/20 bg-error/10 px-4 py-3.5 text-sm font-medium text-error sm:flex-row sm:items-center">
+            <div
+              ref={submitErrorRef}
+              aria-live="assertive"
+              className="flex flex-col justify-between gap-4 rounded-2xl border border-error/20 bg-error/10 px-4 py-3.5 text-sm font-medium text-error sm:flex-row sm:items-center"
+              data-editor-error="true"
+              role="alert"
+              tabIndex={-1}
+            >
               <span>{errors.submit}</span>
               <div className="flex shrink-0 items-center gap-2">
                 {errors.submit === PREMIUM_REQUIRED_MESSAGE && (
@@ -174,7 +217,7 @@ export function QuestionBankEditorForm({
               /* Questions Grouped by Chapter */
               <div className="space-y-6">
                 {questionGroups.map((group) => {
-                  const isExpanded = !collapsedChapters[group.chapter];
+                  const isExpanded = !collapsedChapters[group.chapter] || erroredChapters.has(group.chapter);
 
                   return (
                     <section key={group.chapter} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -200,6 +243,7 @@ export function QuestionBankEditorForm({
                               question={question}
                               qIndex={index}
                               errors={errors}
+                              hasError={Boolean(errors[`q_${index}_text`] || errors[`q_${index}_options`])}
                               onFieldChange={(field, value) => onQuestionFieldChange(index, field, value)}
                               onDelete={() => onDeleteQuestion(index)}
                               onAddOption={() => onAddOption(index)}

@@ -1,6 +1,7 @@
 import { httpError } from "../../utils/api-response.js";
 
 const supportedMaterialType = "application/pdf";
+const maxQuestionCount = 20;
 
 function normalizeText(value) {
   if (value === undefined) return undefined;
@@ -33,8 +34,8 @@ export function validateGenerateMaterialPayload(body = {}, file) {
 
   if (!Number.isInteger(questionCount) || questionCount < 1) {
     errors.questionCount = "Desired question count must be at least 1.";
-  } else if (questionCount > 25) {
-    errors.questionCount = "The system limits generation to 25 questions to ensure question quality.";
+  } else if (questionCount > maxQuestionCount) {
+    errors.questionCount = `The system limits generation to ${maxQuestionCount} questions to ensure question quality.`;
   }
 
   if (Object.keys(errors).length > 0) {
